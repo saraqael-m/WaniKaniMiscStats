@@ -363,6 +363,7 @@ async function getAPIToken() {
     const errorDiv = document.getElementById("errordiv");
 
     if (test["object"] == "radical") {
+        document.cookie = apiToken;
         errorDiv.innerHTML = "Success!"
         userinfo();
         reviewinfo();
@@ -371,4 +372,10 @@ async function getAPIToken() {
     } else {
         errorDiv.innerHTML = "Error (Code " + test["code"] + "): " + test["error"];
     }
+}
+
+let decodedCookie = decodeURIComponent(document.cookie);
+if (decodedCookie != "") {
+    document.getElementById("tokeninput").value = decodedCookie;
+    getAPIToken();
 }
