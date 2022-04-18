@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html>
+	<head>
+		<title>WaniKani Stats</title>
+		<link href="style.css" rel="stylesheet" type="text/css">
+		<meta charset="UTF-8">
+		<meta name="description" content="Display your WaniKani stats!">
+		<meta name="author" content="Sahaquiel">
+		<meta name="keywords" content="wanikani api stats statistics">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	</head>
+	<body>
+		<h1 class="heading">WaniKani Info</h1>
+		<hr />
+		<input type="text" placeholder="input API Token V2 here" id="tokeninput" style="width: 300px">
+		<button type="button" onclick="getAPIToken();">Get Statistics</button>
+		<div id="errordiv"></div>
+		<h2 class="heading">User Info</h2>
+		<pre style="color:black" class="userinfo"></pre>
+		<h2 class="heading">Level Info</h2>
+		<div id="leveltimechart" style="width: 750px; height: 333px"></div>
+		<pre id="future"></pre>
+		<h2 class="heading">Review Info</h2>
+		<div id="reviewchart" style="width: 1000px; height: 333px"></div>
+		<div id="totalchart" style="width: 1000px; height: 333px"></div>
+		<h2 class="heading">Word Info</h2>
+		<h4 class="heading">Best Words (highest correct to incorrect ratio)</h4>
+		<pre id="topwords"></pre>
+		<h4 class="heading">Worst Words (lowest correct to incorrect ratio)</h4>
+		<pre id="worstwords"></pre>
+
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script src="main.js"></script>
+	</body>
+</html>
