@@ -12,33 +12,45 @@
 <body>
 	<h1 class="heading">WaniKani Info</h1>
 	<hr />
+
 	<input type="text" placeholder="input API Token V2 here" id="tokeninput" style="width: 300px">
 	<button type="button" onclick="getAPIToken();">Get Statistics</button>
 	<div id="errordiv"></div>
+
 	<h2 class="heading">User Info</h2>
 	<pre style="color:black" class="userinfo"></pre>
+
 	<h2 class="heading">Level Info</h2>
 	<div id="leveltimechart" style="width: 750px; height: 333px"></div>
 	<pre id="future"></pre>
+
 	<h2 class="heading">Review Info</h2>
+	<div id="srschart2" style="width: 1000px; height: 333px"></div>
+	<div id="srschart" style="width: 1000px; height: 333px"></div>
 	<div id="reviewchart" style="width: 1000px; height: 333px"></div>
 	<div id="totalchart" style="width: 1000px; height: 333px"></div>
+
 	<h2 class="heading">Word Info</h2>
+	<div id="percentagechart" style="width: 750px; height: 333px"></div>
+
 	<h4>Radicals</h4>
 	<h6 class="heading">Wall of Fame (highest correct to incorrect ratio)</h6>
 	<pre id="topwordsradical"></pre>
 	<h6 class="heading">Wall of Shame (lowest correct to incorrect ratio)</h6>
 	<pre id="worstwordsradical"></pre>
+
 	<h4>Kanji</h4>
 	<h6 class="heading">Wall of Fame (highest correct to incorrect ratio)</h6>
 	<pre id="topwordskanji"></pre>
 	<h6 class="heading">Wall of Shame (lowest correct to incorrect ratio)</h6>
 	<pre id="worstwordskanji"></pre>
+
 	<h4>Vocabulary</h4>
 	<h6 class="heading">Wall of Fame (highest correct to incorrect ratio)</h6>
 	<pre id="topwordsvocab"></pre>
 	<h6 class="heading">Wall of Shame (lowest correct to incorrect ratio)</h6>
 	<pre id="worstwordsvocab"></pre>
+
 	<h4>All</h4>
 	<h6 class="heading">Wall of Fame (highest correct to incorrect ratio)</h6>
 	<pre id="topwords"></pre>

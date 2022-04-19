@@ -36,8 +36,10 @@ async function reviewinfo() {
     var loops = Math.ceil(totPages / perPages);
     var reviewData = data["data"];
     var orderedData = [["Date", "Reviews"]];
+    var srsStages = [["Date", "Apprentice", "Guru", "Master", "Enlightened", "Burned"], [0,0,0,0,0,0]]
     var currentData;
     var date;
+    var type;
     var newDate;
     var j;
     var found;
@@ -48,11 +50,50 @@ async function reviewinfo() {
             currentData = currentData["data"];
             date = new Date(currentData["created_at"].substring(0, 10));
             found = orderedData.findIndex(element => (element[0].valueOf() == date.valueOf()));
+            foundSrs = srsStages.findIndex(element => (element[0].valueOf() == date.valueOf()));
+            typeStart = currentData["starting_srs_stage"];
+            if (typeStart == 1) {
+                typeStart = 0;
+            } else if (typeStart <= 4) {
+                typeStart = 1;
+            } else if (typeStart <= 6) {
+                typeStart = 2;
+            } else if (typeStart == 7) {
+                typeStart = 3;
+            } else if (typeStart == 8) {
+                typeStart = 4
+            } else {
+                typeStart = 5
+            }
+            typeEnd = currentData["ending_srs_stage"];
+            if (typeEnd <= 4) {
+                typeEnd = 1;
+            } else if (typeEnd <= 6) {
+                typeEnd = 2;
+            } else if (typeEnd == 7) {
+                typeEnd = 3;
+            } else if (typeEnd == 8) {
+                typeEnd = 4
+            } else {
+                typeEnd = 5
+            }
             if (found != -1) {
                 orderedData[found][1]++;
             } else {
                 newDate = [date, 1];
                 orderedData.push(newDate);
+            }
+            if (foundSrs == -1) {
+                newDate = [...srsStages[srsStages.length - 1]];
+                newDate[0] = date;
+                srsStages.push(newDate);
+                foundSrs = srsStages.length - 1
+            }
+            if (typeStart != 0) {
+                srsStages[foundSrs][typeStart]--;
+            }
+            if (typeEnd != 0) {
+                srsStages[foundSrs][typeEnd]++;
             }
             j++;
             currentData = reviewData[j];
@@ -71,13 +112,15 @@ async function reviewinfo() {
         data = await promise;
         reviewData = data["data"];
     }
+    srsStages.splice(1, 1);
     console.log(orderedData);
+    console.log(srsStages);
 
     // create chart
     var chartData = google.visualization.arrayToDataTable(orderedData);
     var options = {
         title: 'Reviews Per Day',
-        curveType: 'none',
+        curveType: 'none'
     };
     var chartDiv = document.getElementById('reviewchart');
     var chart = new google.visualization.LineChart(chartDiv);
@@ -96,9 +139,31 @@ async function reviewinfo() {
     chartData = google.visualization.arrayToDataTable(totalReviews);
     options = {
         title: 'Total Reviews',
-        curveType: 'none',
+        curveType: 'none'
     };
     chartDiv = document.getElementById('totalchart');
+    chart = new google.visualization.LineChart(chartDiv);
+    chart.draw(chartData, options);
+
+    // third chart
+    chartData = google.visualization.arrayToDataTable(srsStages);
+    var options = {
+        title: "Item Types Stacked",
+        legend: { position: 'bottom' },
+        connectSteps: true,
+        colors: ['pink', 'purple', 'darkblue', 'lightblue', 'black'],
+        isStacked: true
+    };
+    chartDiv = document.getElementById('srschart');
+    chart = new google.visualization.SteppedAreaChart(chartDiv);
+    chart.draw(chartData, options);
+
+    // fourth chart
+    var options = {
+        title: "Item Types",
+        colors: ['pink', 'purple', 'darkblue', 'lightblue', 'black']
+    };
+    chartDiv = document.getElementById('srschart2');
     chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
 }
@@ -168,6 +233,8 @@ async function wordinfo() {
     // create array
     var j;
     var kd;
+    var percentages = [["Date", "Accuracy"]];
+    var totals = [["Date", "Accuracy"]];
     var bestWords = [[-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0]];
     var worstWords = [[2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0]];
     var bestWordsR = [[-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0]];
@@ -177,7 +244,9 @@ async function wordinfo() {
     var bestWordsV = [[-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0]];
     var worstWordsV = [[2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0]];
     var c = 0;
+    var foundDate;
     var type;
+    var date;
     var id;
     var cor;
     var inc;
@@ -187,6 +256,7 @@ async function wordinfo() {
         currentData = wordData[0];
         while (currentData != null) {
             c++;
+            updatedAt = currentData["data_updated_at"];
             currentData = currentData["data"];
             id = currentData["subject_id"];
             if (used.findIndex(element => (element == id)) != -1) {
@@ -197,7 +267,8 @@ async function wordinfo() {
             } else {
                 used.push(id);
             }
-            kd = (currentData["meaning_correct"] / (currentData["meaning_incorrect"] + currentData["meaning_correct"]) + currentData["reading_correct"] / (currentData["reading_incorrect"] + currentData["reading_correct"])) / 2
+            kdHun = currentData["percentage_correct"];
+            kd = kdHun / 100;
             kdWeight = (currentData["meaning_correct"] / (currentData["meaning_incorrect"] + currentData["meaning_correct"] + 0.01) + currentData["reading_correct"] / (currentData["reading_incorrect"] + currentData["reading_correct"] + 0.01)) / 2
             foundBest = bestWords.findIndex(element => (element[0] < kdWeight));
             foundWorst = worstWords.findIndex(element => (element[0] > kdWeight));
@@ -210,6 +281,16 @@ async function wordinfo() {
             type = currentData["subject_type"]
             cor = currentData["meaning_correct"] + currentData["reading_correct"];
             inc = currentData["meaning_incorrect"] + currentData["reading_incorrect"];
+            date = new Date(updatedAt.substring(0, 10));
+            console.log(date, percentages);
+            foundDate = percentages.findIndex(element => (element[0].valueOf() == date.valueOf()));
+            if (foundDate == -1) {
+                percentages.push([date, kdHun]);
+                totals.push([date, 1]);
+            } else {
+                percentages[foundDate][1] += kdHun;
+                totals[foundDate][1]++;
+            }
             if (foundBest != -1) {
                 bestWords[foundBest] = [kdWeight, kd, id, cor, inc];
             }
@@ -249,10 +330,23 @@ async function wordinfo() {
         data = await promise;
         reviewData = data["data"];
     }
-    console.log(bestWordsK);
-    console.log(bestWordsK);
-    console.log(bestWordsK);
+    for (let i = 1; i < percentages.length; i++) {
+        percentages[i][1] /= totals[i][1];
+    }
+    percentages.sort((a, b) => {
+        return a[0].valueOf() - b[0].valueOf();
+    });
+    console.log(percentages);
 
+    // create chart
+    var chartData = google.visualization.arrayToDataTable(percentages);
+    var options = {
+        title: 'Accuracy',
+        curveType: 'none',
+    };
+    var chartDiv = document.getElementById('percentagechart');
+    var chart = new google.visualization.LineChart(chartDiv);
+    chart.draw(chartData, options);
     // create numbering all
     wordsLbl = "";
     for (let i = 0; i < bestWords.length; i++) {
