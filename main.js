@@ -63,9 +63,7 @@ async function reviewinfo() {
             found = orderedData.findIndex(element => (element[0].valueOf() == date.valueOf()));
             foundSrs = srsStages.findIndex(element => (element[0].valueOf() == date.valueOf()));
             typeStart = currentData["starting_srs_stage"];
-            if (typeStart == 1) {
-                typeStart = 0;
-            } else if (typeStart <= 4) {
+            if (typeStart <= 4) {
                 typeStart = 1;
             } else if (typeStart <= 6) {
                 typeStart = 2;
@@ -100,16 +98,12 @@ async function reviewinfo() {
                 srsStages.push(newDate);
                 foundSrs = srsStages.length - 1
             }
-            if (usedIds.findIndex(element => element == subId) != -1) {
-                if (typeStart != 0) {
-                    srsStages[foundSrs][typeStart]--;
-                }
-            } else {
+            srsStages[foundSrs][typeStart]--;
+            if (usedIds.findIndex(element => element == subId) == -1) {
                 usedIds.push(subId);
+                srsStages[foundSrs][typeStart]++;
             }
-            if (typeEnd != 0) {
-                srsStages[foundSrs][typeEnd]++;
-            }
+            srsStages[foundSrs][typeEnd]++;
             j++;
             currentData = reviewData[j];
         }
