@@ -24,30 +24,40 @@ async function userinfo() {
 }
 
 async function reviewinfo() {
-    let promise = fetch(new Request('https://api.wanikani.com/v2/reviews', {method: 'GET', headers: requestHeaders}))
+    var until = new Date(new Date().setMonth(new Date().getMonth() - 15));
+    until = until.toISOString();
+    console.log(until);
+    let promise = fetch(new Request('https://api.wanikani.com/v2/reviews'+'?updated_after='+until, {method: 'GET', headers: requestHeaders}))
         .then(response => response.json())
         .then(responseBody => responseBody);
     var data = await promise;
+    let firstId = data["data"][0]["id"];
+    let promiseNew = fetch(new Request('https://api.wanikani.com/v2/reviews' + '?page_after_id=' + firstId, { method: 'GET', headers: requestHeaders }))
+        .then(response => response.json())
+        .then(responseBody => responseBody);
+    var data = await promiseNew;
 
     // create array
-    console.log(data);
     var totPages = data["total_count"];
     var perPages = data["pages"]["per_page"]
     var loops = Math.ceil(totPages / perPages);
+    console.log(loops);
     var reviewData = data["data"];
     var orderedData = [["Date", "Reviews"]];
     var srsStages = [["Date", "Apprentice", "Guru", "Master", "Enlightened", "Burned"], [0,0,0,0,0,0]]
     var currentData;
     var date;
-    var type;
+    var usedIds = [];
     var newDate;
     var j;
+    var loadingLbl = document.getElementById("reviewloading");
     var found;
     for (let i = 0; i < loops; i++) {
         j = 0;
         currentData = reviewData[0];
         while (currentData != null) {
             currentData = currentData["data"];
+            subId = currentData["subject_id"];
             date = new Date(currentData["created_at"].substring(0, 10));
             found = orderedData.findIndex(element => (element[0].valueOf() == date.valueOf()));
             foundSrs = srsStages.findIndex(element => (element[0].valueOf() == date.valueOf()));
@@ -89,8 +99,12 @@ async function reviewinfo() {
                 srsStages.push(newDate);
                 foundSrs = srsStages.length - 1
             }
-            if (typeStart != 0) {
-                srsStages[foundSrs][typeStart]--;
+            if (usedIds.findIndex(element => element == subId) != -1) {
+                if (typeStart != 0) {
+                    srsStages[foundSrs][typeStart]--;
+                }
+            } else {
+                usedIds.push(subId);
             }
             if (typeEnd != 0) {
                 srsStages[foundSrs][typeEnd]++;
@@ -99,19 +113,28 @@ async function reviewinfo() {
             currentData = reviewData[j];
         }
         let nextURL = data["pages"]["next_url"];
-        console.log(nextURL);
+        loadingLbl.innerHTML = "Loading Data Arrays: " + (i+1) + " (this can take a short while)";
         if (nextURL == null) { break; }
         var apiEndpoint =
             new Request(nextURL, {
                 method: 'GET',
                 headers: requestHeaders
             });
-        let promise = fetch(apiEndpoint)
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        data = await promise;
+        while (1) {
+            let promise = fetch(apiEndpoint)
+                .then(response => response.json())
+                .then(responseBody => responseBody);
+            data = await promise;
+            console.log(data,data["code"])
+            if (data["code"] == 429) {
+                await new Promise(r => setTimeout(r, 10000));
+                continue;
+            }
+            break;
+        }
         reviewData = data["data"];
     }
+    loadingLbl.innerHTML = "Loading Success!";
     srsStages.splice(1, 1);
     console.log(orderedData);
     console.log(srsStages);
@@ -166,6 +189,7 @@ async function reviewinfo() {
     chartDiv = document.getElementById('srschart2');
     chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
+    loadingLbl.innerHTML = "";
 }
 
 async function levelinfo() {
@@ -177,25 +201,43 @@ async function levelinfo() {
     console.log(levelData)
 
     // create array
+    // get resets
+    let promiseReset = fetch(new Request('https://api.wanikani.com/v2/resets', { method: 'GET', headers: requestHeaders }))
+        .then(response => response.json())
+        .then(responseBody => responseBody);
+    var resetData = await promiseReset;
+    resetData = resetData["data"];
+    var resets = [];
+    for (let i = 0; i < resetData.length; i++) {
+        target = resetData[i]["data"]["target_level"];
+        resets.push([target, resetData[i]["data"]["original_level"] - target + 1]);
+    }
+    resets.sort((a, b) => {return a[0] - b[0];});
+    console.log(resets);
+    // rest
     var chartData = [["Level", "Length"]];
     var currentLevel = levelData[0];
-    var prevDate = new Date(currentLevel["data"]["created_at"]);
-    var firstDate = new Date(prevDate.getTime())
+    var firstDate = new Date(currentLevel["data"]["started_at"]);
     var j = 1;
+    var level = 1;
     var date;
     currentLevel = levelData[1];
     while (currentLevel != null) {
-        if (currentLevel["data"]["abandoned_at"] != null) {
-            j++;
-            prevDate = new Date(levelData[j]["data"]["created_at"]);
-            firstDate = new Date(prevDate.getTime());
-            chartDate = [];
+        resetIndex = resets.findIndex(element => element[0] == j+1)
+        if (resetIndex != -1) {
+            j += resets[resetIndex][1];
+            chartData.splice(-1);
         }
-        date = new Date(currentLevel["data"]["created_at"]);
-        chartData.push([j, (date.getTime() - prevDate.getTime()) / (3600000 * 24)]);
+        dateBefore = new Date(currentLevel["data"]["started_at"]);
+        after = currentLevel["data"]["passed_at"];
+        if (after != null) {
+            dateAfter = new Date(after);
+        } else {
+            dateAfter = new Date(Date.now());
+        }
+        chartData.push([level, (dateAfter.getTime() - dateBefore.getTime()) / (3600000 * 24)]);
         j++;
-        prevDate = new Date(date.getTime());
-        console.log(prevDate, date);
+        level++;
         currentLevel = levelData[j];
     }
     console.log(chartData);
@@ -212,7 +254,7 @@ async function levelinfo() {
     chart.draw(chartData, options);
 
     // projection
-    var time = (date.getTime() - firstDate.getTime()) / (3600000 * 24);
+    var time = (dateAfter.getTime() - firstDate.getTime()) / (3600000 * 24);
     var level = j;
     var average = parseInt(time * 60 / level - time); // extrapolating average time until now
     var lbl = document.getElementById("future");
@@ -228,7 +270,6 @@ async function wordinfo() {
     var totPages = data["total_count"];
     var perPages = data["pages"]["per_page"]
     var loops = Math.ceil(totPages / perPages);
-    console.log(data);
 
     // create array
     var j;
@@ -282,7 +323,6 @@ async function wordinfo() {
             cor = currentData["meaning_correct"] + currentData["reading_correct"];
             inc = currentData["meaning_incorrect"] + currentData["reading_incorrect"];
             date = new Date(updatedAt.substring(0, 10));
-            console.log(date, percentages);
             foundDate = percentages.findIndex(element => (element[0].valueOf() == date.valueOf()));
             if (foundDate == -1) {
                 percentages.push([date, kdHun]);
@@ -305,7 +345,6 @@ async function wordinfo() {
                 worstWords[foundWorst] = [kdWeight, kd, id, cor, inc];
             }
             if (type == "radical" && foundWorstR != -1) {
-                console.log(currentData);
                 worstWordsR[foundWorstR] = [kdWeight, kd, id, cor, inc];
             } else if (type == "kanji" && foundWorstK != -1) {
                 worstWordsK[foundWorstK] = [kdWeight, kd, id, cor, inc];
@@ -317,7 +356,6 @@ async function wordinfo() {
             if (c >= totPages) { break; }
         }
         let nextURL = data["pages"]["next_url"];
-        console.log(nextURL);
         if (nextURL == null) { break; }
         var apiEndpoint =
             new Request(nextURL, {
@@ -336,7 +374,6 @@ async function wordinfo() {
     percentages.sort((a, b) => {
         return a[0].valueOf() - b[0].valueOf();
     });
-    console.log(percentages);
 
     // create chart
     var chartData = google.visualization.arrayToDataTable(percentages);
@@ -347,97 +384,38 @@ async function wordinfo() {
     var chartDiv = document.getElementById('percentagechart');
     var chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
-    // create numbering all
-    wordsLbl = "";
-    for (let i = 0; i < bestWords.length; i++) {
-        let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/' + bestWords[i][2], { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let word = await promise;
-        wordsLbl += word["data"]["characters"] + " | correct: " + bestWords[i][3] + " | incorrect: " + bestWords[i][4] + " | percentage: " + parseInt(bestWords[i][1] * 100) + "%\n"
+    hallCreation(bestWords, "topwords");
+    hallCreation(worstWords, "worstwords");
+    hallCreation(bestWordsR, "topwordsradical");
+    hallCreation(worstWordsR, "worstwordsradical");
+    hallCreation(bestWordsK, "topwordskanji");
+    hallCreation(worstWordsK, "worstwordskanji");
+    hallCreation(bestWordsV, "topwordsvocab");
+    hallCreation(worstWordsV, "worstwordsvocab");
+}
+
+async function hallCreation(words, lblid) {
+    var wordsLbl = "";
+    var wordList = [];
+    var name;
+    for (let i = 0; i < words.length; i++) {
+        wordList.push(words[i][2])
     }
-    var lbl = document.getElementById("topwords");
-    lbl.innerHTML = wordsLbl;
-    console.log(worstWords);
-    // create numbering all
-    wordsLbl = "";
-    for (let i = 0; i < worstWords.length; i++) {
-        let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/' + worstWords[i][2], { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let word = await promise;
-        wordsLbl += word["data"]["characters"] + " | correct: " + worstWords[i][3] + " | incorrect: " + worstWords[i][4] + " | percentage: " + parseInt(worstWords[i][1] * 100) + "%\n"
+    let promise = fetch(new Request('https://api.wanikani.com/v2/subjects' + '?ids=' + wordList.join(), { method: 'GET', headers: requestHeaders }))
+        .then(response => response.json())
+        .then(responseBody => responseBody);
+    wordList = await promise;
+    wordList = wordList["data"];
+    console.log(wordList);
+    for (let i = 0; i < wordList.length; i++) {
+        word = wordList[i];
+        name = word["data"]["characters"];
+        if (name == null) {
+            name = word["data"]["slug"];
+        }
+        wordsLbl += name + " | correct: " + words[i][3] + " | incorrect: " + words[i][4] + " | percentage: " + parseInt(words[i][1] * 100) + "%\n"
     }
-    var lbl = document.getElementById("worstwords");
-    lbl.innerHTML = wordsLbl;
-    // create numbering rad
-    wordsLbl = "";
-    for (let i = 0; i < bestWordsR.length; i++) {
-        let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/' + bestWordsR[i][2], { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let word = await promise;
-        wordsLbl += word["data"]["characters"] + " | correct: " + bestWordsR[i][3] + " | incorrect: " + bestWordsR[i][4] + " | percentage: " + parseInt(bestWordsR[i][1] * 100) + "%\n"
-    }
-    var lbl = document.getElementById("topwordsradical");
-    lbl.innerHTML = wordsLbl;
-    console.log(worstWords);
-    // create numbering rad
-    wordsLbl = "";
-    for (let i = 0; i < worstWordsR.length; i++) {
-        let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/' + worstWordsR[i][2], { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let word = await promise;
-        wordsLbl += word["data"]["characters"] + " | correct: " + worstWordsR[i][3] + " | incorrect: " + worstWordsR[i][4] + " | percentage: " + parseInt(worstWordsR[i][1] * 100) + "%\n"
-    }
-    var lbl = document.getElementById("worstwordsradical");
-    lbl.innerHTML = wordsLbl;
-    // create numbering kan
-    wordsLbl = "";
-    for (let i = 0; i < bestWordsK.length; i++) {
-        let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/' + bestWordsK[i][2], { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let word = await promise;
-        wordsLbl += word["data"]["characters"] + " | correct: " + bestWordsK[i][3] + " | incorrect: " + bestWordsK[i][4] + " | percentage: " + parseInt(bestWordsK[i][1] * 100) + "%\n"
-    }
-    var lbl = document.getElementById("topwordskanji");
-    lbl.innerHTML = wordsLbl;
-    console.log(worstWords);
-    // create numbering kan
-    wordsLbl = "";
-    for (let i = 0; i < worstWordsK.length; i++) {
-        let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/' + worstWordsK[i][2], { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let word = await promise;
-        wordsLbl += word["data"]["characters"] + " | correct: " + worstWordsK[i][3] + " | incorrect: " + worstWordsK[i][4] + " | percentage: " + parseInt(worstWordsK[i][1] * 100) + "%\n"
-    }
-    var lbl = document.getElementById("worstwordskanji");
-    lbl.innerHTML = wordsLbl;
-    // create numbering voc
-    wordsLbl = "";
-    for (let i = 0; i < bestWordsV.length; i++) {
-        let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/' + bestWordsV[i][2], { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let word = await promise;
-        wordsLbl += word["data"]["characters"] + " | correct: " + bestWordsV[i][3] + " | incorrect: " + bestWordsV[i][4] + " | percentage: " + parseInt(bestWordsV[i][1] * 100) + "%\n"
-    }
-    var lbl = document.getElementById("topwordsvocab");
-    lbl.innerHTML = wordsLbl;
-    console.log(worstWords);
-    // create numbering voc
-    wordsLbl = "";
-    for (let i = 0; i < worstWordsV.length; i++) {
-        let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/' + worstWordsV[i][2], { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let word = await promise;
-        wordsLbl += word["data"]["characters"] + " | correct: " + worstWordsV[i][3] + " | incorrect: " + worstWordsV[i][4] + " | percentage: " + parseInt(worstWordsV[i][1] * 100) + "%\n"
-    }
-    var lbl = document.getElementById("worstwordsvocab");
+    var lbl = document.getElementById(lblid);
     lbl.innerHTML = wordsLbl;
 }
 
@@ -448,7 +426,7 @@ async function getAPIToken() {
             'Wanikani-Revision': '20170710',
             Authorization: 'Bearer ' + apiToken,
         });
-
+    requestHeaders.set("Access-Control-Allow-Origin", "*");
     let promise = fetch(new Request('https://api.wanikani.com/v2/subjects/1', { method: 'GET', headers: requestHeaders }))
         .then(response => response.json())
         .then(responseBody => responseBody);
@@ -457,7 +435,7 @@ async function getAPIToken() {
     const errorDiv = document.getElementById("errordiv");
 
     if (test["object"] == "radical") {
-        document.cookie = apiToken;
+        document.cookie = "token="+apiToken;
         errorDiv.innerHTML = "Success!"
         userinfo();
         reviewinfo();
@@ -468,7 +446,7 @@ async function getAPIToken() {
     }
 }
 
-let decodedCookie = decodeURIComponent(document.cookie);
+let decodedCookie = decodeURIComponent(document.cookie).substring(6);
 if (decodedCookie != "") {
     document.getElementById("tokeninput").value = decodedCookie;
     getAPIToken();
