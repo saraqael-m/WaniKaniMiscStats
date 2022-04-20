@@ -445,7 +445,7 @@ async function getAPIToken() {
     }
 }
 
-let decodedCookie = decodeURIComponent(document.cookie).substring(6);
+let decodedCookie = document.cookie.substring(6);
 if (decodedCookie != "") {
     document.getElementById("tokeninput").value = decodedCookie;
     getAPIToken();
