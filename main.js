@@ -1,5 +1,6 @@
 var apiToken;
 var requestHeaders;
+var months = 18;
 
 google.charts.load('current', { 'packages': ['corechart'] });
 google.charts.load('current', { 'packages': ['bar'] });
@@ -24,7 +25,7 @@ async function userinfo() {
 }
 
 async function reviewinfo() {
-    var until = new Date(new Date().setMonth(new Date().getMonth() - 15));
+    var until = new Date(new Date().setMonth(new Date().getMonth() - months));
     until = until.toISOString();
     console.log(until);
     let promise = fetch(new Request('https://api.wanikani.com/v2/reviews'+'?updated_after='+until, {method: 'GET', headers: requestHeaders}))
@@ -189,7 +190,7 @@ async function reviewinfo() {
     chartDiv = document.getElementById('srschart2');
     chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
-    loadingLbl.innerHTML = "";
+    loadingLbl.innerHTML = "Time frame restricted to " + months + " months.";
 }
 
 async function levelinfo() {
