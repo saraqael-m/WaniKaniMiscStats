@@ -108,7 +108,7 @@ async function reviewinfo() {
             currentData = reviewData[j];
         }
         let nextURL = data["pages"]["next_url"];
-        loadingLbl.innerHTML = "Loading Data Arrays: " + (i+1) + " (this can take a short while)";
+        loadingLbl.innerHTML = "Loading Data Arrays: " + ((i+1) * perPages) + " Reviews (this can take a short while)";
         if (nextURL == null) { break; }
         var apiEndpoint =
             new Request(nextURL, {
@@ -439,7 +439,7 @@ async function getAPIToken() {
     }
 }
 
-let decodedCookie = document.cookie.substring(6);
+let decodedCookie = document.cookie.subtring(document.cookie.indexOf("token=")+6);
 if (decodedCookie != "") {
     document.getElementById("tokeninput").value = decodedCookie;
     getAPIToken();
