@@ -437,9 +437,9 @@ async function getAPIToken() {
         document.cookie = "token="+apiToken;
         errorDiv.innerHTML = "Success!"
         userinfo();
-        //reviewinfo();
+        reviewinfo();
         levelinfo();
-        //wordinfo();
+        wordinfo();
     } else {
         errorDiv.innerHTML = "Error (Code " + test["code"] + "): " + test["error"];
     }
