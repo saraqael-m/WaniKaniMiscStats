@@ -217,16 +217,13 @@ async function levelinfo() {
     // rest
     var chartData = [["Level", "Length"]];
     var currentLevel = levelData[0];
-    var firstDate = new Date(currentLevel["data"]["started_at"]);
     var j = 1;
     var level = 1;
-    var date;
     currentLevel = levelData[1];
     while (currentLevel != null) {
         resetIndex = resets.findIndex(element => element[0] == j+1)
         if (resetIndex != -1) {
             j += resets[resetIndex][1];
-            chartData.splice(-1);
         }
         dateBefore = new Date(currentLevel["data"]["started_at"]);
         after = currentLevel["data"]["passed_at"];
@@ -243,7 +240,7 @@ async function levelinfo() {
     console.log(chartData);
 
     // create chart
-    chartData = google.visualization.arrayToDataTable(chartData);
+    newChartData = google.visualization.arrayToDataTable(chartData);
     var options = {
         title: 'Level Progression',
         bar: { groupWidth: "95%" },
@@ -251,12 +248,13 @@ async function levelinfo() {
     };
     var chartDiv = document.getElementById('leveltimechart');
     var chart = new google.charts.Bar(chartDiv);
-    chart.draw(chartData, options);
+    chart.draw(newChartData, options);
 
     // projection
-    var time = (dateAfter.getTime() - firstDate.getTime()) / (3600000 * 24);
-    var level = j;
-    var average = parseInt(time * 60 / level - time); // extrapolating average time until now
+    chartData.splice(0, 1);
+    var time = chartData.reduce((partialSum, a) => partialSum + a[1], 0);
+    console.log(time/level);
+    var average = parseInt(time / level * (60 - level)); // extrapolating average time until now
     var lbl = document.getElementById("future");
     lbl.innerHTML = fixHtml("<b>Average Projection (how many days until level 60): ") + average;
 }
@@ -438,9 +436,9 @@ async function getAPIToken() {
         document.cookie = "token="+apiToken;
         errorDiv.innerHTML = "Success!"
         userinfo();
-        reviewinfo();
+        //reviewinfo();
         levelinfo();
-        wordinfo();
+        //wordinfo();
     } else {
         errorDiv.innerHTML = "Error (Code " + test["code"] + "): " + test["error"];
     }
