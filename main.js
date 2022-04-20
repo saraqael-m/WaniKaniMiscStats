@@ -439,7 +439,7 @@ async function getAPIToken() {
     }
 }
 
-let decodedCookie = document.cookie.subtring(document.cookie.indexOf("token=")+6);
+let decodedCookie = document.cookie.substring(document.cookie.indexOf("token=")+6);
 if (decodedCookie != "") {
     document.getElementById("tokeninput").value = decodedCookie;
     getAPIToken();
