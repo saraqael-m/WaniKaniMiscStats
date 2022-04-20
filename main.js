@@ -205,20 +205,20 @@ async function levelinfo() {
     var resets = [];
     for (let i = 0; i < resetData.length; i++) {
         target = resetData[i]["data"]["target_level"];
-        resets.push([target, resetData[i]["data"]["original_level"] - target + 1]);
+        resets.push([target, resetData[i]["data"]["original_level"] - target]);
     }
     resets.sort((a, b) => {return a[0] - b[0];});
     console.log(resets);
     // rest
     var chartData = [["Level", "Length"]];
     var currentLevel = levelData[0];
-    var j = 1;
+    var j = 0;
     var level = 1;
-    currentLevel = levelData[1];
     while (currentLevel != null) {
-        resetIndex = resets.findIndex(element => element[0] == j+1)
+        resetIndex = resets.findIndex(element => element[0] == level)
         if (resetIndex != -1) {
-            j += resets[resetIndex][1];
+            j += resets[resetIndex][1] + 1;
+            currentLevel = levelData[j];
         }
         dateBefore = new Date(currentLevel["data"]["started_at"]);
         after = currentLevel["data"]["passed_at"];
@@ -355,10 +355,17 @@ async function wordinfo() {
                 method: 'GET',
                 headers: requestHeaders
             });
-        let promise = fetch(apiEndpoint)
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        data = await promise;
+        while (1) {
+            let promise = fetch(apiEndpoint)
+                .then(response => response.json())
+                .then(responseBody => responseBody);
+            data = await promise;
+            if (data["code"] == 429) {
+                await new Promise(r => setTimeout(r, 10000));
+                continue;
+            }
+            break;
+        }
         reviewData = data["data"];
     }
     for (let i = 1; i < percentages.length; i++) {
