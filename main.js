@@ -1,7 +1,12 @@
+var months = 6;
+
 var apiToken;
 var requestHeaders;
-var months = 18;
+var newdatediv = document.getElementById("newdatediv");
+var newdateinp = document.getElementById("newdateinp");
+var newdatebtn = document.getElementById("newdatebtn");
 
+newdateinp.value = months;
 google.charts.load('current', { 'packages': ['corechart'] });
 google.charts.load('current', { 'packages': ['bar'] });
 
@@ -25,6 +30,10 @@ async function userinfo() {
 }
 
 async function reviewinfo() {
+    newdatediv.style.visibility = "hidden";
+    newdateinp.style.visibility = "hidden";
+    newdatebtn.style.visibility = "hidden";
+    months = Math.ceil(newdateinp.value);
     var until = new Date(new Date().setMonth(new Date().getMonth() - months));
     until = until.toISOString();
     console.log(until);
@@ -185,6 +194,9 @@ async function reviewinfo() {
     chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
     loadingLbl.innerHTML = "Time frame restricted to " + months + " months.";
+    newdatediv.style.visibility = "visible";
+    newdateinp.style.visibility = "visible";
+    newdatebtn.style.visibility = "visible";
 }
 
 async function levelinfo() {

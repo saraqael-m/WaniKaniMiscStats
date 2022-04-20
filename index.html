@@ -26,6 +26,9 @@
 
 	<h2 class="heading">Review Info</h2>
 	<pre id="reviewloading"></pre>
+	<pre id="newdatediv" style="visibility: hidden">Change time frame to (months):</pre>
+	<input type="number" style="visibility: hidden" id="newdateinp" min="1" max="60">
+	<button type="button" style="visibility: hidden" onclick="reviewinfo();" id="newdatebtn">Generate Statistics</button>
 	<div id="srschart2" style="width: 1000px; height: 333px"></div>
 	<div id="srschart" style="width: 1000px; height: 333px"></div>
 	<div id="reviewchart" style="width: 1000px; height: 333px"></div>
