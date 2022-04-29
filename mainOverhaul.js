@@ -19,6 +19,7 @@ const whiteOverlay = document.getElementById("whiteoverlay");
 const reviewProgress = document.getElementById("reviewprogress");
 const reviewAll = document.getElementById("reviewall");
 const reviewBox = document.getElementById("noreview");
+const reviewPg = document.getElementById("reviewpg");
 
 // global vars
 var userData    = [];
@@ -116,6 +117,7 @@ async function fetchData() {
     let noreviewBool = noreview.checked;
     if (noreviewBool) reviewProgress.style.display = "none";
     else reviewProgress.style.display = "block";
+    reviewPg.style.backgroundColor = "palegoldenrod";
     blackOverlay.style.visibility = "visible";
     whiteOverlay.style.visibility = "visible";
     userData = await fetchLoop("https://api.wanikani.com/v2/user");
@@ -127,12 +129,15 @@ async function fetchData() {
         fetchMultiplePages("https://api.wanikani.com/v2/review_statistics", "wordpg"),
         noreviewBool ? -1 : fetchMultiplePages("https://api.wanikani.com/v2/reviews", "reviewpg"),
         fetchMultiplePages("https://api.wanikani.com/v2/resets", "resetpg"),
-        fetchMultiplePages("https://api.wanikani.com/v2/subjects", "subjectpg")])
+        fetchMultiplePages("https://api.wanikani.com/v2/subjects", "subjectpg")]);
+    await reviewInfo();
+    await new Promise(r => setTimeout(r, 50));
     blackOverlay.style.visibility = "hidden";
     whiteOverlay.style.visibility = "hidden";
     if (noreviewBool) reviewAll.style.display = "none";
     else reviewAll.style.display = "block";
     maindiv.style.visibility = "visible";
+    reviewData["data"].sort((a, b) => { return a["data"]["created_at"].valueOf() - b["data"]["created_at"].valueOf() });
     repairSubjectArray();
     createResetArray();
     console.log(subjectData);
@@ -155,7 +160,7 @@ function repairSubjectArray() {
 
 async function loadGraphs() {
     userInfo();
-    if (reviewData !== -1) reviewInfo();
+    if (reviewData !== -1) updateReviewCharts();
     levelInfo();
     wordInfo();
 }
@@ -195,13 +200,16 @@ async function reviewInfo() {
     newdatebtn.style.visibility = "hidden";
 
     // create array
+    reviewPg.style.width = 0;
+    reviewPg.style.backgroundColor = "lightblue";
     var resetArray = [];
     reviewArray = [["Date", "Reviews"]];
     srsArray = [["Date", "Apprentice", "Guru", "Master", "Enlightened", "Burned"], [0,0,0,0,0,0]]
     var usedIds = [];
     let loadingLbl = document.getElementById("reviewloading");
     var found;
-    for (let i = 0; i < reviewData["data"].length; i++) {
+    const dataLength = reviewData["data"].length;
+    for (let i = 0; i < dataLength; i++) {
         let currentReview = reviewData["data"][i]["data"];
         let subId = currentReview["subject_id"];
         // bare review data
@@ -229,6 +237,7 @@ async function reviewInfo() {
             usedIds.push([subId, typeEnd]);
             srsArray[foundSrs][typeEnd]++;
         } else usedIds[foundId][1] = typeEnd;
+        if (typeEnd == 5) console.log(usedIds[foundId][1]);
         srsArray[foundSrs][typeEnd]++;
         // srs reset
         exactDate = new Date(currentReview["created_at"]);
@@ -250,6 +259,7 @@ async function reviewInfo() {
             for (var j = deleteIds.length - 1; j >= 0; j--) usedIds.splice(deleteIds[j], 1);
             resetArray.push(resetIndex);
         }
+        reviewPg.style.width = 100*i/dataLength
     }
     srsArray.splice(1, 1);
 
@@ -274,8 +284,6 @@ async function reviewInfo() {
         runningTotal += reviewArray[i][1];
         totalArray.push([reviewArray[i][0], runningTotal])
     }
-
-    await updateReviewCharts();
 
     loadingLbl.innerHTML = "Time frame restricted to " + months + " months.";
     newdatediv.style.visibility = "visible";
@@ -420,15 +428,17 @@ async function levelInfo() {
         } else {
             dateAfter = new Date(Date.now());
         }
+        let length = (dateAfter.getTime() - dateBefore.getTime()) / (3600000 * 24);
+        console.log(length);
+        length = length > 19000 ? 0 : length;
         if (resetLevels[0] != 0) {
             let lvlName = level + "R";
             while (levelChart.findIndex(element => element[0] == lvlName) != -1) {
                 lvlName += "R";
             }
-            levelChart.push([lvlName, (dateAfter.getTime() - dateBefore.getTime()) / (3600000 * 24), 'lightsalmon']);
+            levelChart.push([lvlName, length, 'lightsalmon']);
         } else {
-            let length = (dateAfter.getTime() - dateBefore.getTime()) / (3600000 * 24);
-            if (length > 7.3 && length < 8) {
+            if (length >= 6.8 && length < 8) {
                 levelChart.push([String(level), length, 'plum']);
             } else {
                 levelChart.push([String(level), length, 'lightblue']);
