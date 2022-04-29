@@ -12,56 +12,90 @@
 <body>
 	<h1 class="heading">WaniKani Info</h1>
 	<hr />
+	<div id="blackoverlay" style="visibility: hidden; position: absolute; top: 0%; left: 0%; width: 100%; height: 120%; background: black; z-index: 1001; opacity: 0.5;"></div>
+	<div id="whiteoverlay" class="w3-container" style="border-radius: 15px; visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ;background-color: white; z-index: 1002; overflow: auto; padding: 20px">
+		<h3>Loading User Data...</h3>
+		<p>Level Data</p>
+		<div id="progressbar" style="width: 200px; height: 15px">
+			<div id="levelpg" style="width: 0%"></div>
+		</div>
+		<p>Word Data</p>
+		<div id="progressbar" style="width: 200px; height: 15px">
+			<div id="wordpg" style="width: 0%"></div>
+		</div>
+		<p>Reset Data</p>
+		<div id="progressbar" style="width: 200px; height: 15px">
+			<div id="resetpg" style="width: 0%"></div>
+		</div>
+		<p>Subject Data</p>
+		<div id="progressbar" style="width: 200px; height: 15px">
+			<div id="subjectpg" style="width: 0%"></div>
+		</div>
+		<div id="reviewprogress">
+			<p>Review Data</p>
+			<div id="progressbar" style="width: 200px; height: 15px">
+				<div id="reviewpg" style="width: 0%"></div>
+			</div>
+		</div>
+	</div>
 
 	<input type="text" placeholder="input API Token V2 here" id="tokeninput" style="width: 300px">
-	<button type="button" onclick="getAPIToken();">Get Statistics</button>
+	<button type="button" onclick="getApiToken();">Get Statistics</button>
+	<div>
+		<input type="checkbox" id="noreview" name="noreview">
+		<label for="noreview">Ignore Review Information (faster)</label>
+	</div>
 	<div id="errordiv"></div>
 
-	<h2 class="heading">User Info</h2>
-	<pre style="color:black" class="userinfo"></pre>
+	<div id="allinfo" style="visibility: hidden">
+		<h2 class="heading">User Info</h2>
+		<pre style="color:black" id="userinfo"></pre>
 
-	<h2 class="heading">Level Info</h2>
-	<div id="leveltimechart" style="width: 750px; height: 333px"></div>
-	<pre id="future"></pre>
+		<h2 class="heading">Level Info</h2>
+		<div id="leveltimechart"></div>
+		<pre id="future"></pre>
 
-	<h2 class="heading">Review Info</h2>
-	<pre id="reviewloading"></pre>
-	<pre id="newdatediv" style="visibility: hidden">Change time frame to (months):</pre>
-	<input type="number" style="visibility: hidden" id="newdateinp" min="1" max="60">
-	<button type="button" style="visibility: hidden" onclick="reviewinfo();" id="newdatebtn">Generate Statistics</button>
-	<div id="srschart2" style="width: 1000px; height: 333px"></div>
-	<div id="srschart" style="width: 1000px; height: 333px"></div>
-	<div id="reviewchart" style="width: 1000px; height: 333px"></div>
-	<div id="totalchart" style="width: 1000px; height: 333px"></div>
+		<div id="reviewall">
+			<h2 class="heading">Review Info</h2>
+			<pre id="reviewloading"></pre>
+			<pre id="newdatediv" style="visibility: hidden">Change time frame to (months):</pre>
+			<div>
+				<input type="number" style="visibility: hidden" id="newdateinp" min="1" size="5" maxlength="5">
+				<button type="button" style="visibility: hidden" onclick="updateReviewCharts();" id="newdatebtn">Generate Statistics</button>
+			</div>
+			<div>
+				<input type="checkbox" id="nullify" name="nullify">
+				<label for="nullify">Start with 0</label>
+			</div>
+			<div id="srschart2"></div>
+			<div id="srschart"></div>
+			<div id="reviewchart"></div>
+			<div>
+				<input type="checkbox" id="smoothreview" name="smoothreview" checked>
+				<label for="smoothreview">Smoothing for "Reviews Per Day" Chart</label>
+			</div>
+			<div id="totalchart"></div>
+		</div>
 
-	<h2 class="heading">Word Info</h2>
-	<div id="percentagechart" style="width: 750px; height: 333px"></div>
+		<h2 class="heading">Word Info</h2>
+		<div id="percentagechart"></div>
 
-	<h4>Radicals</h4>
-	<h6 class="heading">Wall of Fame (highest correct to incorrect ratio)</h6>
-	<pre id="topwordsradical"></pre>
-	<h6 class="heading">Wall of Shame (lowest correct to incorrect ratio)</h6>
-	<pre id="worstwordsradical"></pre>
+		<hr />
+		<h3>Wall of Shame</h3>
+		<div id="worstwords"></div>
+		<div id="worstwordsradical"></div>
+		<div id="worstwordskanji"></div>
+		<div id="worstwordsvocab"></div>
 
-	<h4>Kanji</h4>
-	<h6 class="heading">Wall of Fame (highest correct to incorrect ratio)</h6>
-	<pre id="topwordskanji"></pre>
-	<h6 class="heading">Wall of Shame (lowest correct to incorrect ratio)</h6>
-	<pre id="worstwordskanji"></pre>
+		<hr />
+		<h3>Wall of Fame</h3>
+		<div id="topwords"></div>
+		<div id="topwordsradical"></div>
+		<div id="topwordskanji"></div>
+		<div id="topwordsvocab"></div>
 
-	<h4>Vocabulary</h4>
-	<h6 class="heading">Wall of Fame (highest correct to incorrect ratio)</h6>
-	<pre id="topwordsvocab"></pre>
-	<h6 class="heading">Wall of Shame (lowest correct to incorrect ratio)</h6>
-	<pre id="worstwordsvocab"></pre>
-
-	<h4>All</h4>
-	<h6 class="heading">Wall of Fame (highest correct to incorrect ratio)</h6>
-	<pre id="topwords"></pre>
-	<h6 class="heading">Wall of Shame (lowest correct to incorrect ratio)</h6>
-	<pre id="worstwords"></pre>
-
-	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-	<script src="main.js"></script>
+		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+		<script src="mainOverhaul.js"></script>
+	</div>
 </body>
 </html>
