@@ -262,6 +262,7 @@ async function reviewInfo() {
         reviewPg.style.width = 100*i/dataLength
     }
     srsArray.splice(1, 1);
+    if (reviewArray.length == 1) return;
 
     // fill undefined dates with 0
     let firstDate = reviewArray[1][0];
