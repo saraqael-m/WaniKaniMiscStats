@@ -200,7 +200,7 @@ async function reviewInfo() {
     newdatebtn.style.visibility = "hidden";
 
     // create array
-    reviewPg.style.width = 0;
+    reviewPg.style.width = "0%";
     reviewPg.style.backgroundColor = "lightblue";
     var resetArray = [];
     reviewArray = [["Date", "Reviews"]];
@@ -259,9 +259,14 @@ async function reviewInfo() {
             for (var j = deleteIds.length - 1; j >= 0; j--) usedIds.splice(deleteIds[j], 1);
             resetArray.push(resetIndex);
         }
-        reviewPg.style.width = 100*i/dataLength
+        if (i % 10000 == 0) {
+        reviewPg.style.width = 100 * i / dataLength + "%";
+        await new Promise(r => setTimeout(r, 50));
+        }
     }
     srsArray.splice(1, 1);
+    reviewPg.style.width = "100%";
+    await new Promise(r => setTimeout(r, 50));
     if (reviewArray.length == 1) return;
 
     // fill undefined dates with 0
