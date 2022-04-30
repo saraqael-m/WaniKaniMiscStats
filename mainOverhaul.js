@@ -59,7 +59,9 @@ function decodeFromCookie(name) {
     let index = rawCookie.indexOf(name + "=");
     if (index == -1) return -1;
     let decodedCookie = rawCookie.substring(index + name.length + 1);
-    return decodedCookie.substring(0, decodedCookie.indexOf(";"));
+    let colonIndex = decodedCookie.indexOf(";");
+    if (colonIndex != -1) decodedCookie = decodedCookie.substring(0, colonIndex);
+    return decodedCookie;
 }
 
 async function fetchTestApi() {
@@ -519,7 +521,7 @@ async function levelInfo() {
     var medianPro = parseInt(medianVal * (60 - level));
     average = average >= 0 ? average : 0;
     var lbl = document.getElementById("future");
-    lbl.innerHTML = fixHtml("<b>Time since start: ") + time + " days\n"
+    lbl.innerHTML = fixHtml("<b>Time since start: ") + parseInt(time) + " days\n"
         + fixHtml("<b>Median Projection (time until level 60): ") + medianPro + " days\n"
         + fixHtml("<b>Average Projection (time until level 60): ") + average + " days\n"
         + fixHtml("<b>Median Level-Up: ") + Math.round(medianVal * 10) / 10 + " days\n"
