@@ -47,18 +47,34 @@ newdateinp.value = months;
 
 async function getApiToken() {
     apiToken = tokenInp.value;
+    setCookie("api", apiToken + (+reviewBox.checked), 365);
     requestHeaders = new Headers({ 'Wanikani-Revision': '20170710', Authorization: 'Bearer ' + apiToken });
     if (await fetchTestApi() == true) fetchData();
 }
 
-function decodeFromCookie(name) {
-    let rawCookie = document.cookie;
-    let index = rawCookie.indexOf(name + "=");
-    if (index == -1) return -1;
-    let decodedCookie = rawCookie.substring(index + name.length + 1);
-    let colonIndex = decodedCookie.indexOf(";");
-    if (colonIndex != -1) decodedCookie = decodedCookie.substring(0, colonIndex);
-    return decodedCookie;
+function setCookie(name, value, days) {
+    var expires = "";
+    if (days) {
+        var date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+function eraseCookie(name) {
+    document.cookie = name + '=; path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
 }
 
 async function fetchTestApi() {
@@ -123,7 +139,6 @@ async function fetchMultiplePages(apiEndpointUrl, progressBarId) {
 
 async function fetchData() {
     let noreviewBool = noreview.checked;
-    if (decodeFromCookie("reviewcheck") == -1) document.cookie += "reviewcheck=" + (+noreviewBool) + ";";
     if (noreviewBool) reviewProgress.style.display = "none";
     else reviewProgress.style.display = "block";
     reviewPg.style.backgroundColor = "palegoldenrod";
@@ -673,10 +688,9 @@ async function hallCreation(words, divid, titleChart, colorChart) {
     chart.draw(chartData, options);
 }
 
-let decodedReviewCheck = decodeFromCookie("reviewcheck");
-if (decodedReviewCheck != -1) reviewBox.checked = !!+decodedReviewCheck;
-let decodedCookie = decodeFromCookie("token");
-if (decodedCookie !== -1) {
-    document.getElementById("tokeninput").value = decodedCookie;
+let decodedCookie = getCookie("api");
+if (decodedCookie !== null) {
+    reviewBox.checked = !!+decodedCookie.slice(-1);
+    tokenInp.value = decodedCookie.slice(0, -1);
     getApiToken();
-} else document.cookie += "token=" + apiToken + ";";
+}
