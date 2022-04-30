@@ -48,10 +48,7 @@ newdateinp.value = months;
 async function getApiToken() {
     apiToken = tokenInp.value;
     requestHeaders = new Headers({ 'Wanikani-Revision': '20170710', Authorization: 'Bearer ' + apiToken });
-    if (await fetchTestApi() == true) {
-        document.cookie = "token=" + apiToken;
-        fetchData();
-    }
+    if (await fetchTestApi() == true) fetchData();
 }
 
 function decodeFromCookie(name) {
@@ -126,7 +123,7 @@ async function fetchMultiplePages(apiEndpointUrl, progressBarId) {
 
 async function fetchData() {
     let noreviewBool = noreview.checked;
-    if (decodeFromCookie("reviewcheck") == -1) document.cookie += "reviewcheck=" + (+noreviewBool);
+    if (decodeFromCookie("reviewcheck") == -1) document.cookie += "reviewcheck=" + (+noreviewBool) + ";";
     if (noreviewBool) reviewProgress.style.display = "none";
     else reviewProgress.style.display = "block";
     reviewPg.style.backgroundColor = "palegoldenrod";
@@ -682,4 +679,4 @@ let decodedCookie = decodeFromCookie("token");
 if (decodedCookie !== -1) {
     document.getElementById("tokeninput").value = decodedCookie;
     getApiToken();
-}
+} else document.cookie += "token=" + apiToken + ";";
