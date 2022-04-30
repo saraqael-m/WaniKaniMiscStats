@@ -54,6 +54,14 @@ async function getApiToken() {
     }
 }
 
+function decodeFromCookie(name) {
+    let rawCookie = document.cookie;
+    let index = rawCookie.indexOf(name + "=");
+    if (index == -1) return -1;
+    let decodedCookie = rawCookie.substring(index + name.length + 1);
+    return decodedCookie.substring(0, decodedCookie.indexOf(";"));
+}
+
 async function fetchTestApi() {
     var fetchSuccess = false;
     let promise = fetch(new Request("https://api.wanikani.com/v2/subjects/1", { method: 'GET', headers: requestHeaders }))
@@ -116,6 +124,7 @@ async function fetchMultiplePages(apiEndpointUrl, progressBarId) {
 
 async function fetchData() {
     let noreviewBool = noreview.checked;
+    if (decodeFromCookie("reviewcheck") == -1) document.cookie += "reviewcheck=" + (+noreviewBool);
     if (noreviewBool) reviewProgress.style.display = "none";
     else reviewProgress.style.display = "block";
     reviewPg.style.backgroundColor = "palegoldenrod";
@@ -665,8 +674,10 @@ async function hallCreation(words, divid, titleChart, colorChart) {
     chart.draw(chartData, options);
 }
 
-let decodedCookie = document.cookie.substring(document.cookie.indexOf("token=")+6);
-if (decodedCookie != "") {
+let decodedReviewCheck = decodeFromCookie("reviewcheck");
+if (decodedReviewCheck != -1) reviewBox.checked = !!+decodedReviewCheck;
+let decodedCookie = decodeFromCookie("token");
+if (decodedCookie !== -1) {
     document.getElementById("tokeninput").value = decodedCookie;
     getApiToken();
 }
