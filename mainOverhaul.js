@@ -22,15 +22,16 @@ const reviewBox = document.getElementById("noreview");
 const reviewPg = document.getElementById("reviewpg");
 
 // global vars
-var userData    = [];
-var reviewData  = [];
+var userData = [];
+var reviewData = [];
 var reviewArray = [];
-var totalArray  = [];
-var srsArray    = [];
-var levelData   = [];
-var wordData    = [];
-var resetData   = [];
-var resets      = [];
+var totalArray = [];
+var averageArray = [];
+var srsArray = [];
+var levelData = [];
+var wordData = [];
+var resetData = [];
+var resets = [];
 var subjectData = [];
 var months = 12;
 
@@ -130,17 +131,15 @@ async function fetchData() {
         noreviewBool ? -1 : fetchMultiplePages("https://api.wanikani.com/v2/reviews", "reviewpg"),
         fetchMultiplePages("https://api.wanikani.com/v2/resets", "resetpg"),
         fetchMultiplePages("https://api.wanikani.com/v2/subjects", "subjectpg")]);
-    await reviewInfo();
+    repairSubjectArray();
+    createResetArray();
+    if (reviewData !== -1) await reviewInfo();
     await new Promise(r => setTimeout(r, 50));
     blackOverlay.style.visibility = "hidden";
     whiteOverlay.style.visibility = "hidden";
     if (noreviewBool) reviewAll.style.display = "none";
     else reviewAll.style.display = "block";
     maindiv.style.visibility = "visible";
-    reviewData["data"].sort((a, b) => { return a["data"]["created_at"].valueOf() - b["data"]["created_at"].valueOf() });
-    repairSubjectArray();
-    createResetArray();
-    console.log(subjectData);
     loadGraphs();
 }
 
@@ -237,7 +236,6 @@ async function reviewInfo() {
             usedIds.push([subId, typeEnd]);
             srsArray[foundSrs][typeEnd]++;
         } else usedIds[foundId][1] = typeEnd;
-        if (typeEnd == 5) console.log(usedIds[foundId][1]);
         srsArray[foundSrs][typeEnd]++;
         // srs reset
         exactDate = new Date(currentReview["created_at"]);
@@ -250,18 +248,20 @@ async function reviewInfo() {
         }
         if (resetIndex != -1) {
             let deleteIds = [];
-            for (let j = 0; j < usedIds.length; j++) {
-                if (subjectData["data"][usedIds[j][0]]["data"]["level"] >= resets[resetIndex][0]) {
-                    deleteIds.push(j);
-                    srsArray[foundSrs][usedIds[j][1]]--;
+            for (let k = 0; k < usedIds.length; k++) {
+                console.log(k, usedIds[k], resets[resetIndex][0])
+                if (subjectData["data"][usedIds[k][0]]["data"]["level"] >= resets[resetIndex][0]) {
+                    deleteIds.push(k);
+                    srsArray[foundSrs][usedIds[k][1]]--;
                 }
             }
+            console.log([...deleteIds]);
             for (var j = deleteIds.length - 1; j >= 0; j--) usedIds.splice(deleteIds[j], 1);
             resetArray.push(resetIndex);
         }
         if (i % 10000 == 0) {
-        reviewPg.style.width = 100 * i / dataLength + "%";
-        await new Promise(r => setTimeout(r, 50));
+            reviewPg.style.width = 100 * i / dataLength + "%";
+            await new Promise(r => setTimeout(r, 50));
         }
     }
     srsArray.splice(1, 1);
@@ -289,6 +289,18 @@ async function reviewInfo() {
     for (let i = 1; i < reviewArray.length; i++) {
         runningTotal += reviewArray[i][1];
         totalArray.push([reviewArray[i][0], runningTotal])
+    }
+
+    // averaged reviews
+    runningTotal = 0;
+    let averageLength = 5;
+    averageArray = [["Date", "Average Reviews"]];
+    for (let i = 1; i < reviewArray.length; i++) {
+        runningTotal += reviewArray[i][1];
+        if (i > averageLength) {
+            runningTotal -= reviewArray[i-averageLength][1];
+        }
+        averageArray.push([reviewArray[i][0], parseInt(runningTotal / averageLength)]);
     }
 
     loadingLbl.innerHTML = "Time frame restricted to " + months + " months.";
@@ -379,9 +391,9 @@ async function updateReviewsPerDay() {
     let until = new Date(new Date().setMonth(new Date().getMonth() - months));
     let smoothBool = smoothBox.checked;
     // reviews per day
-    var chartData = google.visualization.arrayToDataTable(dataDateShorten(reviewArray, until));
+    var chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewArray, until));
     var options = {
-        title: smoothBool ? 'Reviews Per Day (Smooth)' : 'Reviews Per Day',
+        title: smoothBool ? 'Reviews Per Day (Averaged)' : 'Reviews Per Day',
         curveType: smoothBool ? 'function' : 'none',
         legend: { position: "none" },
         vAxis: {
@@ -492,17 +504,26 @@ async function levelInfo() {
 
     // projection
     levelChart.splice(0, 1);
-    let averageVal = levelChart.reduce((partialSum, a) => partialSum + a[1], 0)/levelChart.length;
     var time = levelChart.reduce((partialSum, a) => partialSum + a[1], 0);
-    var average = parseInt(time / level * (60 - level)); // extrapolating average time until now
+    let averageVal = time / levelChart.length;
+    var average = parseInt(averageVal * (60 - level)); // extrapolating average time until now
+    var medianPro = parseInt(medianVal * (60 - level));
+    average = average >= 0 ? average : 0;
     var lbl = document.getElementById("future");
-    lbl.innerHTML = fixHtml("<b>Average Projection (how many days until level 60): ") + average + "\n" + fixHtml("<b>Median: ") + Math.round(medianVal * 10) / 10 + "\n" + fixHtml("<b>Average: ") + Math.round(averageVal * 10) / 10;
+    lbl.innerHTML = fixHtml("<b>Time since start: ") + time + " days\n"
+        + fixHtml("<b>Median Projection (time until level 60): ") + medianPro + " days\n"
+        + fixHtml("<b>Average Projection (time until level 60): ") + average + " days\n"
+        + fixHtml("<b>Median Level-Up: ") + Math.round(medianVal * 10) / 10 + " days\n"
+        + fixHtml("<b>Average Level-Up: ") + Math.round(averageVal * 10) / 10 + " days";
 }
 
 async function wordInfo() {
     // create array
-    var j;
     var kd;
+    var wordBubble = [["Meaning", "Reading", { role: "style" }, { role: "tooltip" }]];
+    var kanjiInterpolator = d3.interpolateRgb("#FFC3D4", "#A26174 ");
+    var radicalInterpolator = d3.interpolateRgb("lightblue", "darkblue");
+    var vocabInterpolator = d3.interpolateRgb("#D5BAFF", "#6733B4");
     var percentages = [["Date", "Accuracy"]];
     var totals = [["Date", "Accuracy"]];
     var bestWords = [[-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0]];
@@ -533,6 +554,11 @@ async function wordInfo() {
         kdHun = currentData["percentage_correct"];
         kd = kdHun / 100;
         kdWeight = (currentData["meaning_correct"] / (currentData["meaning_incorrect"] + currentData["meaning_correct"] + 0.001) + currentData["reading_correct"] / (currentData["reading_incorrect"] + currentData["reading_correct"] + 0.001)) / 2
+        let name = subjectData["data"][id]["data"]["characters"];
+        if (name == null) name = subjectData["data"][id]["data"]["slug"];
+        type = currentData["subject_type"];
+        interpolator = type == "vocabulary" ? vocabInterpolator : (type == "kanji" ? kanjiInterpolator : radicalInterpolator)
+        wordBubble.push([currentData["meaning_correct"] / (currentData["meaning_incorrect"] + currentData["meaning_correct"]) * 100, currentData["reading_correct"] / (currentData["reading_incorrect"] + currentData["reading_correct"]) * 100, interpolator(subjectData["data"][id]["data"]["level"]/userData["data"]["level"]), name]);
         foundBest = bestWords.findIndex(element => (element[0] < kdWeight));
         foundWorst = worstWords.findIndex(element => (element[0] > kdWeight));
         foundBestR = bestWordsR.findIndex(element => (element[0] < kdWeight));
@@ -541,7 +567,6 @@ async function wordInfo() {
         foundWorstK = worstWordsK.findIndex(element => (element[0] > kdWeight));
         foundBestV = bestWordsV.findIndex(element => (element[0] < kdWeight));
         foundWorstV = worstWordsV.findIndex(element => (element[0] > kdWeight));
-        type = currentData["subject_type"]
         date = new Date(updatedAt.substring(0, 10));
         foundDate = percentages.findIndex(element => (element[0].valueOf() == date.valueOf()));
         if (foundDate == -1) {
@@ -552,24 +577,24 @@ async function wordInfo() {
             totals[foundDate][1]++;
         }
         if (foundBest != -1) {
-            bestWords[foundBest] = [kdWeight, kd, id, cor, inc];
+            bestWords[foundBest] = [kdWeight, kd, name, cor, inc];
         }
         if (type == "radical" && foundBestR != -1) {
-            bestWordsR[foundBestR] = [kdWeight, kd, id, cor, inc];
+            bestWordsR[foundBestR] = [kdWeight, kd, name, cor, inc];
         } else if (type == "kanji" && foundBestK != -1) {
-            bestWordsK[foundBestK] = [kdWeight, kd, id, cor, inc];
+            bestWordsK[foundBestK] = [kdWeight, kd, name, cor, inc];
         } else if (type == "vocabulary" && foundBestV != -1) {
-            bestWordsV[foundBestV] = [kdWeight, kd, id, cor, inc];
+            bestWordsV[foundBestV] = [kdWeight, kd, name, cor, inc];
         }
         if (foundWorst != -1) {
-            worstWords[foundWorst] = [kdWeight, kd, id, cor, inc];
+            worstWords[foundWorst] = [kdWeight, kd, name, cor, inc];
         }
         if (type == "radical" && foundWorstR != -1) {
-            worstWordsR[foundWorstR] = [kdWeight, kd, id, cor, inc];
+            worstWordsR[foundWorstR] = [kdWeight, kd, name, cor, inc];
         } else if (type == "kanji" && foundWorstK != -1) {
-            worstWordsK[foundWorstK] = [kdWeight, kd, id, cor, inc];
+            worstWordsK[foundWorstK] = [kdWeight, kd, name, cor, inc];
         } else if (type == "vocabulary" && foundWorstV != -1) {
-            worstWordsV[foundWorstV] = [kdWeight, kd, id, cor, inc];
+            worstWordsV[foundWorstV] = [kdWeight, kd, name, cor, inc];
         }
     }
     for (let i = 1; i < percentages.length; i++) {
@@ -579,17 +604,32 @@ async function wordInfo() {
         return a[0].valueOf() - b[0].valueOf();
     });
 
-    // create chart
-    var chartData = google.visualization.arrayToDataTable(percentages);
+    // bubble chart
+    var chartData = google.visualization.arrayToDataTable(wordBubble);
+    var options = {
+        title: 'Word Overview (Blue: Radical, Red: Kanji, Purple: Vocabulary)',
+        hAxis: { title: 'Meaning (%)' },
+        vAxis: { title: 'Reading (%)' },
+        legend: { position: 'none' },
+        bubble: { textStyle: { fontSize: 11 } },
+        width: 900,
+        height: 500
+    };
+    var chartDiv = document.getElementById('wordbubblechart');
+    var chart = new google.visualization.ScatterChart(chartDiv);
+    chart.draw(chartData, options);
+    
+    // percentage chart
+    chartData = google.visualization.arrayToDataTable(percentages);
     var options = {
         title: 'Accuracy',
         curveType: 'none',
-        legend: {position: 'none'},
+        legend: { position: 'none' },
         width: 750,
         height: 333
     };
-    var chartDiv = document.getElementById('percentagechart');
-    var chart = new google.visualization.LineChart(chartDiv);
+    chartDiv = document.getElementById('percentagechart');
+    chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
 
     hallCreation(bestWords, "topwords", "Wall of Fame: All", "black");
@@ -605,14 +645,7 @@ async function wordInfo() {
 async function hallCreation(words, divid, titleChart, colorChart) {
     let chartDiv = document.getElementById(divid);
     data = [["Radical", "Percentage", { role: 'annotation' }]];
-    for (let i = 0; i < words.length; i++) {
-        let word = subjectData["data"][words[i][2]]["data"];
-        let name = word["characters"];
-        if (name == null) {
-            name = word["slug"];
-        }
-        data.push([name, words[i][1]*100, words[i][3]+"/"+words[i][4]]);
-    }
+    for (let i = 0; i < words.length; i++) data.push([words[i][2], words[i][1]*100, words[i][3]+"/"+words[i][4]]);
     chartData = google.visualization.arrayToDataTable(data);
     options = {
         title: titleChart,
