@@ -47,7 +47,7 @@ newdateinp.value = months;
 
 async function getApiToken() {
     apiToken = tokenInp.value;
-    setCookie("api", apiToken + (+reviewBox.checked), 365);
+    setCookie("api", apiToken, 365);
     requestHeaders = new Headers({ 'Wanikani-Revision': '20170710', Authorization: 'Bearer ' + apiToken });
     if (await fetchTestApi() == true) fetchData();
 }
@@ -137,11 +137,44 @@ async function fetchMultiplePages(apiEndpointUrl, progressBarId) {
     return await data;
 }
 
+async function reviewCacheHandler(apiEndpointUrl, progressBarId, renew = false) {
+    try {
+        if (renew) localStorage.removeItem("reviews");
+        let reviews = localStorage["reviews"];
+        if (reviews == undefined) {
+            reviews = await fetchMultiplePages(apiEndpointUrl, progressBarId);
+            localStorage["reviews"] = JSON.stringify(reviews);
+            return reviews;
+        }
+        const reviewpg = document.getElementById(progressBarId);
+        reviewpg.innerHTML = "Caching...";
+        reviews = JSON.parse(reviews);
+        console.log(reviews);
+        let lastDate = new Date(reviews["data"][reviews["data"].length - 1]["data_updated_at"]);
+        lastDate = new Date(lastDate.getTime() - 1000).toISOString();
+        let lastId = reviews["data"][reviews["data"].length - 1]["id"];
+        let newReviews = await fetchMultiplePages(apiEndpointUrl + "?updated_after=" + lastDate, progressBarId);
+        var idReached = false;
+        for (let i = 0; i < newReviews["data"].length; i++) {
+            if (idReached) reviews["data"].push(newReviews["data"][i]);
+            if (!idReached && newReviews["data"][i]["id"] == lastId) idReached = true;
+        }
+        localStorage["reviews"] = JSON.stringify(reviews);
+        reviewpg.innerHTML = "";
+        return reviews;
+    } catch (e) {
+        console.log(e);
+        localStorage.removeItem("reviews");
+        return await fetchMultiplePages(apiEndpointUrl, progressBarId);
+    }
+}
+
 async function fetchData() {
     let noreviewBool = noreview.checked;
     if (noreviewBool) reviewProgress.style.display = "none";
     else reviewProgress.style.display = "block";
     reviewPg.style.backgroundColor = "palegoldenrod";
+    maindiv.style.visibility = "hidden";
     blackOverlay.style.visibility = "visible";
     whiteOverlay.style.visibility = "visible";
     userData = await fetchLoop("https://api.wanikani.com/v2/user");
@@ -151,7 +184,7 @@ async function fetchData() {
         resetData,
         subjectData] = await Promise.all([fetchMultiplePages("https://api.wanikani.com/v2/level_progressions", "levelpg"),
         fetchMultiplePages("https://api.wanikani.com/v2/review_statistics", "wordpg"),
-        noreviewBool ? -1 : fetchMultiplePages("https://api.wanikani.com/v2/reviews", "reviewpg"),
+        reviewCacheHandler("https://api.wanikani.com/v2/reviews", "reviewpg", noreviewBool),
         fetchMultiplePages("https://api.wanikani.com/v2/resets", "resetpg"),
         fetchMultiplePages("https://api.wanikani.com/v2/subjects", "subjectpg")]);
     repairSubjectArray();
@@ -533,7 +566,7 @@ async function levelInfo() {
     var medianPro = parseInt(medianVal * (60 - level));
     average = average >= 0 ? average : 0;
     var lbl = document.getElementById("future");
-    lbl.innerHTML = fixHtml("<b>Time since start: ") + parseInt(time) + " days\n"
+    lbl.innerHTML = fixHtml("<b>Time Since Start: ") + parseInt(time) + " days\n"
         + fixHtml("<b>Median Projection (time until level 60): ") + medianPro + " days\n"
         + fixHtml("<b>Average Projection (time until level 60): ") + average + " days\n"
         + fixHtml("<b>Median Level-Up: ") + Math.round(medianVal * 10) / 10 + " days\n"
@@ -630,13 +663,13 @@ async function wordInfo() {
     // bubble chart
     var chartData = google.visualization.arrayToDataTable(wordBubble);
     var options = {
-        title: 'Word Overview (Blue: Radical, Red: Kanji, Purple: Vocabulary)',
+        title: 'Word Overview (Blue: Radical, Red: Kanji, Purple: Vocabulary; Light/Dark: Low/High WK Level)',
         hAxis: { title: 'Meaning (%)' },
         vAxis: { title: 'Reading (%)' },
         legend: { position: 'none' },
         bubble: { textStyle: { fontSize: 11 } },
-        width: 900,
-        height: 500
+        width: 1000,
+        height: 1000
     };
     var chartDiv = document.getElementById('wordbubblechart');
     var chart = new google.visualization.ScatterChart(chartDiv);
@@ -690,7 +723,6 @@ async function hallCreation(words, divid, titleChart, colorChart) {
 
 let decodedCookie = getCookie("api");
 if (decodedCookie !== null) {
-    reviewBox.checked = !!+decodedCookie.slice(-1);
-    tokenInp.value = decodedCookie.slice(0, -1);
+    tokenInp.value = decodedCookie;
     getApiToken();
 }
