@@ -1,7 +1,8 @@
 ﻿<!DOCTYPE html>
 <html>
 <head>
-	<title>WaniKani Info</title>
+	<title>WK History</title>
+	<link rel="icon" href="icon.png">
 	<link href="style.css" rel="stylesheet" type="text/css">
 	<meta charset="UTF-8">
 	<meta name="description" content="Look at your full WaniKani history!">
@@ -10,10 +11,10 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
-	<h1 class="heading">WaniKani Info</h1>
-	<hr />
+
+
 	<div id="blackoverlay" style="visibility: hidden; position: absolute; top: 0%; left: 0%; width: 100%; height: 120%; background: black; z-index: 1001; opacity: 0.5;"></div>
-	<div id="whiteoverlay" class="w3-container" style="border-radius: 15px; visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ;background-color: white; z-index: 1002; overflow: auto; padding: 20px">
+	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ;background-color: white; z-index: 1002; overflow: auto; padding: 20px">
 		<h3>Loading User Data...</h3>
 		<p>Level Data</p>
 		<div id="progressbar" style="width: 200px; height: 15px">
@@ -34,70 +35,159 @@
 		<div id="reviewprogress">
 			<p>Review Data</p>
 			<div id="progressbar" style="width: 200px; height: 15px">
-				<div id="reviewpg" style="width: 0%; text-align: center; color: white"></div>
+				<div id="reviewpg" style="width: 0%; text-align: center; color: white; font-size: 9px"></div>
 			</div>
 		</div>
 	</div>
 
-	<input type="text" placeholder="input API Token V2 here" id="tokeninput" style="width: 300px">
-	<button type="button" onclick="getApiToken();">Get Statistics</button>
-	<div>
-		<input type="checkbox" id="noreview" name="noreview">
-		<label for="noreview">Renew Review Cache (on next stat call; only use in case of error)</label>
+	<div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('wanikani_bg_icon.jpg');
+		background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-size: cover;
+        background-position: center">
+
+		<div style="text-align: right; font-size: 12px">バージョン３.０</div>
+		<button type="button" onclick="renewCache();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Renew Cache</button>
+		<h1 class="heading" style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
+		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
+		<input type="text" placeholder="Input API Token V2 Here" id="tokeninput" style="width: 300px; text-align: center; padding: 6px 8px; background-color: lightgrey; border-color: dimgray; border-width: 2px">
+		<button type="button" onclick="getApiToken();" style="padding: 6px 8px">Load Data</button>
+		<div id="errordiv" style="margin-top: 20px; color: indianred; font-weight: bold; background-color: rgba(255, 255, 255, 0.7)"></div>
 	</div>
-	<div id="errordiv"></div>
 
-	<div id="allinfo" style="visibility: hidden">
-		<h2 class="heading">User Info</h2>
-		<pre style="color:black" id="userinfo"></pre>
+	<div class="topnav">
+		<a href="https://github.com/saraqael-m/WaniKaniMiscStats">Github Repo</a>
+		<a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">WaniKani Thread</a>
+		<a href="https://community.wanikani.com/u/koichi/summary">Koichi</a>
+		<a href="./%23OLD/index.html" style="float:right">Old Website</a>
+	</div>
 
-		<h2 class="heading">Level Info</h2>
-		<div id="leveltimechart"></div>
-		<pre id="future"></pre>
 
-		<div id="reviewall">
-			<h2 class="heading">Review Info</h2>
-			<pre id="reviewloading"></pre>
-			<pre id="newdatediv" style="visibility: hidden">Change time frame to (months):</pre>
-			<div>
-				<input type="number" style="visibility: hidden" id="newdateinp" min="1" size="5" maxlength="5">
-				<button type="button" style="visibility: hidden" onclick="updateReviewCharts();" id="newdatebtn">Generate Statistics</button>
+	<div class="row">
+
+		<div class="allinfo" style="display: none">
+
+			<div class="leftcolumn">
+
+				<div class="card">
+					<h2 class="heading">Level Info</h2>
+					<div id="leveltimechart"></div>
+				</div>
+
+				<div class="card">
+					<h4>Set time frame for <i>SRS Item Info</i>, <i>Review Info</i>, <i>and Accuracy Info</i>:</h4>
+					<div style="background-color: lightgrey; padding: 10px; padding-top: 0px; display: inline-block">
+						<pre id="reviewloading" style="padding-top: 0px"></pre>
+						<span id="newdatediv">Change time frame to </span>
+						<input type="number" style="width: 50px" id="newdateinp" min="1" max="9999">
+						<span> months. </span>
+						<button type="button" onclick="updateReviewCharts(); updateReviewAccuracy();" id="newdatebtn">Generate Charts</button>
+						<div style="padding-top: 5px">
+							<input type="checkbox" id="nullify" name="nullify">
+							<label for="nullify">Start with 0</label>
+						</div>
+					</div>
+				</div>
+
+				<div id="reviewall">
+					<div class="card">
+						<h2 class="heading" style="padding-bottom: 0px">SRS Item Info</h2>
+						<div id="srschart2"></div>
+						<div id="srschart"></div>
+					</div>
+					<div class="card">
+						<h2 class="heading">Review Info</h2>
+						<div id="reviewchart"></div>
+						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
+							<span>Average "Reviews Per Day" chart over </span>
+							<input type="number" style="width: 70px" id="smoothreview" min="1" max="9999" value="0">
+							<span> days.</span>
+							<button type="button" onclick="updateReviewsPerDay();">Generate Chart</button>
+						</div>
+						<div id="totalchart"></div>
+					</div>
+				</div>
+
+				<div id="wordall">
+					<div class="card">
+						<h2 class="heading">Accuracy Info</h2>
+						<div id="percentagechart"></div>
+						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
+							<span>Average "Review Accuracy" chart over </span>
+							<input type="number" style="width: 70px" id="smoothacc" min="1" max="9999" value="10">
+							<span> days.</span>
+							<button type="button" onclick="updateReviewAccuracy();">Generate Chart</button>
+						</div>
+					</div>
+					<div class="card">
+						<h2 class="heading">Word Info</h2>
+						<div id="wordbubblechart"></div>
+						<div id="radbubblechart"></div>
+					</div>
+
+					<div class="card">
+						<h2>Wall of Shame</h2>
+						<div id="worstwords"></div>
+						<div id="worstwordsradical"></div>
+						<div id="worstwordskanji"></div>
+						<div id="worstwordsvocab"></div>
+					</div>
+
+					<div class="card">
+						<h2>Wall of Fame</h2>
+						<div id="topwords"></div>
+						<div id="topwordsradical"></div>
+						<div id="topwordskanji"></div>
+						<div id="topwordsvocab"></div>
+					</div>
+				</div>
 			</div>
-			<div>
-				<input type="checkbox" id="nullify" name="nullify">
-				<label for="nullify">Start with 0</label>
-			</div>
-			<div id="srschart2"></div>
-			<div id="srschart"></div>
-			<div id="reviewchart"></div>
-			<div>
-				<input type="checkbox" id="smoothreview" name="smoothreview" checked>
-				<label for="smoothreview">Smoothing for "Reviews Per Day" Chart</label>
-			</div>
-			<div id="totalchart"></div>
 		</div>
 
-		<h2 class="heading">Word Info</h2>
-		<div id="wordbubblechart"></div>
-		<div id="percentagechart"></div>
+		<div class="rightcolumn">
+			<div class="allinfo" style="display: none">
+				<div class="card">
+					<h2 class="heading">User Info</h2>
+					<pre style="color:black" id="userinfo"></pre>
+				</div>
+				<div class="card" id="projectionsall">
+					<h2 class="heading">Projections</h2>
+					<pre id="future"></pre>
+				</div>
+				<div class="card">
+					<h2 class="heading">Word Progress</h2>
+					<div id="wordprogress"></div>
+					<pre id="wordprogressinfo"></pre>
+				</div>
+				<div class="card">
+					<h2 class="heading">Kanji Wall</h2>
+					<pre><i>You (hopefully) already know these Kanji:</i></pre>
+					<div id="kanjiwall"></div>
+				</div>
+			</div>
+			<div class="card">
+				<h3>About</h3>
+				<p style="text-align: justify; text-justify: auto">This is a WaniKani statistics website similar to <a href="https://wkstats.com">WK stats</a>. Its goal is to provide the user with more information about their WaniKani achievements. It focuses primarily on showing the user their personal Japanese learning history with WaniKani but also displays some different statistics from all categories.</p>
+			</div>
+			<div class="card">
+				<h3>Contact</h3>
+				<p style="text-align: justify; text-justify: auto">If you find some bugs or have an idea for some other stats just @ me in the WaniKani community (<a style="color:darkgray">@saraqael</a>). Preferably, leave a comment on the <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">main thread</a> for this web app.</p>
+			</div>
+		</div>
 
-		<hr />
-		<h3>Wall of Shame</h3>
-		<div id="worstwords"></div>
-		<div id="worstwordsradical"></div>
-		<div id="worstwordskanji"></div>
-		<div id="worstwordsvocab"></div>
-
-		<hr />
-		<h3>Wall of Fame</h3>
-		<div id="topwords"></div>
-		<div id="topwordsradical"></div>
-		<div id="topwordskanji"></div>
-		<div id="topwordsvocab"></div>
-
-		<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-		<script src="https://d3js.org/d3.v7.min.js"></script>
-		<script src="mainOverhaul.js"></script>
 	</div>
+
+	<div class="allinfo" style="display: none">
+		<div class="footer">
+			<h2>You have reached the end. おめでとう！</h2>
+		</div>
+	</div>
+
+
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<script src="mainOverhaulDB.js"></script>
+
+
 </body>
 </html>
