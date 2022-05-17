@@ -15,7 +15,7 @@
 
 	<div id="blackoverlay" style="visibility: hidden; position: absolute; top: 0%; left: 0%; width: 100%; height: 120%; background: black; z-index: 1001; opacity: 0.5;"></div>
 	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ;background-color: white; z-index: 1002; overflow: auto; padding: 20px">
-		<h3>Loading User Data...</h3>
+		<h3 style="margin-top: 10px">Loading User Data...</h3>
 		<p>Level Data</p>
 		<div id="progressbar" style="width: 200px; height: 15px">
 			<div id="levelpg" style="width: 0%"></div>
@@ -32,7 +32,11 @@
 		<div id="progressbar" style="width: 200px; height: 15px">
 			<div id="subjectpg" style="width: 0%"></div>
 		</div>
-		<div id="reviewprogress">
+		<p>Assignment Data</p>
+		<div id="progressbar" style="width: 200px; height: 15px">
+			<div id="assignpg" style="width: 0%"></div>
+		</div>
+		<div id="reviewprogress" style="margin-bottom: 10px">
 			<p>Review Data</p>
 			<div id="progressbar" style="width: 200px; height: 15px">
 				<div id="reviewpg" style="width: 0%; text-align: center; color: white; font-size: 9px"></div>
@@ -42,15 +46,15 @@
 
 	<div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('wanikani_bg_icon.jpg');
 		background-repeat: no-repeat;
-        background-attachment: fixed;
+        background-attachment: inherit;
         background-size: cover;
-        background-position: center">
+        background-position: top">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.０</div>
+		<div style="text-align: right; font-size: 12px">バージョン３.２</div>
 		<button type="button" onclick="renewCache();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Renew Cache</button>
 		<h1 class="heading" style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
-		<input type="text" placeholder="Input API Token V2 Here" id="tokeninput" style="width: 300px; text-align: center; padding: 6px 8px; background-color: lightgrey; border-color: dimgray; border-width: 2px">
+		<input type="text" onkeydown="if (event.key === 'Enter') getApiToken();" placeholder="Input API Token V2 Here" id="tokeninput" style="width: 300px; text-align: center; padding: 6px 8px; background-color: lightgrey; border-color: dimgray; border-width: 2px">
 		<button type="button" onclick="getApiToken();" style="padding: 6px 8px">Load Data</button>
 		<div id="errordiv" style="margin-top: 20px; color: indianred; font-weight: bold; background-color: rgba(255, 255, 255, 0.7)"></div>
 	</div>
@@ -72,6 +76,21 @@
 				<div class="card">
 					<h2 class="heading">Level Info</h2>
 					<div id="leveltimechart"></div>
+					<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
+						<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
+						<div style="padding-top: 5px">
+							<input type="checkbox" id="levelclamp" name="levelclamp">
+							<label for="levelclamp">Show Full y-Axis</label>
+						</div>
+						<div style="padding-top: 5px">
+							<input type="checkbox" id="levelcomb" name="levelcomb">
+							<label for="levelcomb">Combine Time Per Column</label>
+						</div>
+						<div style="padding-top: 5px">
+							<input type="checkbox" id="levelresets" name="levelresets">
+							<label for="levelresets">Hide Reset Levels</label>
+						</div>
+					</div>
 				</div>
 
 				<div class="card">
@@ -79,7 +98,7 @@
 					<div style="background-color: lightgrey; padding: 10px; padding-top: 0px; display: inline-block">
 						<pre id="reviewloading" style="padding-top: 0px"></pre>
 						<span id="newdatediv">Change time frame to </span>
-						<input type="number" style="width: 50px" id="newdateinp" min="1" max="9999">
+						<input type="number" onkeydown="if (event.key === 'Enter') { updateReviewCharts(); updateReviewAccuracy(); }" style="width: 50px" id="newdateinp" min="1" max="9999">
 						<span> months. </span>
 						<button type="button" onclick="updateReviewCharts(); updateReviewAccuracy();" id="newdatebtn">Generate Charts</button>
 						<div style="padding-top: 5px">
@@ -100,7 +119,7 @@
 						<div id="reviewchart"></div>
 						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
 							<span>Average "Reviews Per Day" chart over </span>
-							<input type="number" style="width: 70px" id="smoothreview" min="1" max="9999" value="0">
+							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewsPerDay();" style="width: 70px" id="smoothreview" min="1" max="9999" value="0">
 							<span> days.</span>
 							<button type="button" onclick="updateReviewsPerDay();">Generate Chart</button>
 						</div>
@@ -114,7 +133,7 @@
 						<div id="percentagechart"></div>
 						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
 							<span>Average "Review Accuracy" chart over </span>
-							<input type="number" style="width: 70px" id="smoothacc" min="1" max="9999" value="10">
+							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="1" max="9999" value="10">
 							<span> days.</span>
 							<button type="button" onclick="updateReviewAccuracy();">Generate Chart</button>
 						</div>
@@ -159,9 +178,29 @@
 					<div id="wordprogress"></div>
 					<pre id="wordprogressinfo"></pre>
 				</div>
+				<div class="card" id="yojijukugoall" style="position: relative; display: block;">
+					<h2 class="heading"><ruby>四字熟語<rt>よじじゅくご</rt></ruby> (Yojijukugo)</h2>
+					<p style="margin-bottom: 10px"><i>These idioms in the form of four character compounds are called <a href="https://www.tofugu.com/japanese/yojijukugo-idioms/">四字熟語</a>. You should already be able to read these:</i></p>
+
+					<div style="margin: 0; margin-bottom: 20px; position: absolute; left: 50%; -ms-transform: translateX(-50%); transform: translateX(-50%);">
+						<button type="button" onclick="changeYojijukugoRandom();" style="border-width: 0px; margin: 5px">Random</button>
+					</div>
+					<div style="margin-bottom: 40px"></div><div style="margin: 0; position: absolute; left: 50%; -ms-transform: translateX(-50%); transform: translateX(-50%);">
+						<button type="button" onclick="changeYojijukugo(-1);" style="border-width: 0px; margin: 5px">&lt;</button>
+						<span id="yojijukugopage">1/1 </span>
+						<button type="button" onclick="changeYojijukugo(1);" style="border-width: 0px; margin: 5px">&gt;</button>
+					</div>
+					<div style="text-align: center; font-size: 25px; margin-top: 80px"><ruby id="yojijukugoword">一朝有事<rt id="yojijukugofurigana">いっちょうゆうじ</rt></ruby></div>
+					<div style="padding-top: 20px"><b>Meaning(s):</b></div>
+					<ul id="yojijukugomeaning">
+						<li>Four letter compounds.</li>
+					</ul>
+
+					<pre style="font-size: 10px">Source: <a href="http://www.edrdg.org/projects/yojijukugo.html">EDRDG</a></pre>
+				</div>
 				<div class="card">
 					<h2 class="heading">Kanji Wall</h2>
-					<pre><i>You (hopefully) already know these Kanji:</i></pre>
+					<span><i>You (hopefully) already know these Kanji:</i></span>
 					<div id="kanjiwall"></div>
 				</div>
 			</div>
