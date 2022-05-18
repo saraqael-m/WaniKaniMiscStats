@@ -828,8 +828,8 @@ async function levelInfo() {
     // projection
     var time = levelLengths.reduce((partialSum, a) => partialSum + a, 0);
     let averageVal = time / levelLengths.length;
-    var average = level > shortLevels[0] ? parseInt(averageVal * (60 - level) / 2) : parseInt(averageVal * ((60 - shortLevels.length / 2) - level - 1)); // extrapolating average time until now
-    var medianPro = level > shortLevels[0] ? parseInt(medianVal * (60 - level) / 2) : parseInt(medianVal * ((60 - shortLevels.length / 2) - level - 1)); // levels 46, 47, 49, 50-60 half as long
+    var average = level > shortLevels[0] ? parseInt(averageVal * (60 - level) / 2) : parseInt(averageVal * ((60 - shortLevels.length / 2) - (shortLevels[0] + (level - shortLevels[0]) / 2))); // extrapolating average time until now
+    var medianPro = level > shortLevels[0] ? parseInt(medianVal * (60 - level) / 2) : parseInt(medianVal * ((60 - shortLevels.length / 2) - (shortLevels[0] + (level - shortLevels[0]) / 2))); // levels 46, 47, 49, 50-60 half as long
     var lbl = document.getElementById("future");
     lbl.innerHTML = fixHtml("<b>User For: ") + parseInt((new Date() - new Date(userData["data"]["started_at"])) / (3600000 * 24)) + " days\n"
         + fixHtml("<b>Median Level-Up: ") + daysToDurationString(medianVal, true) + "\n"
