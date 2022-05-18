@@ -434,9 +434,9 @@ async function reviewInfo() {
         correct = currentReview["starting_srs_stage"] < currentReview["ending_srs_stage"] ? 1 : 0;
         typeStart = levelReorder(currentReview["starting_srs_stage"]);
         typeEnd = levelReorder(currentReview["ending_srs_stage"]);
-        foundSrs = srsArray[srsArray.length - 1];
-        if (foundSrs[0].valueOf() != date.valueOf()) {
-            newDate = [...foundSrs];
+        foundSrs = srsArray.findIndex(element => (element[0].valueOf() == date.valueOf()));
+        if (foundSrs == -1) {
+            newDate = [...srsArray[srsArray.length - 1]];
             newDate[0] = date;
             srsArray.push(newDate);
             for (let i = 0; i < reviewAccTotal.length; i++) {
@@ -448,8 +448,8 @@ async function reviewInfo() {
             }
             reviewAccuracy.push([date, 0, 0, 0, 0]);
             reviewAccTotal = [0, 0, 0, 0];
+            foundSrs = srsArray.length - 1;
         }
-        foundSrs = srsArray.length - 1;
         srsArray[foundSrs][typeStart]--;
         foundId = usedIds.findIndex(element => element[0] == subId);
         if (foundId == -1) {
@@ -534,6 +534,8 @@ async function reviewInfo() {
     }
     srsArray.splice(1, 1);
     reviewAccuracy.splice(1, 1);
+    srsArray.sort((a, b) => { return a[0].valueOf() - b[0].valueOf() });
+    reviewArray.sort((a, b) => { return a[0].valueOf() - b[0].valueOf() });
     for (let i = 0; i < reviewAccTotal.length; i++) {
         let value = (reviewAccTotal[i] != 0 ?
             reviewAccuracy[reviewAccuracy.length - 1][i + 1] / reviewAccTotal[i] * 100 :
@@ -812,7 +814,7 @@ async function levelInfo() {
     // level chart without pure vocab time
     for (let i = 1; i < levelChart.length; i++) {
         let item = levelChart[i].slice();
-        item[1] += item[3];
+        item[1] += i != 1 ? levelChart[i-1][3] : 0;
         item.splice(3, 1);
         combLevelChart.push(item);
     }
@@ -826,15 +828,31 @@ async function levelInfo() {
     // projection
     var time = levelLengths.reduce((partialSum, a) => partialSum + a, 0);
     let averageVal = time / levelLengths.length;
-    var average = level > shortLevels[0] ? parseInt(averageVal * (60 - level) / 2) : parseInt(averageVal * (shortLevels.length/2 - level - 1)); // extrapolating average time until now
-    var medianPro = level > shortLevels[0] ? parseInt(medianVal * (60 - level) / 2) : parseInt(medianVal * (shortLevels.length/2 - level - 1)); // levels 46, 47, 49, 50-60 half as long
-    average = average >= 0 ? average : 0;
+    var average = level > shortLevels[0] ? parseInt(averageVal * (60 - level) / 2) : parseInt(averageVal * ((60 - shortLevels.length / 2) - level - 1)); // extrapolating average time until now
+    var medianPro = level > shortLevels[0] ? parseInt(medianVal * (60 - level) / 2) : parseInt(medianVal * ((60 - shortLevels.length / 2) - level - 1)); // levels 46, 47, 49, 50-60 half as long
     var lbl = document.getElementById("future");
-    lbl.innerHTML = fixHtml("<b>Time Since Start: ") + parseInt((new Date() - new Date(userData["data"]["started_at"])) / (3600000 * 24)) + " days\n"
-        + fixHtml("<b>Median Level-Up: ") + Math.round(medianVal * 10) / 10 + " days\n"
-        + " => level 60 in " + (medianPro < 0 ? 0 : medianPro) + " days\n"
-        + fixHtml("<b>Average Level-Up: ") + Math.round(averageVal * 10) / 10 + " days\n"
-        + " => level 60 in " + (average < 0 ? 0 : average) + " days";
+    lbl.innerHTML = fixHtml("<b>User For: ") + parseInt((new Date() - new Date(userData["data"]["started_at"])) / (3600000 * 24)) + " days\n"
+        + fixHtml("<b>Median Level-Up: ") + daysToDurationString(medianVal, true) + "\n"
+        + " => level 60 in " + daysToDurationString(medianPro < 0 ? 0 : medianPro) + "\n"
+        + fixHtml("<b>Mean Level-Up: ") + daysToDurationString(averageVal, averageVal < 365 ? true : false) + "\n"
+        + " => level 60 in " + daysToDurationString(average < 0 ? 0 : average);
+}
+
+function daysToDurationString(x, includeHours = false) {
+    let days = Math.floor(x);
+    let rest = x - days;
+    let months = Math.floor(days / 30);
+    days = days - months * 30;
+    let years = Math.floor(months / 12);
+    months = months - years * 12;
+    let returnString = "";
+    returnString += (years != 0 ? years + (years == 1 ? " year, " : " years, ") : "") + (months != 0 ? months + (months == 1 ? " month, " : " months, ") : "") + days + (days == 1 ? " day" : " days")
+    if (includeHours) {
+        console.log(x, days);
+        let hours = Math.floor(rest * 24);
+        returnString += ", " + hours + (hours == 1 ? " hour" : " hours")
+    }
+    return returnString;
 }
 
 function updateLevelChart() {
