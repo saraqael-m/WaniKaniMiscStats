@@ -156,7 +156,7 @@ async function idbClear(db, name) {
 newdateinp.value = months;
 
 async function getApiToken() {
-    apiToken = tokenInp.value;
+    apiToken = tokenInp.value.replace(/[^A-Za-z0-9-]/g, '').toLowerCase();
     setCookie("api", apiToken, 365);
     requestHeaders = new Headers({ 'Wanikani-Revision': '20170710', Authorization: 'Bearer ' + apiToken });
     if (await fetchTestApi() == true) fetchData();
@@ -625,7 +625,8 @@ async function updateReviewCharts() {
         colors: ['pink', 'purple', 'darkblue', 'lightblue', 'black'],
         isStacked: true,
         width: 1000,
-        height: 333
+        height: 333,
+        focusTarget: 'category'
     };
     chartDiv = document.getElementById('srschart');
     chart = new google.visualization.SteppedAreaChart(chartDiv);
@@ -638,7 +639,8 @@ async function updateReviewCharts() {
         //title: "Item Types",
         colors: ['pink', 'purple', 'darkblue', 'lightblue', 'black'],
         width: 1000,
-        height: 333
+        height: 333,
+        focusTarget: 'category'
     };
     chartDiv = document.getElementById('srschart2');
     chart = new google.visualization.LineChart(chartDiv);
@@ -681,7 +683,8 @@ async function updateReviewAccuracy() {
         },
         colors: ['#55abf2', '#f032b1', '#bb31de', 'black'],
         width: 1000,
-        height: 333
+        height: 333,
+        focusTarget: 'category'
     };
     chart = new google.visualization.LineChart(document.getElementById('percentagechart'));
     chart.draw(chartData, options);
@@ -937,8 +940,8 @@ async function wordInfo() {
     kanjiWall = "";
     var specialKanjiWall = "";
     var kanjiColors = ['#d128bd', '#9735cc', '#353dcc', '#359fcc', '#473802'];
-    var wordBubble = [["Meaning", "Reading", { role: "style" }, { role: "tooltip" }]];
-    var radBubble = [["Accuracy", "Level", { role: "style" }, { role: "tooltip" }]]
+    var wordBubble = [["Meaning", "Reading", { role: "style" }, { role: "tooltip", 'p': { 'html': true } }]];
+    var radBubble = [["Accuracy", "Level", { role: "style" }, { role: "tooltip", 'p': { 'html': true } }]]
     var kanjiInterpolator = d3.interpolateRgb("#FFC3D4", "#A26174 ");
     var radicalInterpolator = d3.interpolateRgb("lightblue", "darkblue");
     var vocabInterpolator = d3.interpolateRgb("#D5BAFF", "#6733B4");
@@ -972,8 +975,29 @@ async function wordInfo() {
         if (name == null) name = subjectData["data"][id]["data"]["slug"];
         type = currentData["subject_type"];
         interpolator = type == "vocabulary" ? vocabInterpolator : (type == "kanji" ? kanjiInterpolator : radicalInterpolator)
-        if (type != "radical") wordBubble.push([currentData["meaning_correct"] / (currentData["meaning_incorrect"] + currentData["meaning_correct"]) * 100, currentData["reading_correct"] / (currentData["reading_incorrect"] + currentData["reading_correct"]) * 100, interpolator(subjectData["data"][id]["data"]["level"]/userData["data"]["level"]), name]);
-        else radBubble.push([kdHun, cor+inc, interpolator(subjectData["data"][id]["data"]["level"] / userData["data"]["level"]), name])
+        if (type != "radical") {
+            let meaningPer = parseInt(currentData["meaning_correct"] / (currentData["meaning_incorrect"] + currentData["meaning_correct"]) * 300) / 3
+            let readingPer = parseInt(currentData["reading_correct"] / (currentData["reading_incorrect"] + currentData["reading_correct"]) * 300) / 3
+            let levelPer = subjectData["data"][id]["data"]["level"] / userData["data"]["level"];
+            let color = interpolator(levelPer < 1 ? levelPer : 1);
+            let wordFound = wordBubble.findIndex(element => element[0] == meaningPer && element[1] == readingPer);
+            if (wordFound == -1) {
+                wordBubble.push([meaningPer, readingPer, color, "<div style='overflow-y: auto; overflow-x: hidden; white-space: nowrap; max-height: 100px; margin: 5px'>"]);
+                wordFound = wordBubble.length - 1;
+            }
+            wordBubble[wordFound][3] += "<a href='http://wanikani.com/" + type + "/" + name + "' target='_blank' style='text-decoration: none; color: " + color + "'><div style='white-space: nowrap; margin-right: 5px'>" + name + " (Lvl " + subjectData["data"][id]["data"]["level"] + ")" + "</div></a>";
+        }
+        else {
+            let currentKd = kdHun;
+            let amount = parseInt((cor + inc) / 3) * 3;
+            let radFound = radBubble.findIndex(element => element[0] == currentKd && element[1] == amount);
+            let color = interpolator(subjectData["data"][id]["data"]["level"] / userData["data"]["level"]);
+            if (radFound == -1) {
+                radBubble.push([currentKd, amount, color, "<div style='overflow-y: auto; overflow-x: hidden; white-space: nowrap; max-height: 100px; margin: 5px'>"]);
+                radFound = radBubble.length - 1;
+            }
+            radBubble[radFound][3] += "<a href='http://wanikani.com/radicals/" + subjectData["data"][id]["data"]["slug"] + "' target='_blank' style='text-decoration: none; color: " + color + "'><div style='white-space: nowrap; margin-right: 5px'>" + name + " " + kdHun + "% (" + (cor + inc) + ", Lvl " + subjectData["data"][id]["data"]["level"] + ")" + "</div>";
+        }
         foundBest = bestWords.findIndex(element => (element[0] < kdWeight));
         foundWorst = worstWords.findIndex(element => (element[0] > kdWeight));
         foundBestR = bestWordsR.findIndex(element => (element[0] < kdWeight));
@@ -1016,6 +1040,9 @@ async function wordInfo() {
                 break;
         }
     }
+
+    for (let i = 1; i < wordBubble.length; i++) wordBubble[i][3] += "</div>";
+    for (let i = 1; i < radBubble.length; i++) radBubble[i][3] += "</div>";
 
     // kanji wall
     document.getElementById('kanjiwall').innerHTML = specialKanjiWall;
@@ -1068,7 +1095,7 @@ async function wordInfo() {
     document.getElementById('wordprogressinfo').innerHTML = fixHtml("<b>Total Learned: ") + Math.round((doneCounts[0] + doneCounts[1] + doneCounts[2]) / (totalCounts[0] + totalCounts[1] + totalCounts[2]) * 1000) / 10 + " % (" + (doneCounts[0] + doneCounts[1] + doneCounts[2]) + ")"
 
     // word bubble chart
-    var chartData = google.visualization.arrayToDataTable(wordBubble);
+    var wbkchartData = google.visualization.arrayToDataTable(wordBubble);
     var options = {
         chartArea: { width: '85%', height: '80%' },
         legend: { position: 'in' },
@@ -1078,12 +1105,13 @@ async function wordInfo() {
         vAxis: { title: 'Reading (%)' },
         legend: { position: 'none' },
         bubble: { textStyle: { fontSize: 11 } },
+        tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
         width: 900,
         height: 700
     };
     var chartDiv = document.getElementById('wordbubblechart');
-    var chart = new google.visualization.ScatterChart(chartDiv);
-    chart.draw(chartData, options);
+    var wbkchart = new google.visualization.ScatterChart(chartDiv);
+    wbkchart.draw(wbkchartData, options);
 
     // radical bubble chart
     var chartData = google.visualization.arrayToDataTable(radBubble);
@@ -1095,6 +1123,7 @@ async function wordInfo() {
         vAxis: { title: 'Amount Reviewed', format: '0'},
         legend: { position: 'none' },
         bubble: { textStyle: { fontSize: 11 } },
+        tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
         width: 900,
         height: 700
     };
