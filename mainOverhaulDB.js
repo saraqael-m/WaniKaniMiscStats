@@ -751,13 +751,14 @@ async function levelInfo() {
     if (resets.length == 0) levelResetsBox.parentElement.style.display = "none";
     else levelResetsBox.parentElement.style.display = "block";
     projectionsAll.style.display = "block";
-    levelChart = [["Level", "Level-Up Days", { role: 'style' }, "Pure Vocab Days", "Median"]];
+    levelChart = [["Level", "Level-Up Days", { role: 'style' }, { role: "tooltip", 'p': { 'html': true } }, "Pure Vocab Days", { role: "tooltip", 'p': { 'html': true } }, "Median"]];
     pureLevelChart = [levelChart[0].slice()];
-    combLevelChart = [levelChart[0].slice(0, -1)];
-    combPureLevelChart = [levelChart[0].slice(0, -1)];
+    combLevelChart = [["Level", "Level-Up Days", { role: 'style' }, { role: "tooltip", 'p': { 'html': true } }, "Median"]];
+    combPureLevelChart = [combLevelChart[0].slice()];
     var extraTime = [];
     levelLengths = [];
     var currentLevel = levelData["data"][0];
+    const currentLevelColor = "grey";
     var j = 0;
     var level;
     if (currentLevel["data"]["level"] != 1) {
@@ -788,13 +789,13 @@ async function levelInfo() {
             if (shortLevels.includes(level)) { var primaryTime = 3.7; var secondaryTime = 4.2; }
             else { var primaryTime = 7; var secondaryTime = 8; }
             if (length < primaryTime) {
-                levelChart.push([String(level), length, '#EEBC1D', 0]); //darkgold
+                levelChart.push([String(level), length, '#EEBC1D', "", 0, ""]); //darkgold
             } else if (length < secondaryTime) {
-                levelChart.push([String(level), length, 'plum', 0]);
+                levelChart.push([String(level), length, 'plum', "", 0, ""]);
             } else {
-                levelChart.push([String(level), length, 'lightblue', 0]);
+                levelChart.push([String(level), length, '#55a2e6', "", 0, ""]); //sky blue
             }
-        } else levelChart.push([String(level), length, 'grey', 0]);
+        } else levelChart.push([String(level), length, currentLevelColor, "", 0, ""]);
         j++;
         currentLevel = levelData["data"][j];
     }
@@ -813,9 +814,10 @@ async function levelInfo() {
     }
     levelLengths = levelLengths.reverse();
     for (let i = levelLengths.length; i >= 0; i--) if (levelLengths[i] == 0) levelLengths.splice(i, 1);
+
     // pure vocab time
     extraTime.splice(0, 1);
-    for (let i = 0; i < extraTime.length; i++) levelChart[i+1][3] = extraTime[i];
+    for (let i = 0; i < extraTime.length; i++) levelChart[i+1][4] = extraTime[i];
     if (reviewData["data"].length == 0) projectionsAll.style.display = "none"; // user has not started
     // median
     let medianVal = median(levelLengths);
@@ -823,13 +825,30 @@ async function levelInfo() {
     // level chart without pure vocab time
     for (let i = 1; i < levelChart.length; i++) {
         let item = levelChart[i].slice();
-        item[1] += i != 1 ? levelChart[i-1][3] : 0;
-        item.splice(3, 1);
+        item[1] += i != 1 ? levelChart[i-1][4] : 0;
+        item.splice(4, 2);
         combLevelChart.push(item);
     }
     // level chart without reset levels
-    for (let i = 1; i < levelChart.length; i++) if (levelChart[i][0].slice(-1) != "R") pureLevelChart.push(levelChart[i]);
-    for (let i = 1; i < combLevelChart.length; i++) if (combLevelChart[i][0].slice(-1) != "R") combPureLevelChart.push(combLevelChart[i]);
+    if (resets.length != 0) {
+        for (let i = 1; i < levelChart.length; i++) if (levelChart[i][0].slice(-1) != "R") pureLevelChart.push(levelChart[i]);
+        for (let i = 1; i < combLevelChart.length; i++) if (combLevelChart[i][0].slice(-1) != "R") combPureLevelChart.push(combLevelChart[i]);
+    }
+
+    // tooltips
+    for (let i = 1; i < levelChart.length; i++) {
+        console.log(levelChart[i][2], currentLevelColor, levelChart[i][2] == currentLevelColor);
+        let level = (levelChart[i][0].slice(-1) == "R" ? levelChart[i][0].slice(0, -1) + " (Reset)" : levelChart[i][0]) + (levelChart[i][2] == currentLevelColor ? " (Current)" : "");
+        levelChart[i][3] = "<div style='white-space: nowrap; margin: 5px; color: " + levelChart[i][2] + "'><b>Level " + level + "</b></div><div style='white-space: nowrap; margin: 5px'><i>Time Spent:</i> " + daysToDurationString(levelChart[i][1], true) + "</div>";
+        levelChart[i][5] = "<div style='white-space: nowrap; margin: 5px'><b>Level " + level + "</b></div><div style='white-space: nowrap; margin: 5px'><i>Pure Vocab Time:</i> " + daysToDurationString(levelChart[i][4], true) + "</div>";
+        combLevelChart[i][3] = "<div style='white-space: nowrap; margin: 5px; color: " + combLevelChart[i][2] + "'><b>Level " + level + "</b></div><div style='white-space: nowrap; margin: 5px'><i>Time Spent:</i> " + daysToDurationString(combLevelChart[i][1], true) + "</div>";
+    }
+    for (let i = 1; i < pureLevelChart.length; i++) {
+        let level = pureLevelChart[i][0] + (pureLevelChart[i][2] == currentLevelColor ? " (Current)" : "");
+        pureLevelChart[i][3] = "<div style='white-space: nowrap; margin: 5px; color: " + pureLevelChart[i][2] + "'><b>Level " + level + "</b></div><div style='white-space: nowrap; margin: 5px'><i>Time Spent:</i> " + daysToDurationString(pureLevelChart[i][1], true) + "</div>";
+        pureLevelChart[i][5] = "<div style='white-space: nowrap; margin: 5px'><b>Level " + level + "</b></div><div style='white-space: nowrap; margin: 5px'><i>Pure Vocab Time:</i> " + daysToDurationString(pureLevelChart[i][4], true) + "</div>";
+        combPureLevelChart[i][3] = "<div style='white-space: nowrap; margin: 5px; color: " + combPureLevelChart[i][2] + "'><b>Level " + level + "</b></div><div style='white-space: nowrap; margin: 5px'><i>Time Spent:</i> " + daysToDurationString(combPureLevelChart[i][1], true) + "</div>";
+    }
 
     // level chart
     updateLevelChart();
@@ -877,9 +896,9 @@ function updateLevelChart() {
     // create chart
     const resetBool = levelResetsBox.checked; const clampBool = levelClampBox.checked; const combBool = levelCombBox.checked;
     let currentLevelChart = resetBool ? (combBool ? combPureLevelChart : pureLevelChart) : (combBool ? combLevelChart : levelChart);
-    const medianVal = levelChart[1][4];
-    let maxLength = currentLevelChart.slice(1).reduce(function (p, v) { return (v[1] + v[3] > p[1] + p[3] ? v : p); });
-    maxLength = maxLength[1] + maxLength[3];
+    const medianVal = levelChart[1][6];
+    let maxLength = currentLevelChart.slice(1).reduce(function (p, v) { return (v[1] + v[4] > p[1] + p[4] ? v : p); });
+    maxLength = maxLength[1] + maxLength[4];
     newChartData = new google.visualization.arrayToDataTable(currentLevelChart);
     const NumberFormat = new google.visualization.NumberFormat({ pattern: '##.#' });
     NumberFormat.format(newChartData, 1);
@@ -898,6 +917,7 @@ function updateLevelChart() {
         },
         seriesType: 'bars',
         isStacked: combBool ? 'false' : 'true',
+        tooltip: { isHtml: true },
         series: chartSeries
     };
     var chartDiv = document.getElementById('leveltimechart');
