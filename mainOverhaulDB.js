@@ -986,8 +986,7 @@ async function wordInfo() {
                 wordFound = wordBubble.length - 1;
             }
             wordBubble[wordFound][3] += "<a href='http://wanikani.com/" + type + "/" + name + "' target='_blank' style='text-decoration: none; color: " + color + "'><div style='white-space: nowrap; margin-right: 5px'>" + name + " (Lvl " + subjectData["data"][id]["data"]["level"] + ")" + "</div></a>";
-        }
-        else {
+        } else {
             let currentKd = kdHun;
             let amount = parseInt((cor + inc) / 3) * 3;
             let radFound = radBubble.findIndex(element => element[0] == currentKd && element[1] == amount);
