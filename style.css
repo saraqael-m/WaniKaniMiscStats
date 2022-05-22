@@ -50,7 +50,7 @@ button:active {
 /* furigana design */
 rt {
 	color: transparent;
-	text-shadow: 0 0 12px rgba(0,0,0,0.95);
+	text-shadow: 0 0 12px rgba(0,0,0,0.97);
 }
 
 rt:hover {
