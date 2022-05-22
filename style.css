@@ -47,6 +47,46 @@ button:active {
 	border-color: lightgrey;
 }
 
+/* furigana design */
+rt {
+	color: transparent;
+	text-shadow: 0 0 12px rgba(0,0,0,0.95);
+}
+
+rt:hover {
+	color: black;
+	text-shadow: none;
+}
+
+/* table design */
+
+table {
+	border-collapse: collapse;
+}
+
+table tr {
+	padding: 15px;
+}
+
+table thead tr {
+	background-color: #54585d;
+}
+
+table thead tr th {
+	color: #ffffff;
+	font-weight: 200;
+	font-size: 90%;
+	border-right: 2px solid white;
+	border-left: 2px solid white;
+}
+
+table tbody tr {
+	color: #636363;
+	border: 1px solid #dddfe1;
+}
+
+/* other */
+
 .header {
 	padding: 30px;
 	text-align: center;

@@ -9,6 +9,15 @@
 	<meta name="author" content="Sahaquiel">
 	<meta name="keywords" content="wanikani api stats statistics">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!-- Global site tag - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-V3WGNFTLVD"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag() { dataLayer.push(arguments); }
+		gtag('js', new Date());
+
+		gtag('config', 'G-V3WGNFTLVD');
+	</script>
 </head>
 <body>
 
@@ -50,9 +59,9 @@
         background-size: cover;
         background-position: top">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.２.３</div>
+		<div style="text-align: right; font-size: 12px">バージョン３.３.０</div>
 		<button type="button" onclick="renewCache();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Renew Cache</button>
-		<h1 class="heading" style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
+		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
 		<input type="text" onkeydown="if (event.key === 'Enter') getApiToken();" placeholder="Input API Token V2 Here" id="tokeninput" style="width: 300px; text-align: center; padding: 6px 8px; background-color: lightgrey; border-color: dimgray; border-width: 2px">
 		<button type="button" onclick="getApiToken();" style="padding: 6px 8px">Load Data</button>
@@ -133,11 +142,247 @@
 						<div id="percentagechart"></div>
 						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
 							<span>Average "Review Accuracy" chart over </span>
-							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="1" max="9999" value="10">
+							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="0" max="9999" value="10">
 							<span> days.</span>
 							<button type="button" onclick="updateReviewAccuracy();">Generate Chart</button>
 						</div>
 					</div>
+
+					<div class="card">
+						<h2 class="heading">Info Table</h2>
+						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
+							<span>Column time span of </span>
+							<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tablemonth" min="0" max="9999" value="1">
+							<span> months and </span>
+							<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tableday" min="0" max="9999" value="0">
+							<span> days.</span>
+							<button type="button" onclick="updateTables();">Generate Table</button>
+							<div style="margin-top: 10px"><i>Change time interval offset (shift table):</i></div>
+							<div style="margin-top: 6px"></div><div style="margin: 0">
+								<button type="button" onclick="updateTables(1);" style="border-width: 0px; margin: 5px">&lt;</button>
+								<span>Offset: </span><span id="tableoffset"></span>
+								<button type="button" onclick="updateTables(-1);" style="border-width: 0px; margin: 5px">&gt;</button>
+								<button type="button" onclick="updateTables(100000);" style="border-width: 0px; margin: 5px">&gt;&gt;</button>
+							</div>
+						</div>
+						<table style="width: 100%; text-align: center">
+							<thead>
+								<tr id="tableheadinterval">
+									<th>Interval</th>
+									<th>1</th>
+									<th>2</th>
+									<th>3</th>
+									<th>4</th>
+									<th>5</th>
+									<th>6</th>
+									<th>7</th>
+									<th>8</th>
+									<th>9</th>
+									<th>10</th>
+									<th>11</th>
+									<th>12</th>
+								</tr>
+								<tr id="tableheaddate">
+									<th>Start Date</th>
+									<th>1</th>
+									<th>2</th>
+									<th>3</th>
+									<th>4</th>
+									<th>5</th>
+									<th>6</th>
+									<th>7</th>
+									<th>8</th>
+									<th>9</th>
+									<th>10</th>
+									<th>11</th>
+									<th>12</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr id="reviewtable" style="border-top: 2px solid darkgrey">
+									<td>Reviews</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="reviewradtable" style="background-color: azure">
+									<td style="color: dodgerblue">↳ 部首</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="reviewkanjitable" style="background-color: #ffe6f8">
+									<td style="color: hotpink">↳ 漢字</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="reviewvocabtable" style="background-color: #f3ebfc">
+									<td style="color: mediumpurple">↳ 単語</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="acctable" style="border-top: 2px solid darkgrey">
+									<td>Accuracy</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="accradtable" style="background-color: azure">
+									<td style="color: dodgerblue">↳ 部首</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="acckanjitable" style="background-color: #ffe6f8">
+									<td style="color: hotpink">↳ 漢字</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="accvocabtable" style="background-color: #f3ebfc">
+									<td style="color: mediumpurple">↳ 単語</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="itemtable" style="border-top: 2px solid darkgrey">
+									<td>Lessons</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="itemradtable" style="background-color: azure">
+									<td style="color: dodgerblue">↳ 部首</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="itemkanjitable" style="background-color: #ffe6f8">
+									<td style="color: hotpink">↳ 漢字</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+								<tr id="itemvocabtable" style="background-color: #f3ebfc">
+									<td style="color: mediumpurple">↳ 単語</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+									<td>2000</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+
 					<div class="card">
 						<h2 class="heading">Word Info</h2>
 						<p><b>Tip:</b> Click data points to be able to scroll through the word data and to be able to click on individual words to be led to their respective WaniKani site.</p>
@@ -228,7 +473,7 @@
 	</div>
 
 
-	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script> <!-- google charts -->
 	<script src="https://d3js.org/d3.v7.min.js"></script>
 	<script src="mainOverhaulDB.js"></script>
 
