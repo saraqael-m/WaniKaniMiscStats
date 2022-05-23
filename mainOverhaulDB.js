@@ -786,8 +786,7 @@ async function updateReviewAccuracy() {
         legend: { position: 'none' },
         vAxis: {
             viewWindow: {
-                max: 100,
-                min: 0
+                max: 100
             }
         },
         colors: ['#55abf2', '#f032b1', '#bb31de', 'black'],
