@@ -1288,7 +1288,8 @@ async function hallCreation(words, divid, titleChart, colorChart) {
         legend: { position: "none" },
         vAxis: {
             viewWindow: {
-                max: 100
+                max: 100,
+                min: 0
             }
         },
         width: 1000,
