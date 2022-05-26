@@ -6,7 +6,7 @@ const errorDiv = document.getElementById('errordiv');
 
 var apiToken;
 
-if (document.cookie == '') {
+if (document.cookie != '') {
     errorDiv.innerHTML = 'If you have to log in again, sorry! This is only a one-time thing.';
     document.cookie = '';
 }

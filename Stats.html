@@ -22,7 +22,7 @@
 </head>
 <body>
 
-	<div id="wkof_ds"></div>
+	<div id="wkof_ds" style="display: none"></div>
 
 	<a id="top"></a>
 
@@ -69,7 +69,7 @@
         background-size: cover;
         background-position: top">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.４.２</div>
+		<div style="text-align: right; font-size: 12px">バージョン３.４.３</div>
 		<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
@@ -638,7 +638,7 @@
 			</div>
 			<div class="card">
 				<h3>Contact</h3>
-				<p style="text-align: justify; text-justify: auto">If you find some bugs or have an idea for some other stats just @ me in the WaniKani community (<a style="color:darkgray">@saraqael</a>). Preferably, leave a comment on the <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">main thread</a> for this web app.</p>
+				<p style="text-align: left">If you find some bugs or have an idea for some other stats just @ me in the WaniKani community (<a style="color:darkgray" href="https://community.wanikani.com/u/saraqael/summary">@saraqael</a>). Preferably, leave a comment on the <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">main thread</a> for this web app. <br><b>Credits:</b> <a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a> for implementing Level Projections (& and being a great contributor to this project as a whole) and <a style="color:#EEBC1D" href="https://community.wanikani.com/u/rfindley/summary">@rfindley</a> for creating the WaniKani Open Framework.</p>
 			</div>
 		</div>
 
@@ -661,8 +661,10 @@
 	<script src="js/wkof/Settings.js"></script>
 	<script src="js/wkof/Apiv2.js"></script>
 	<script src="js/wkof/Progress.js"></script>
+	<!-- projections by UInt2048 -->
+	<script src="js/projections.js"></script>
 	<!-- main script -->
-	<script src="js/mainWkof.js" type="module"></script>
+	<script src="js/mainWkof.js"></script>
 
 </body>
 </html>
