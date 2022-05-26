@@ -6,6 +6,11 @@ const errorDiv = document.getElementById('errordiv');
 
 var apiToken;
 
+if (document.cookie == '') {
+    errorDiv.innerHTML = 'If you have to log in again, sorry! This is only a one-time thing.';
+    document.cookie = '';
+}
+
 async function getApiToken() {
     apiToken = tokenInput.value.replace(/[^A-Za-z0-9-]/g, '').toLowerCase();
     if (await fetchTestApi() == true) {

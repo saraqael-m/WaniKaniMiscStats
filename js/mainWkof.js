@@ -3,6 +3,7 @@ if (prevToken === null) window.location.href = "index.html";
 
 // load packages
 google.charts.load('current', { 'packages': ['corechart', 'bar'] });
+
 import { Projections } from "./projections.js";
 
 // API vars
@@ -168,6 +169,7 @@ function logout() {
     localStorage.removeItem('apiv2_key_override');
     window.location.href = "index.html";
 }
+window.logout = logout;
 
 async function fetchLoop(apiEndpointUrl) {
     while (1) {
@@ -230,6 +232,7 @@ async function renewCache() {
         };
     });
 }
+window.renewCache = renewCache;
 
 async function reviewCacheHandler(apiEndpointUrl, progressBarId) {
     return await new Promise((resolve, reject) => {
@@ -641,6 +644,7 @@ async function updateReviewCharts() {
     chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
 }
+window.updateReviewCharts = updateReviewCharts;
 
 function updateTables(changeOffset = 0) {
     tableOffset += changeOffset;
@@ -736,6 +740,7 @@ function updateTables(changeOffset = 0) {
         itemvocabElements[i].innerHTML = itemsTable[i - 1][3];
     }
 }
+window.updateTables = updateTables;
 
 async function updateReviewAccuracy() {
     const dayAverage = smoothAccInp.value;
@@ -784,6 +789,7 @@ async function updateReviewAccuracy() {
     var chart = new google.visualization.LineChart(document.getElementById('percentagechart'));
     chart.draw(chartData, options);
 }
+window.updateReviewAccuracy = updateReviewAccuracy;
 
 async function updateReviewsPerDay() {
     const dayAverage = smoothInp.value;
@@ -828,6 +834,7 @@ async function updateReviewsPerDay() {
     var chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
 }
+window.updateReviewsPerDay = updateReviewsPerDay;
 
 function median(values) {
     if (values.length === 0) return 0;
@@ -978,6 +985,7 @@ function updateProjections() {
         + fixHtml("<b>Mean Level-Up: ") + daysToDurationString(averageVal, averageVal < 365 ? true : false) + "\n"
         + " => level 60 in " + daysToDurationString(average < 0 ? 0 : average);
 }
+window.updateProjections = updateProjections;
 
 function daysToDurationString(x, includeHours = false, short = false) {
     let days = Math.floor(x);
@@ -1027,11 +1035,13 @@ function updateLevelChart() {
     var chart = new google.visualization.ComboChart(chartDiv);
     chart.draw(newChartData, options);
 }
+window.updateLevelChart = updateLevelChart;
 
 function changeYojijukugoRandom() {
     currentPage = Math.floor(Math.random() * possibleYojijukugo.length) + 1;
     changeYojijukugo(0);
 }
+window.changeYojijukugoRandom = changeYojijukugoRandom;
 
 function changeYojijukugo(page) {
     currentPage += page;
@@ -1053,6 +1063,7 @@ function changeYojijukugo(page) {
     }
     document.getElementById("yojijukugopage").innerHTML = currentPage + "/" + possibleYojijukugo.length + " ";
 }
+window.changeYojijukugo = changeYojijukugo;
 
 async function wordInfo() {
     // create array
