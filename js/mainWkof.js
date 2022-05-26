@@ -63,7 +63,7 @@ var currentPage = 1;
 var shortLevels = [43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 1, 2];
 
 // event listener
-newdateche.addEventListener('change', () => { updateReviewCharts(); })
+newdateche.addEventListener('change', () => { updateReviewCharts(); updateReviewAccuracy(); })
 levelResetsBox.addEventListener('change', () => { updateLevelChart(); })
 levelClampBox.addEventListener('change', () => { updateLevelChart(); })
 levelCombBox.addEventListener('change', () => { updateLevelChart(); })
@@ -330,14 +330,6 @@ function itemDataHandler(items) {
     }
 }
 
-function apiv2Handler() {
-    console.log("wr");
-    wkof.Apiv2.get_endpoint('user');
-    wkof.Apiv2.get_endpoint('summary');
-    wkof.Apiv2.get_endpoint('level_progressions');
-    wkof.Apiv2.get_endpoint('resets');
-}
-
 function createResetArray() {
     for (let i = 0; i < resetData.length; i++) {
         target = resetData[i]["data"]["target_level"];
@@ -412,6 +404,7 @@ async function reviewInfo() {
     for (let i = 0; i < dataLength; i++) {
         let currentReview = reviewData[i]["data"];
         let subId = currentReview["subject_id"];
+        if (subjectData[subId]["object"] == "placeholder") continue;
         // bare review data
         date = new Date(currentReview["created_at"].substring(0, 10));
         found = reviewArray.findIndex(element => (element[0].valueOf() == date.valueOf()));
@@ -439,7 +432,7 @@ async function reviewInfo() {
                 let value = (reviewAccTotal[reviewAccuracy.length - 2][i] != 0 ?
                     reviewAccuracy[reviewAccuracy.length - 1][i + 1] / reviewAccTotal[reviewAccuracy.length - 2][i] * 100 :
                     reviewAccuracy[reviewAccuracy.length - 2][i + 1]);
-                reviewAccuracy[reviewAccuracy.length - 1][i + 1] = value;
+                reviewAccuracy[reviewAccuracy.length - 1][i + 1] = value != 0 ? value : reviewAccuracy[reviewAccuracy.length - 2][i + 1];
             }
             itemArray.push([date, 0, 0, 0, 0]);
             reviewAccuracy.push([date, 0, 0, 0, 0]);
@@ -481,7 +474,6 @@ async function reviewInfo() {
             let hiddenLevel = usedIds.findIndex(element => element[0] == hiddenItems[0][1]);
             if (hiddenLevel == -1) { hiddenItems.splice(0, 1); continue; }
             srsArray[foundSrs][usedIds[hiddenLevel][1]]--; // delete from srs stage
-            //usedIds.splice(hiddenLevel, 1); // delete from used ids because its hidden
             hiddenItems.splice(0, 1);
         }
         // srs reset
@@ -741,29 +733,30 @@ function updateTables(changeOffset = 0) {
 async function updateReviewAccuracy() {
     const dayAverage = smoothAccInp.value;
     let smoothBool = (dayAverage != 0);
+    let shortBool = newdateche.checked;
+    let startDate = new Date(newdateinp.value);
     // array
     if (smoothBool) {
+        if (shortBool) currentArray = dataDateShorten(reviewAccuracy, startDate);
+        else currentArray = reviewAccuracy;
         var runningTotal = [0, 0, 0, 0];
         var runningAmount = [0, 0, 0, 0];
         var average = [0, 0, 0, 0];
         var averageArray = [["Date", "Average Radical", "Average Kanji", "Average Vocab", "Average All"]];
         var prevAvg = [0, 0, 0, 0]
-        for (let i = 1; i < reviewAccuracy.length; i++) {
-            for (let j = 0; j < runningTotal.length; j++) { runningTotal[j] += reviewAccuracy[i][j + 1] * reviewAccTotal[i - 1][j]; runningAmount[j] += reviewAccTotal[i - 1][j]; }
+        for (let i = 1; i < currentArray.length; i++) {
+            for (let j = 0; j < runningTotal.length; j++) { runningTotal[j] += currentArray[i][j + 1] * reviewAccTotal[i - 1][j]; runningAmount[j] += reviewAccTotal[i - 1][j]; }
             if (i > dayAverage) {
-                for (let j = 0; j < 4; j++) runningTotal[j] -= reviewAccuracy[i - dayAverage][j + 1] * reviewAccTotal[i - 1 - dayAverage][j];
+                for (let j = 0; j < 4; j++) runningTotal[j] -= currentArray[i - dayAverage][j + 1] * reviewAccTotal[i - 1 - dayAverage][j];
                 for (let j = 0; j < 4; j++) runningAmount[j] -= reviewAccTotal[i - 1 - dayAverage][j];
             }
             for (let j = 0; j < 4; j++) average[j] = runningAmount[j] == 0 ? prevAvg[j] : runningTotal[j] / runningAmount[j];
             prevAvg = average.slice();
-            averageArray.push([reviewAccuracy[i][0], ...average]);
+            averageArray.push([currentArray[i][0], ...average]);
         }
     }
-    // timeframe
-    months = Math.ceil(newdateinp.value);
-    let until = new Date(new Date().setMonth(new Date().getMonth() - months));
     // review accuracy
-    chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewAccuracy, until));
+    chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewAccuracy, startDate));
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
     dateFormatter.format(chartData, 0);
     var options = {
@@ -805,9 +798,9 @@ async function updateReviewsPerDay() {
     }
     // timeframe
     months = Math.ceil(newdateinp.value);
-    let until = new Date(new Date().setMonth(new Date().getMonth() - months));
+    let startDate = new Date(newdateinp.value);
     // reviews per day
-    var chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewArray, until));
+    var chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewArray, startDate));
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
     dateFormatter.format(chartData, 0);
     var options = {
