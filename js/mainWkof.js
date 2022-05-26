@@ -312,7 +312,7 @@ async function fetchData() {
 async function dataPasser() {
     await Promise.all([wkof.ItemData.get_items('assignments, review_statistics').then(itemDataHandler),
         wkof.Apiv2.get_endpoint('user').then(data => userData = data),
-        wkof.Apiv2.get_endpoint('resets').then(data => resetData = data),
+        wkof.Apiv2.get_endpoint('resets').then(data => resetData = Object.values(data)),
         wkof.Apiv2.get_endpoint('level_progressions').then(data => levelData = Object.values(data)),
         wkof.Apiv2.get_endpoint('reviews').then(data => reviewData = Object.values(data))]);
     /*wkof.ItemData.get_items('assignments, review_statistics').then(itemDataHandler)
