@@ -4,8 +4,6 @@ if (prevToken === null) window.location.href = "index.html";
 // load packages
 google.charts.load('current', { 'packages': ['corechart', 'bar'] });
 
-//import { Projections } from "./projections.js";
-
 // API vars
 var apiToken;
 var requestHeaders;
@@ -24,7 +22,6 @@ const whiteOverlay = document.getElementById("whiteoverlay");
 const reviewProgress = document.getElementById("reviewprogress");
 const reviewAll = document.getElementById("reviewall");
 const wordAll = document.getElementById("wordall");
-const projectionsAll = document.getElementById("projectionsall");
 const reviewPg = document.getElementById("reviewpg");
 const levelResetsBox = document.getElementById("levelresets");
 const levelClampBox = document.getElementById("levelclamp");
@@ -60,9 +57,10 @@ var levelChart = [];
 var pureLevelChart = [];
 var combLevelChart = [];
 var combPureLevelChart = [];
+var levelDates = [];
 var kanjiWall = "";
 var possibleYojijukugo = [];
-//var months = 12;
+var projectionsData = [];
 var tableOffset = 0;
 var currentPage = 1;
 var shortLevels = [43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 1, 2];
@@ -72,7 +70,7 @@ newdateche.addEventListener('change', () => { updateReviewCharts(); updateReview
 levelResetsBox.addEventListener('change', () => { updateLevelChart(); });
 levelClampBox.addEventListener('change', () => { updateLevelChart(); });
 levelCombBox.addEventListener('change', () => { updateLevelChart(); });
-projSpeedBox.addEventListener('change', () => { updateProjections(); });
+projSpeedBox.addEventListener('change', () => { updateSimpleProjections(); });
 
 // idb
 async function idbCount(db, name) {
@@ -171,7 +169,6 @@ function logout() {
     localStorage.removeItem('apiv2_key_override');
     window.location.href = "index.html";
 }
-window.logout = logout;
 
 async function fetchLoop(apiEndpointUrl) {
     while (1) {
@@ -229,7 +226,6 @@ async function deleteDatabase(dbName) {
         };
     });
 }
-window.deleteDatabase = deleteDatabase;
 
 async function reviewCacheHandler(apiEndpointUrl, progressBarId) {
     return await new Promise((resolve, reject) => {
@@ -339,9 +335,10 @@ async function dataPasser() {
 function itemDataHandler(items) {
     unalteredItemData = items;
     for (let i = 0; i < items.length; i++) {
-        if (items[i]['assignments'] != undefined) { assignmentData.push({ 'data': items[i]['assignments'] }); delete items[i]['assignments']; }
-        if (items[i]['review_statistics'] != undefined) { wordData.push({ 'data': items[i]['review_statistics'] }); delete items[i]['review_statistics']; }
-        subjectData.push(items[i]);
+        currentItem = Object.assign({}, items[i]);
+        if (currentItem['assignments'] != undefined) { assignmentData.push({ 'data': currentItem['assignments'] }); delete currentItem['assignments']; }
+        if (currentItem['review_statistics'] != undefined) { wordData.push({ 'data': currentItem['review_statistics'] }); delete currentItem['review_statistics']; }
+        subjectData.push(currentItem);
     }
 }
 
@@ -361,12 +358,15 @@ function repairSubjectArray() {
 
 async function loadGraphs() {
     userInfo();
-    levelInfo();
+    levelInfo().then(projections());
     wordInfo();
     updateReviewCharts();
     updateReviewAccuracy();
     updateTables();
-    P.api(userData, levelData, srsData, unalteredItemData);
+}
+
+function dateLongFormat(date) {
+    return date.toDateString().split(' ').slice(1).join(' ');
 }
 
 function fixHtml(html) {
@@ -395,6 +395,91 @@ function levelReorder(lvl) {
         return 4;
     } else if (lvl == 9) {
         return 5;
+    }
+}
+
+async function projections() {
+    document.getElementById("expanded").value = userData["level"];
+    // create data array
+    var [rawData, _] = P.api(userData, levelData, srsData, unalteredItemData); // raw projections data
+    projectionsData = [["Level", { role: "tooltip", 'p': { 'html': true } }, "Fastest Finish", "Hypothetical Finish", "Predicted Finish"],
+        [0, "<div style='margin: 5px'><div><b>Start</b></div><div style='white-space: nowrap'><i>Started Level 1:</i> " + dateLongFormat(levelDates[0][1]) + "</div></div>", null, null, levelDates[0][1]]];
+    var text;
+    for (let i = 1; i < 62; i++) {
+        if (i != 61) text = "<div style='margin: 5px'><div><b>Level " + i + "</b></div>";
+        else text = "<div style='margin: 5px'><div><b>Burn All Items (全火)</b></div>";
+        if (i < userData["level"]) {
+            text += "<div style='white-space: nowrap'>" + fixHtml("<i>Finished Level: </i>") + dateLongFormat(levelDates[i - 1][2]) + "</div></div>";
+            projectionsData.push([i, text, null, null, levelDates[i - 1][2]]);
+        }
+        else {
+            let [f, h, p] = [new Date(rawData[i + 1]['fastest']), new Date(rawData[i + 1]['given']), new Date(rawData[i + 1]['real'])];
+            text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:darkgray'>Predicted Finish: </i>") + dateLongFormat(p) + "</div>";
+            text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#7aa7f5'>Hypothetical Finish: </i>") + dateLongFormat(h) + "</div>";
+            text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#EEBC1D'>Fastest Finish: </i>") + dateLongFormat(f) + "</div></div>";
+            projectionsData.push([i, text, f, h, p]);
+        }
+    }
+    updateProjections();
+}
+
+async function updateProjections() {
+    var [rawData, _] = P.api(userData, levelData, srsData, unalteredItemData);
+    var text;
+    for (let i = userData["level"] + 1; i <= 62; i++) {
+        if (i != 62) text = "<div style='margin: 5px'><div><b>Level " + projectionsData[i][0] + "</b></div>";
+        else text = "<div style='margin: 5px'><div><b>Burn All Items (全火)</b></div>";
+        let [f, h, p] = [projectionsData[i][2], new Date(rawData[i]['given']), projectionsData[i][4]];
+        text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:darkgray'>Predicted Finish: </i>") + dateLongFormat(p) + "</div>";
+        text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#7aa7f5'>Hypothetical Finish: </i>") + dateLongFormat(h) + "</div>";
+        text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#EEBC1D'>Fastest Finish: </i>") + dateLongFormat(f) + "</div></div>";
+        projectionsData[i] = [projectionsData[i][0], text, f, h, p];
+    }
+    let chartData = google.visualization.arrayToDataTable((document.getElementById('showPast').checked ? projectionsData : [projectionsData[0], ...projectionsData.slice(userData['level'] + 1)]).slice(...(document.getElementById('showBurn').checked ? [] : [0, -1])));
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    dateFormatter.format(chartData, 1);
+    dateFormatter.format(chartData, 2);
+    dateFormatter.format(chartData, 3);
+    var options = {
+        chartArea: { width: '80%', height: '85%' },
+        title: 'Projections',
+        curveType: 'none',
+        legend: { position: "none" },
+        colors: ['#EEBC1D', '#7aa7f5', 'darkgray'],
+        width: 1000,
+        height: 333,
+        tooltip: { isHtml: true },
+        focusTarget: 'category'
+    };
+    var chartDiv = document.getElementById('projectionschart');
+    var chart = new google.visualization.LineChart(chartDiv);
+    chart.draw(chartData, options);
+    // click special data event
+    google.visualization.events.addListener(chart, 'select', function () {
+        const specificDiv = document.getElementById('specifics');
+        var selection = chart.getSelection();
+        if (selection.length == 0) { specificDiv.style.display = 'none'; document.getElementById('expand').checked = false; return; }
+        var level = chartData.getValue(chart.getSelection()[0]['row'], 0);
+        if (level == 61 || level == 0) { specificDiv.style.display = 'none'; document.getElementById('expand').checked = false; return; }
+        specificDiv.children[0].innerHTML = '<b>Specific Item Breakdown for Level ' + level + '</b>';
+        document.getElementById('expanded').value = String(level);
+        document.getElementById('expand').checked = true;
+        var [_, output] = P.api(userData, levelData, srsData, unalteredItemData);
+        var specificData = output.slice(output.indexOf('<table class="coverage">'));
+        console.log(output);
+        specificDiv.children[1].innerHTML = specificData;
+        specificDiv.style.display = 'block';
+    });
+}
+
+function expandHypothetical() {
+    let expandBool = document.getElementById('hypothetical').checked;
+    if (expandBool) {
+        document.getElementById('easyhypothetical').style.display = 'none';
+        document.getElementById('advhypothetical').style.display = 'block';
+    } else {
+        document.getElementById('easyhypothetical').style.display = 'block';
+        document.getElementById('advhypothetical').style.display = 'none';
     }
 }
 
@@ -650,7 +735,6 @@ async function updateReviewCharts() {
     chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
 }
-window.updateReviewCharts = updateReviewCharts;
 
 function updateTables(changeOffset = 0) {
     tableOffset += changeOffset;
@@ -668,9 +752,9 @@ function updateTables(changeOffset = 0) {
         datesEnd.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * (i-1), today.getDate() - durationDays * (i-1) - 1));
     }
     let dateElements = document.getElementById("tableheaddate").children;
-    for (let i = 1; i < dateElements.length; i++) dateElements[i].innerHTML = "<th>" + dates[i - 1].toDateString().split(' ').slice(1).join(' ') + "</th>";
+    for (let i = 1; i < dateElements.length; i++) dateElements[i].innerHTML = "<th>" + dateLongFormat(dates[i - 1]) + "</th>";
     let dateEndElements = document.getElementById("tableheadenddate").children;
-    for (let i = 1; i < dateEndElements.length; i++) dateEndElements[i].innerHTML = "<th>" + datesEnd[i - 1].toDateString().split(' ').slice(1).join(' ') + "</th>";
+    for (let i = 1; i < dateEndElements.length; i++) dateEndElements[i].innerHTML = "<th>" + dateLongFormat(datesEnd[i - 1]) + "</th>";
     let intervalElements = document.getElementById("tableheadinterval").children;
     for (let i = 1; i < intervalElements.length; i++) intervalElements[i].innerHTML = "<th>" + (dateAmount - i + tableOffset + 1) + "</th>";
     // reviews
@@ -746,7 +830,6 @@ function updateTables(changeOffset = 0) {
         itemvocabElements[i].innerHTML = itemsTable[i - 1][3];
     }
 }
-window.updateTables = updateTables;
 
 async function updateReviewAccuracy() {
     const dayAverage = smoothAccInp.value;
@@ -795,7 +878,6 @@ async function updateReviewAccuracy() {
     var chart = new google.visualization.LineChart(document.getElementById('percentagechart'));
     chart.draw(chartData, options);
 }
-window.updateReviewAccuracy = updateReviewAccuracy;
 
 async function updateReviewsPerDay() {
     const dayAverage = smoothInp.value;
@@ -840,7 +922,6 @@ async function updateReviewsPerDay() {
     var chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
 }
-window.updateReviewsPerDay = updateReviewsPerDay;
 
 function median(values) {
     if (values.length === 0) return 0;
@@ -861,11 +942,11 @@ async function levelInfo() {
     // format level data
     if (resets.length == 0) levelResetsBox.parentElement.style.display = "none";
     else levelResetsBox.parentElement.style.display = "block";
-    projectionsAll.style.display = "block";
     levelChart = [["Level", "Level-Up Days", { role: 'style' }, { role: "tooltip", 'p': { 'html': true } }, "Pure Vocab Days", { role: "tooltip", 'p': { 'html': true } }, "Median", { role: "tooltip", 'p': { 'html': true } }]];
     pureLevelChart = [levelChart[0].slice()];
     combLevelChart = [["Level", "Level-Up Days", { role: 'style' }, { role: "tooltip", 'p': { 'html': true } }, "Median", { role: "tooltip", 'p': { 'html': true } }]];
     combPureLevelChart = [combLevelChart[0].slice()];
+    levelDates = [];
     var extraTime = [];
     var combHoverTexts = [];
     levelLengths = [];
@@ -901,8 +982,9 @@ async function levelInfo() {
             var primaryTime, secondaryTime;
             if (shortLevels.includes(level)) { primaryTime = 3.7; secondaryTime = 4.2; }
             else { primaryTime = 7; secondaryTime = 8; }
-            combHoverTexts.push("<div style='margin: 5px; margin-top: 10px'>" + fixHtml("<b>Started:</b> ") + new Date(currentLevel["data"]["unlocked_at"]).toDateString().split(' ').slice(1).join(' ') + "</div>" + "<div style='margin: 5px'>" + fixHtml("<b>Finished:</b> ") + dateAfter.toDateString().split(' ').slice(1).join(' ') + "</div>");
-            let hoverText = "<div style='margin: 5px; margin-top: 10px'>" + fixHtml("<b>Started:</b> ") + dateBefore.toDateString().split(' ').slice(1).join(' ') + "</div>" + "<div style='margin: 5px'>" + fixHtml("<b>Finished:</b> ") + dateAfter.toDateString().split(' ').slice(1).join(' ') + "</div>";
+            combHoverTexts.push("<div style='margin: 5px; margin-top: 10px'>" + fixHtml("<b>Started:</b> ") + dateLongFormat(new Date(currentLevel["data"]["unlocked_at"])) + "</div>" + "<div style='margin: 5px'>" + fixHtml("<b>Finished:</b> ") + dateLongFormat(dateAfter) + "</div>");
+            levelDates.push([level, new Date(currentLevel["data"]["unlocked_at"]), dateAfter]);
+            let hoverText = "<div style='margin: 5px; margin-top: 10px'>" + fixHtml("<b>Started:</b> ") + dateLongFormat(dateBefore) + "</div>" + "<div style='margin: 5px'>" + fixHtml("<b>Finished:</b> ") + dateLongFormat(dateAfter) + "</div>";
             if (length < primaryTime) {
                 levelChart.push([String(level), length, '#EEBC1D', hoverText, 0, ""]); //darkgold
             } else if (length < secondaryTime) {
@@ -910,7 +992,7 @@ async function levelInfo() {
             } else {
                 levelChart.push([String(level), length, '#55a2e6', hoverText, 0, ""]); //sky blue
             }
-        } else levelChart.push([String(level), length, currentLevelColor, "<div style='margin: 5px; margin-top: 10px'>" + fixHtml("<b>Started:</b> ") + dateBefore.toDateString().split(' ').slice(1).join(' ') + "</div>", 0, ""]);
+        } else levelChart.push([String(level), length, currentLevelColor, "<div style='margin: 5px; margin-top: 10px'>" + fixHtml("<b>Started:</b> ") + dateLongFormat(dateBefore) + "</div>", 0, ""]);
         j++;
         currentLevel = levelData[j];
     }
@@ -924,16 +1006,20 @@ async function levelInfo() {
             if (levelChart[j][0].slice(-1) != "R") levelChart[j][0] += "R";
             levelChart[j][2] = "lightsalmon";
             levelLengths[j - 1] = -1;
+            levelDates[j - 1] = null;
         }
         resetIndex = endIndex + 1;
     }
+
     levelLengths = levelLengths.reverse();
     for (let i = levelLengths.length; i >= 0; i--) if (levelLengths[i] == -1) levelLengths.splice(i, 1);
+    levelDates = levelDates.reverse();
+    for (let i = levelDates.length; i >= 0; i--) if (levelDates[i] == null) levelDates.splice(i, 1);
+    levelDates = levelDates.reverse();
 
     // pure vocab time
     extraTime.splice(0, 1);
     for (let i = 0; i < extraTime.length; i++) levelChart[i+1][4] = extraTime[i];
-    if (reviewData.length == 0) projectionsAll.style.display = "none"; // user has not started
     // median
     let medianVal = median(levelLengths);
     for (let i = 1; i < levelChart.length; i++) { levelChart[i].push(medianVal); levelChart[i].push("<div style='margin: 5px; white-space: nowrap'>" + fixHtml("<b>Median: ") + daysToDurationString(medianVal, true) + "</div>"); }
@@ -967,10 +1053,10 @@ async function levelInfo() {
 
     // level chart
     updateLevelChart();
-    updateProjections();
+    updateSimpleProjections();
 }
 
-function updateProjections() {
+function updateSimpleProjections() {
     const speedBool = projSpeedBox.checked;
     const level = userData["level"];
     var time = levelLengths.reduce((partialSum, a) => partialSum + a, 0);
@@ -991,7 +1077,6 @@ function updateProjections() {
         + fixHtml("<b>Mean Level-Up: ") + daysToDurationString(averageVal, averageVal < 365 ? true : false) + "\n"
         + " => level 60 in " + daysToDurationString(average < 0 ? 0 : average);
 }
-window.updateProjections = updateProjections;
 
 function daysToDurationString(x, includeHours = false, short = false) {
     let days = Math.floor(x);
@@ -1041,13 +1126,11 @@ function updateLevelChart() {
     var chart = new google.visualization.ComboChart(chartDiv);
     chart.draw(newChartData, options);
 }
-window.updateLevelChart = updateLevelChart;
 
 function changeYojijukugoRandom() {
     currentPage = Math.floor(Math.random() * possibleYojijukugo.length) + 1;
     changeYojijukugo(0);
 }
-window.changeYojijukugoRandom = changeYojijukugoRandom;
 
 function changeYojijukugo(page) {
     currentPage += page;
@@ -1069,7 +1152,6 @@ function changeYojijukugo(page) {
     }
     document.getElementById("yojijukugopage").innerHTML = currentPage + "/" + possibleYojijukugo.length + " ";
 }
-window.changeYojijukugo = changeYojijukugo;
 
 async function wordInfo() {
     // create array

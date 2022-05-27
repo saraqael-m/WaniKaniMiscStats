@@ -32,7 +32,7 @@
 		</div>
 	</div>
 
-	<div id="blackoverlay" style="visibility: hidden; position: absolute; top: 0%; left: 0%; width: 100%; height: 120%; background: black; z-index: 1001; opacity: 0.5;"></div>
+	<div id="blackoverlay" style="visibility: hidden; position: absolute; top: 0%; left: 0%; width: 100%; height: 150%; background: black; z-index: 1001; opacity: 0.5;"></div>
 	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ;background-color: white; z-index: 1002; overflow: auto; padding: 20px">
 		<h3 style="margin-top: 10px">Loading Data...</h3>
 		<!--<p>Level Data</p>
@@ -69,7 +69,7 @@
         background-size: cover;
         background-position: top">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.４.３</div>
+		<div style="text-align: right; font-size: 12px">バージョン３.４.４</div>
 		<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
@@ -85,6 +85,7 @@
 	<div class="allinfo" style="display: none">
 		<div class="toc" style="margin-top: 20px">
 			<a onclick="window.location.hash = ''; window.location.hash = '#LevelInfo';">Level Info</a>
+			<a onclick="window.location.hash = ''; window.location.hash = '#Projections';">Projections</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#SrsInfo';">SRS Info</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#ReviewInfo';">Review Info</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#AccuracyInfo';">Accuracy Info</a>
@@ -93,7 +94,6 @@
 			<a onclick="window.location.hash = ''; window.location.hash = '#WallofShame';">Wall of Shame</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#WallofFame';">Wall of Fame</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#UserInfo';">User Info</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#Projections';">Projections</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#WordProgress';">Word Progress</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#Yojijukugo';">Yojijukugo</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#KanjiWall';">Kanji Wall</a>
@@ -112,7 +112,7 @@
 					<h2 class="heading">Level Info</h2>
 					<div id="leveltimechart"></div>
 					<span class="projections">
-						<div id="projectionchart"></div>
+						
 					</span>
 					<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
 						<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
@@ -132,12 +132,68 @@
 				</div>
 
 				<div class="card">
+					<a id="Projections"></a>
+					<h2 class="heading">Projections</h2>
+					<p><b>Tip:</b> Click a level data point to see the specific item pass date breakdown below the projections chart.</p>
+					<div class="projectionchart">
+						<div id="projectionschart"></div>
+						<div style="background-color: lightgrey; padding: 10px; margin-top: 10px; display: inline-block">
+							<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
+							<div style="display: none">
+								<input type="checkbox" id="expand" class="project">
+								<!--<label for="speed">Show Details for Level:</label>-->
+								<input type="number" id="expanded" size="3" value=""><br>
+							</div>
+							<input onchange="updateProjections();" type="checkbox" id="showPast" class="project" checked>
+							<label for="showPast">Show Past Levels</label><br>
+							<input onchange="updateProjections();" type="checkbox" id="showBurn" class="project" checked>
+							<label for="showBurn">Show Burn Completion</label><br>
+							<input type="checkbox" id="fools">
+							<label for="fools">Dark Blockchain</label><br>
+							<input onchange="expandHypothetical();" type="checkbox" id="hypothetical" class="project">
+							<label for="hypothetical">Advanced Hypotheticals</label><br>
+							<div id="easyhypothetical">
+								<label for="speed">Hypothetical Speed:</label>
+								<input type="number" id="speed" size="4" value="240">
+								<span> hours</span>
+							</div>
+							<div id="advhypothetical" style="display: none">
+								<label for="speed-current">
+									Hypothetical speed for current level
+								</label>
+								<input type="number" id="speed-current" size="4" value="240">
+								<span> hours</span>
+								<br>
+								<label for="speed-590400">
+									Hypothetical speed for normal levels
+								</label>
+								<input type="number" id="speed-590400" size="4" value="240">
+								<span> hours</span>
+								<br>
+								<label for="speed-295200">
+									Hypothetical speed for fast levels
+								</label>
+								<input type="number" id="speed-295200" size="4" value="240">
+								<span> hours</span>
+							</div>
+							<br>
+							<button id="project" class="project" onclick="updateProjections();">Project</button><br>
+						</div>
+						<div id="specifics" style="display: none; margin: 10px">
+							<div style="margin-bottom: 5px"><b>Specific Item Breakdown for Level </b></div>
+							<div></div>
+							<button style="margin-top: 5px" onclick="window.location.hash = ''; window.location.hash = '#Projections'; document.getElementById('specifics').style.display = 'none';">Hide Specifics</button>
+						</div>
+					</div>
+				</div>
+
+				<div class="card">
 					<h4>Set time frame for <i>SRS Item Info</i>, <i>Review Info</i>, <i>and Accuracy Info</i>:</h4>
 					<div style="background-color: lightgrey; padding: 10px; padding-top: 0px; display: inline-block">
 						<pre id="reviewloading" style="padding-top: 0px"></pre>
 						<!--<span id="newdatediv">Change time frame to </span>
-						<input type="number" onkeydown="if (event.key === 'Enter') { updateReviewCharts(); updateReviewAccuracy(); }" style="width: 50px" id="newdateinp" min="1" max="9999">
-						<span> months. </span>-->
+			<input type="number" onkeydown="if (event.key === 'Enter') { updateReviewCharts(); updateReviewAccuracy(); }" style="width: 50px" id="newdateinp" min="1" max="9999">
+			<span> months. </span>-->
 						<label for="startdate">Start date for time frame:</label>
 						<input type="date" id="startdate" name="trip-start" value="2022-05-26">
 						<button type="button" onclick="updateReviewCharts(); updateReviewAccuracy();" id="newdatebtn">Generate Charts</button>
@@ -430,125 +486,125 @@
 									<td>-</td>
 								</tr>
 								<!--<tr id="readacctable" style="border-top: 2px solid darkgrey">
-									<td style="text-align: left"> ↳ 読み</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-								</tr>
-								<tr id="readaccradtable" style="background-color: azure">
-									<td style="color: dodgerblue">↳ 部首</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-								</tr>
-								<tr id="readacckanjitable" style="background-color: #ffe6f8">
-									<td style="color: hotpink">↳ 漢字</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-								</tr>
-								<tr id="readaccvocabtable" style="background-color: #f3ebfc">
-									<td style="color: mediumpurple">↳ 単語</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-								</tr>
-								<tr id="meanacctable" style="border-top: 2px solid darkgrey">
-									<td style="text-align: left"> ↳ 意味</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-								</tr>
-								<tr id="meanaccradtable" style="background-color: azure">
-									<td style="color: dodgerblue">↳ 部首</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-								</tr>
-								<tr id="meanacckanjitable" style="background-color: #ffe6f8">
-									<td style="color: hotpink">↳ 漢字</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-								</tr>
-								<tr id="meanaccvocabtable" style="background-color: #f3ebfc">
-									<td style="color: mediumpurple">↳ 単語</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-								</tr>-->
+						<td style="text-align: left"> ↳ 読み</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+					</tr>
+					<tr id="readaccradtable" style="background-color: azure">
+						<td style="color: dodgerblue">↳ 部首</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+					</tr>
+					<tr id="readacckanjitable" style="background-color: #ffe6f8">
+						<td style="color: hotpink">↳ 漢字</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+					</tr>
+					<tr id="readaccvocabtable" style="background-color: #f3ebfc">
+						<td style="color: mediumpurple">↳ 単語</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+					</tr>
+					<tr id="meanacctable" style="border-top: 2px solid darkgrey">
+						<td style="text-align: left"> ↳ 意味</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+					</tr>
+					<tr id="meanaccradtable" style="background-color: azure">
+						<td style="color: dodgerblue">↳ 部首</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+					</tr>
+					<tr id="meanacckanjitable" style="background-color: #ffe6f8">
+						<td style="color: hotpink">↳ 漢字</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+					</tr>
+					<tr id="meanaccvocabtable" style="background-color: #f3ebfc">
+						<td style="color: mediumpurple">↳ 単語</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+						<td>-</td>
+					</tr>-->
 							</tbody>
 						</table>
 					</div>
@@ -588,10 +644,6 @@
 					<a id="UserInfo"></a>
 					<h2 class="heading">User Info</h2>
 					<pre style="color:black" id="userinfo"></pre>
-				</div>
-				<div class="card" id="projectionsall">
-					<a id="Projections"></a>
-					<h2 class="heading">Projections</h2>
 					<pre id="future"></pre>
 					<div style="padding-top: 5px">
 						<input type="checkbox" id="projectionsspeed" name="projectionsspeed">
@@ -638,7 +690,11 @@
 			</div>
 			<div class="card">
 				<h3>Contact</h3>
-				<p style="text-align: left">If you find some bugs or have an idea for some other stats just @ me in the WaniKani community (<a style="color:darkgray" href="https://community.wanikani.com/u/saraqael/summary">@saraqael</a>). Preferably, leave a comment on the <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">main thread</a> for this web app. <br><b>Credits:</b> <a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a> for implementing Level Projections (& and being a great contributor to this project as a whole) and <a style="color:#EEBC1D" href="https://community.wanikani.com/u/rfindley/summary">@rfindley</a> for creating the WaniKani Open Framework.</p>
+				<p style="text-align: left">If you find some bugs or have an idea for some other stats just @ me in the WaniKani community (<a style="color:darkgray" href="https://community.wanikani.com/u/saraqael/summary">@saraqael</a>). Preferably, leave a comment on the <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">main thread</a> for this web app.</p>
+			</div>
+			<div class="card">
+				<h3>Credits</h3>
+				<p style="text-align: left"><a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a> for implementing Level Projections and being a great contributor to this project as a whole. <a style="color:#EEBC1D" href="https://community.wanikani.com/u/rfindley/summary">@rfindley</a> for creating the WaniKani Open Framework. And also everyone else who is always commenting in the main thread, thank you!</p>
 			</div>
 		</div>
 

@@ -183,11 +183,11 @@ const P = {
 
         const element = document.getElementsByClassName("projections")[0];
         if (!element.className.includes("chart")) element.className += " chart";
-        element.innerHTML = output;
+        /*element.innerHTML = output; 
         Array.from(document.getElementsByClassName("project")).forEach(x => x.addEventListener("click", project));
-        P.addGlobalStyle();
+        P.addGlobalStyle();*/ // is not commented out in real version
 
-        return JSON.stringify(Object.assign({}, p));
+        return [p, output]; //JSON.stringify(Object.assign({}, p)); // is not commented out in real version
     },
 
     api: function api(userData, levels, systems, items) {
