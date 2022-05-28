@@ -379,7 +379,7 @@ async function userInfo() {
     let userInfo = "";
     userInfo += fixHtml("<b>Username: ") + userData["username"] + "\n";
     userInfo += fixHtml("<b>Current Level: ") + userData["level"] + "\n";
-    userInfo += fixHtml("<b>Subscription active: ") + userData["subscription"]["active"] + "\n";
+    userInfo += fixHtml("<b>Subscription Active: ") + userData["subscription"]["active"] + "\n";
     let userPre = document.getElementById("userinfo");
     userPre.innerHTML = userInfo;
 }
@@ -399,27 +399,41 @@ function levelReorder(lvl) {
 }
 
 async function projections() {
+    const annotationsArray = [[16, "N5 Kanji & Joyo 25%"], [27, "N4 Kanji"], [51, "N3 & N2 Kanji"], [7, "Joyo 10%"], [32, "Joyo 50%"], [48, "Joyo 75%"], [58, "Joyo 90%"]];
     document.getElementById("expanded").value = userData["level"];
     // create data array
     var [rawData, _] = P.api(userData, levelData, srsData, unalteredItemData); // raw projections data
-    projectionsData = [["Level", { role: "tooltip", 'p': { 'html': true } }, "Fastest Finish", "Hypothetical Finish", "Predicted Finish"],
-        [0, "<div style='margin: 5px'><div><b>Start</b></div><div style='white-space: nowrap'><i>Started Level 1:</i> " + dateLongFormat(levelDates[0][1]) + "</div></div>", null, null, levelDates[0][1]]];
+    projectionsData = [["Level", { role: "tooltip", 'p': { 'html': true } }, { role: "annotation" }, "Fastest Finish", "Hypothetical Finish", "Reset Finish", "Predicted Finish"],
+        [0, "<div style='margin: 5px'><div><b>Start</b></div><div style='white-space: nowrap'><i>Started Level 1:</i> " + dateLongFormat(new Date(levelData[0]["data"]["unlocked_at"])) + "</div></div>", null, null, null, null, new Date(levelData[0]["data"]["unlocked_at"])]];
     var text;
+    var prevReset = false;
     for (let i = 1; i < 62; i++) {
         if (i != 61) text = "<div style='margin: 5px'><div><b>Level " + i + "</b></div>";
         else text = "<div style='margin: 5px'><div><b>Burn All Items (全火)</b></div>";
         if (i < userData["level"]) {
-            text += "<div style='white-space: nowrap'>" + fixHtml("<i>Finished Level: </i>") + dateLongFormat(levelDates[i - 1][2]) + "</div></div>";
-            projectionsData.push([i, text, null, null, levelDates[i - 1][2]]);
+            text += "<div style='white-space: nowrap'>" + fixHtml("<i>Finished Level: </i>") + dateLongFormat(levelDates[i - 1][2]) + "</div>";
+            let resetLevelDate = null;
+            if (levelDates[i - 1][levelDates[i - 1].length - 1] == "R") {
+                if (!prevReset) projectionsData[projectionsData.length - 1][5] = projectionsData[projectionsData.length - 1][6];
+                prevReset = true;
+                resetLevelDate = levelDates[i - 1][levelDates[i - 1].length - 2][2];
+                text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:indianred'>Reset Level: </i>") + dateLongFormat(resetLevelDate) + "</div></div>";
+            } else {
+                //if (prevReset) resetLevelDate = levelDates[i - 1][2];
+                prevReset = false;
+                text += "</div>";
+            }
+            projectionsData.push([i, text, null, null, null, resetLevelDate, levelDates[i - 1][2]]);
         }
         else {
             let [f, h, p] = [new Date(rawData[i + 1]['fastest']), new Date(rawData[i + 1]['given']), new Date(rawData[i + 1]['real'])];
             text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:darkgray'>Predicted Finish: </i>") + dateLongFormat(p) + "</div>";
             text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#7aa7f5'>Hypothetical Finish: </i>") + dateLongFormat(h) + "</div>";
             text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#EEBC1D'>Fastest Finish: </i>") + dateLongFormat(f) + "</div></div>";
-            projectionsData.push([i, text, f, h, p]);
+            projectionsData.push([i, text, null, f, h, i == userData["level"] ? p : null, p]);
         }
     }
+    for (let i = 0; i < annotationsArray.length; i++) projectionsData.find(element => element[0] == annotationsArray[i][0])[2] = annotationsArray[i][1];
     updateProjections();
 }
 
@@ -429,13 +443,16 @@ async function updateProjections() {
     for (let i = userData["level"] + 1; i <= 62; i++) {
         if (i != 62) text = "<div style='margin: 5px'><div><b>Level " + projectionsData[i][0] + "</b></div>";
         else text = "<div style='margin: 5px'><div><b>Burn All Items (全火)</b></div>";
-        let [f, h, p] = [projectionsData[i][2], new Date(rawData[i]['given']), projectionsData[i][4]];
+        let [f, h, p] = [projectionsData[i][3], new Date(rawData[i]['given']), projectionsData[i][6]];
         text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:darkgray'>Predicted Finish: </i>") + dateLongFormat(p) + "</div>";
         text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#7aa7f5'>Hypothetical Finish: </i>") + dateLongFormat(h) + "</div>";
         text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#EEBC1D'>Fastest Finish: </i>") + dateLongFormat(f) + "</div></div>";
-        projectionsData[i] = [projectionsData[i][0], text, f, h, p];
+        projectionsData[i][1] = text;
+        projectionsData[i][4] = h;
     }
-    let chartData = google.visualization.arrayToDataTable((document.getElementById('showPast').checked ? projectionsData : [projectionsData[0], ...projectionsData.slice(userData['level'] + 1)]).slice(...(document.getElementById('showBurn').checked ? [] : [0, -1])));
+    let editedData = (document.getElementById('showPast').checked ? projectionsData.slice() : [projectionsData[0], ...projectionsData.slice(userData['level'] + 1)]).slice(...(document.getElementById('showBurn').checked ? [] : [0, -1]));
+    if (!document.getElementById('showCheck').checked) editedData = editedData.map(x => [...x.slice(0, 2), ...x.slice(3)])
+    let chartData = google.visualization.arrayToDataTable(editedData);
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
     dateFormatter.format(chartData, 1);
     dateFormatter.format(chartData, 2);
@@ -444,11 +461,16 @@ async function updateProjections() {
         chartArea: { width: '80%', height: '85%' },
         title: 'Projections',
         curveType: 'none',
+        hAxis: { format: '0' },
         legend: { position: "none" },
-        colors: ['#EEBC1D', '#7aa7f5', 'darkgray'],
+        colors: ['#EEBC1D', '#7aa7f5', 'indianred', 'darkgray'],
         width: 1000,
         height: 333,
         tooltip: { isHtml: true },
+        annotations: {
+            style: 'line',
+            domain: { stem: { color: '#7fbd7d' }} // darkgreen vertical lines
+        },
         focusTarget: 'category'
     };
     var chartDiv = document.getElementById('projectionschart');
@@ -466,7 +488,6 @@ async function updateProjections() {
         document.getElementById('expand').checked = true;
         var [_, output] = P.api(userData, levelData, srsData, unalteredItemData);
         var specificData = output.slice(output.indexOf('<table class="coverage">'));
-        console.log(output);
         specificDiv.children[1].innerHTML = specificData;
         specificDiv.style.display = 'block';
     });
@@ -1006,15 +1027,16 @@ async function levelInfo() {
             if (levelChart[j][0].slice(-1) != "R") levelChart[j][0] += "R";
             levelChart[j][2] = "lightsalmon";
             levelLengths[j - 1] = -1;
-            levelDates[j - 1] = null;
+            levelDates.find(element => element[1].getTime() != levelDates[j - 1][1].getTime() && element[0] == levelDates[j - 1][0]).push(...[levelDates[j - 1].slice(), "R"]);
+            levelDates[j - 1] = [-1, new Date()];
         }
         resetIndex = endIndex + 1;
     }
 
     levelLengths = levelLengths.reverse();
-    for (let i = levelLengths.length; i >= 0; i--) if (levelLengths[i] == -1) levelLengths.splice(i, 1);
+    for (let i = levelLengths.length - 1; i >= 0; i--) if (levelLengths[i] == -1) levelLengths.splice(i, 1);
     levelDates = levelDates.reverse();
-    for (let i = levelDates.length; i >= 0; i--) if (levelDates[i] == null) levelDates.splice(i, 1);
+    for (let i = levelDates.length - 1; i >= 0; i--) if (levelDates[i][0] == -1) levelDates.splice(i, 1);
     levelDates = levelDates.reverse();
 
     // pure vocab time
