@@ -74,7 +74,7 @@
         background-size: cover;
         background-position: top">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.５.０</div>
+		<div style="text-align: right; font-size: 12px">バージョン３.５.１</div>
 		<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
@@ -191,7 +191,7 @@
 							<div></div>
 							<button style="margin-top: 5px" onclick="window.location.hash = ''; window.location.hash = '#Projections'; document.getElementById('specifics').style.display = 'none';">Hide Specifics</button>
 						</div>
-						<pre style="font-size: 10px">Source: <a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a></pre>
+						<pre style="font-size: 10px">Original Userscript Creator: <a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a></pre>
 					</div>
 				</div>
 
@@ -289,77 +289,77 @@
 								</tr>
 							</thead>
 							<tbody>
-								<tr id="reviewtable" style="border-top: 2px solid darkgrey">
-									<td style="text-align: left">Reviews</td>
+								<tr id="reviewtable" style="border-top: 4px solid darkgrey">
+									<td style="border-right: 2px solid darkgrey; text-align: left">Reviews</td>
 								</tr>
 								<tr class="radtable" id="reviewradtable">
-									<td style="color: dodgerblue">↳ 部首</td>
+									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
 								</tr>
 								<tr class="kantable" id="reviewkanjitable">
-									<td style="color: hotpink">↳ 漢字</td>
+									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
 								</tr>
 								<tr class="voctable" id="reviewvocabtable">
-									<td style="color: mediumpurple">↳ 単語</td>
+									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
 								</tr>
-								<tr id="itemtable" style="border-top: 2px solid darkgrey">
-									<td style="text-align: left">Lessons</td>
+								<tr id="itemtable" style="border-top: 4px solid darkgrey">
+									<td style="border-right: 2px solid darkgrey; text-align: left">Lessons</td>
 								</tr>
 								<tr class="radtable" id="itemradtable">
-									<td style="color: dodgerblue">↳ 部首</td>
+									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
 								</tr>
 								<tr class="kantable" id="itemkanjitable">
-									<td style="color: hotpink">↳ 漢字</td>
+									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
 								</tr>
 								<tr class="voctable" id="itemvocabtable">
-									<td style="color: mediumpurple">↳ 単語</td>
+									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
 								</tr>
-								<tr id="cortable" style="border-top: 2px solid darkgrey">
-									<td style="text-align: left">Correct*</td>
+								<tr id="cortable" style="border-top: 4px solid darkgrey">
+									<td style="border-right: 2px solid darkgrey; text-align: left">Correct*</td>
 								</tr>
 								<tr class="radtable" id="corradtable">
-									<td style="color: dodgerblue">↳ 部首</td>
+									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
 								</tr>
 								<tr class="kantable" id="corkanjitable">
-									<td style="color: hotpink">↳ 漢字</td>
+									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
 								</tr>
 								<tr class="voctable" id="corvocabtable">
-									<td style="color: mediumpurple">↳ 単語</td>
+									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
 								</tr>
-								<tr id="acctable" style="border-top: 2px solid darkgrey">
-									<td style="text-align: left">Accuracy</td>
+								<tr id="acctable" style="border-top: 4px solid darkgrey">
+									<td style="border-right: 2px solid darkgrey; text-align: left">Accuracy</td>
 								</tr>
 								<tr class="radtable" id="accradtable">
-									<td style="color: dodgerblue">↳ 部首</td>
+									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
 								</tr>
 								<tr class="kantable" id="acckanjitable">
-									<td style="color: hotpink">↳ 漢字</td>
+									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
 								</tr>
 								<tr class="voctable" id="accvocabtable">
-									<td style="color: mediumpurple">↳ 単語</td>
+									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
 								</tr>
 								<tr id="meanacctable" style="border-top: 2px solid darkgrey">
-									<td style="text-align: left"> ↳ 意味</td>
+									<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ 意味<span class="tooltiptext">Meaning Accuracy</span></td>
 								</tr>
 								<tr class="radtable" id="meanaccradtable">
-									<td style="color: dodgerblue">↳ 部首</td>
+									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
 								</tr>
 								<tr class="kantable" id="meanacckanjitable">
-									<td style="color: hotpink">↳ 漢字</td>
+									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
 								</tr>
 								<tr class="voctable" id="meanaccvocabtable">
-									<td style="color: mediumpurple">↳ 単語</td>
+									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
 								</tr>
 								<tr id="readacctable" style="border-top: 2px solid darkgrey">
-									<td style="text-align: left"> ↳ 読み</td>
+									<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ 読み<span class="tooltiptext">Reading Accuracy</span></td>
 								</tr>
 								<tr class="radtable" id="readaccradtable">
-									<td style="color: dodgerblue">↳ 部首</td>
+									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
 								</tr>
 								<tr class="kantable" id="readacckanjitable">
-									<td style="color: hotpink">↳ 漢字</td>
+									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
 								</tr>
 								<tr class="voctable" id="readaccvocabtable">
-									<td style="color: mediumpurple">↳ 単語</td>
+									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
 								</tr>
 							</tbody>
 						</table>

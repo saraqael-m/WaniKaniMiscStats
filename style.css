@@ -21,6 +21,23 @@ div.google-visualization-tooltip {
 	white-space: nowrap;
 }
 
+/* tooltip */
+
+.tooltip .tooltiptext {
+	visibility: hidden;
+	width: 120px;
+	background-color: black;
+	color: #fff;
+	text-align: center;
+	padding: 5px 0;
+	position: absolute;
+	z-index: 1;
+}
+
+.tooltip:hover .tooltiptext {
+	visibility: visible;
+}
+
 /* dark mode */
 
 div.card.dark-mode {
@@ -60,7 +77,7 @@ tr.dark-mode {
 }
 
 div.dark-mode div.google-visualization-tooltip {
-	background-color: black !important;
+	background-color: #1c1c1c !important;
 }
 
 div.dark-mode div.google-visualization-tooltip > ul > li > span {
