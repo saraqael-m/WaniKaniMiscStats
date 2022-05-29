@@ -8,14 +8,100 @@ body {
 	background: #f1f1f1;
 }
 
+div.settings {
+	background-color: lightgrey;
+}
+
 h1, h2, h3, h4, h5, h6, label, p, pre {
 	font-family: Helvetica, Arial, Sans-Serif;
+	/*color: black;*/
+}
+
+div.google-visualization-tooltip {
+	white-space: nowrap;
+}
+
+/* dark mode */
+
+div.card.dark-mode {
+	background-color: #292929;
+	color: white;
+}
+
+div.settings.dark-mode {
+	background-color: #1c1c1c;
+	color: white;
+}
+
+div.toc.dark-mode {
+	background-color: #525252;
+}
+
+div.toc.dark-mode a {
+	color: white;
+}
+
+tr.dark-mode {
+	color: white;
+}
+
+#whiteoverlay.dark-mode {
+	background-color: black;
+	color: white;
+}
+
+#whiteoverlay {
+	background-color: white;
 	color: black;
 }
 
-.normal_text {
-	color:  black;
+.chart.dark-mode text {
+	fill: white !important;
 }
+
+div.dark-mode div.google-visualization-tooltip {
+	background-color: black !important;
+}
+
+div.dark-mode div.google-visualization-tooltip > ul > li > span {
+	color: white !important;
+}
+
+ruby.dark-mode rt {
+	color: transparent;
+	text-shadow: 0 0 12px rgba(255,255,255,0.99);
+}
+
+ruby.dark-mode rt:hover {
+	color: white;
+	text-shadow: none;
+}
+
+.radtable.dark-mode {
+	background-color: #102b38;
+}
+
+.kantable.dark-mode {
+	background-color: #401439;
+}
+
+.voctable.dark-mode {
+	background-color: #2a1440;
+}
+
+.radtable {
+	background-color: azure;
+}
+
+.kantable {
+	background-color: #ffe6f8;
+}
+
+.voctable {
+	background-color: #f3ebfc;
+}
+
+/* progressbar design */
 
 #progressbar {
   background-color: grey;
@@ -27,6 +113,10 @@ h1, h2, h3, h4, h5, h6, label, p, pre {
   background-color: lightblue;
   height: 9px;
   border-radius: 9px;
+}
+
+#wkof_ds {
+	width: 10px;
 }
 
 /* button design */
@@ -149,7 +239,7 @@ table tbody tr {
 .rightcolumn {
 	float: left;
 	width: 25%;
-	background-color: #f1f1f1;
+	/*background-color: #f1f1f1;*/
 	padding-left: 20px;
 }
 

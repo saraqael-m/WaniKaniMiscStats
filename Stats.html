@@ -22,7 +22,7 @@
 </head>
 <body>
 
-	<div id="wkof_ds" style="display: none"></div>
+	<div id="wkof_ds" style="display: none; z-index: 1003"></div>
 
 	<a id="top"></a>
 
@@ -31,9 +31,14 @@
 			<button class="btn btn-primary btn-md" style="position: fixed; right: 10px; bottom: 10px; padding: 4px" onclick="window.location.hash = ''; window.location.hash = '#top';">↑ Go Back Up</button>
 		</div>
 	</div>
+	<div class="form-group" style="margin-top: 12%; float:left; position: relative; z-index: 1000">
+		<div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+			<button class="btn btn-primary btn-md" id="modebtn" style="position: fixed; left: 10px; bottom: 10px; padding: 4px" onclick="changeMode();">㊊ Dark Mode</button>
+		</div>
+	</div>
 
 	<div id="blackoverlay" style="visibility: hidden; position: absolute; top: 0%; left: 0%; width: 100%; height: 150%; background: black; z-index: 1001; opacity: 0.5;"></div>
-	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ;background-color: white; z-index: 1002; overflow: auto; padding: 20px">
+	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
 		<h3 style="margin-top: 10px">Loading Data...</h3>
 		<!--<p>Level Data</p>
 		<div id="progressbar" style="width: 200px; height: 15px">
@@ -69,7 +74,7 @@
         background-size: cover;
         background-position: top">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.４.４</div>
+		<div style="text-align: right; font-size: 12px">バージョン３.５.０</div>
 		<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
@@ -110,11 +115,11 @@
 				<div class="card">
 					<a id="LevelInfo"></a>
 					<h2 class="heading">Level Info</h2>
-					<div id="leveltimechart"></div>
+					<div id="leveltimechart" class="chart"></div>
 					<span class="projections">
-						
+
 					</span>
-					<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
+					<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
 						<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
 						<div style="padding-top: 5px">
 							<input type="checkbox" id="levelclamp" name="levelclamp">
@@ -136,13 +141,13 @@
 					<h2 class="heading">Projections</h2>
 					<p><b>Tip:</b> Click a level data point to see the specific item pass date breakdown below the projections chart.</p>
 					<div class="projectionchart">
-						<div id="projectionschart"></div>
-						<div style="background-color: lightgrey; padding: 10px; margin-top: 10px; display: inline-block">
+						<div id="projectionschart" class="chart"></div>
+						<div class="settings" style="padding: 10px; margin-top: 10px; display: inline-block">
 							<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
 							<div style="display: none">
 								<input type="checkbox" id="expand" class="project">
 								<!--<label for="speed">Show Details for Level:</label>-->
-								<input type="number" id="expanded" size="3" value=""><br>
+								<input type="number" id="expanded" size="3" value="60"><br>
 							</div>
 							<input onchange="updateProjections();" type="checkbox" id="showPast" class="project" checked>
 							<label for="showPast">Show Past Levels</label><br>
@@ -186,16 +191,17 @@
 							<div></div>
 							<button style="margin-top: 5px" onclick="window.location.hash = ''; window.location.hash = '#Projections'; document.getElementById('specifics').style.display = 'none';">Hide Specifics</button>
 						</div>
+						<pre style="font-size: 10px">Source: <a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a></pre>
 					</div>
 				</div>
 
 				<div class="card">
 					<h4>Set time frame for <i>SRS Item Info</i>, <i>Review Info</i>, <i>and Accuracy Info</i>:</h4>
-					<div style="background-color: lightgrey; padding: 10px; padding-top: 0px; display: inline-block">
+					<div class="settings" style="padding: 10px; padding-top: 0px; display: inline-block">
 						<pre id="reviewloading" style="padding-top: 0px"></pre>
 						<!--<span id="newdatediv">Change time frame to </span>
-			<input type="number" onkeydown="if (event.key === 'Enter') { updateReviewCharts(); updateReviewAccuracy(); }" style="width: 50px" id="newdateinp" min="1" max="9999">
-			<span> months. </span>-->
+						<input type="number" onkeydown="if (event.key === 'Enter') { updateReviewCharts(); updateReviewAccuracy(); }" style="width: 50px" id="newdateinp" min="1" max="9999">
+						<span> months. </span>-->
 						<label for="startdate">Start date for time frame:</label>
 						<input type="date" id="startdate" name="trip-start" value="2022-05-26">
 						<button type="button" onclick="updateReviewCharts(); updateReviewAccuracy();" id="newdatebtn">Generate Charts</button>
@@ -210,20 +216,20 @@
 					<div class="card">
 						<a id="SrsInfo"></a>
 						<h2 class="heading" style="padding-bottom: 0px">SRS Item Info</h2>
-						<div id="srschart2"></div>
-						<div id="srschart"></div>
+						<div id="srschart2" class="chart"></div>
+						<div id="srschart" class="chart"></div>
 					</div>
 					<div class="card">
 						<a id="ReviewInfo"></a>
 						<h2 class="heading">Review Info</h2>
-						<div id="reviewchart"></div>
-						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
+						<div id="reviewchart" class="chart"></div>
+						<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
 							<span>Average "Reviews Per Day" chart over </span>
 							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewsPerDay();" style="width: 70px" id="smoothreview" min="1" max="9999" value="0">
 							<span> days.</span>
 							<button type="button" onclick="updateReviewsPerDay();">Generate Chart</button>
 						</div>
-						<div id="totalchart"></div>
+						<div id="totalchart" class="chart"></div>
 					</div>
 				</div>
 
@@ -231,8 +237,8 @@
 					<div class="card">
 						<a id="AccuracyInfo"></a>
 						<h2 class="heading">Accuracy Info</h2>
-						<div id="percentagechart"></div>
-						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
+						<div id="percentagechart" class="chart"></div>
+						<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
 							<span>Average "Review Accuracy" chart over </span>
 							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="0" max="9999" value="10">
 							<span> days.</span>
@@ -243,7 +249,7 @@
 					<div class="card">
 						<a id="InfoTable"></a>
 						<h2 class="heading">Info Table</h2>
-						<div style="background-color: lightgrey; padding: 10px; margin-bottom: 30px; display: inline-block">
+						<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
 							<span>Column time span of </span>
 							<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tablemonth" min="0" max="9999" value="1">
 							<span> months and </span>
@@ -277,364 +283,113 @@
 								</tr>
 								<tr id="tableheaddate">
 									<th>Start Date</th>
-									<th>1</th>
-									<th>2</th>
-									<th>3</th>
-									<th>4</th>
-									<th>5</th>
-									<th>6</th>
-									<th>7</th>
-									<th>8</th>
-									<th>9</th>
-									<th>10</th>
-									<th>11</th>
-									<th>12</th>
 								</tr>
 								<tr id="tableheadenddate">
 									<th>End Date</th>
-									<th>1</th>
-									<th>2</th>
-									<th>3</th>
-									<th>4</th>
-									<th>5</th>
-									<th>6</th>
-									<th>7</th>
-									<th>8</th>
-									<th>9</th>
-									<th>10</th>
-									<th>11</th>
-									<th>12</th>
 								</tr>
 							</thead>
 							<tbody>
 								<tr id="reviewtable" style="border-top: 2px solid darkgrey">
 									<td style="text-align: left">Reviews</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="reviewradtable" style="background-color: azure">
+								<tr class="radtable" id="reviewradtable">
 									<td style="color: dodgerblue">↳ 部首</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="reviewkanjitable" style="background-color: #ffe6f8">
+								<tr class="kantable" id="reviewkanjitable">
 									<td style="color: hotpink">↳ 漢字</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="reviewvocabtable" style="background-color: #f3ebfc">
+								<tr class="voctable" id="reviewvocabtable">
 									<td style="color: mediumpurple">↳ 単語</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
 								<tr id="itemtable" style="border-top: 2px solid darkgrey">
 									<td style="text-align: left">Lessons</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="itemradtable" style="background-color: azure">
+								<tr class="radtable" id="itemradtable">
 									<td style="color: dodgerblue">↳ 部首</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="itemkanjitable" style="background-color: #ffe6f8">
+								<tr class="kantable" id="itemkanjitable">
 									<td style="color: hotpink">↳ 漢字</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="itemvocabtable" style="background-color: #f3ebfc">
+								<tr class="voctable" id="itemvocabtable">
 									<td style="color: mediumpurple">↳ 単語</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
+								</tr>
+								<tr id="cortable" style="border-top: 2px solid darkgrey">
+									<td style="text-align: left">Correct*</td>
+								</tr>
+								<tr class="radtable" id="corradtable">
+									<td style="color: dodgerblue">↳ 部首</td>
+								</tr>
+								<tr class="kantable" id="corkanjitable">
+									<td style="color: hotpink">↳ 漢字</td>
+								</tr>
+								<tr class="voctable" id="corvocabtable">
+									<td style="color: mediumpurple">↳ 単語</td>
 								</tr>
 								<tr id="acctable" style="border-top: 2px solid darkgrey">
 									<td style="text-align: left">Accuracy</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="accradtable" style="background-color: azure">
+								<tr class="radtable" id="accradtable">
 									<td style="color: dodgerblue">↳ 部首</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="acckanjitable" style="background-color: #ffe6f8">
+								<tr class="kantable" id="acckanjitable">
 									<td style="color: hotpink">↳ 漢字</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<tr id="accvocabtable" style="background-color: #f3ebfc">
+								<tr class="voctable" id="accvocabtable">
 									<td style="color: mediumpurple">↳ 単語</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
-									<td>-</td>
 								</tr>
-								<!--<tr id="readacctable" style="border-top: 2px solid darkgrey">
-						<td style="text-align: left"> ↳ 読み</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>
-					<tr id="readaccradtable" style="background-color: azure">
-						<td style="color: dodgerblue">↳ 部首</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>
-					<tr id="readacckanjitable" style="background-color: #ffe6f8">
-						<td style="color: hotpink">↳ 漢字</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>
-					<tr id="readaccvocabtable" style="background-color: #f3ebfc">
-						<td style="color: mediumpurple">↳ 単語</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>
-					<tr id="meanacctable" style="border-top: 2px solid darkgrey">
-						<td style="text-align: left"> ↳ 意味</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>
-					<tr id="meanaccradtable" style="background-color: azure">
-						<td style="color: dodgerblue">↳ 部首</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>
-					<tr id="meanacckanjitable" style="background-color: #ffe6f8">
-						<td style="color: hotpink">↳ 漢字</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>
-					<tr id="meanaccvocabtable" style="background-color: #f3ebfc">
-						<td style="color: mediumpurple">↳ 単語</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-						<td>-</td>
-					</tr>-->
+								<tr id="meanacctable" style="border-top: 2px solid darkgrey">
+									<td style="text-align: left"> ↳ 意味</td>
+								</tr>
+								<tr class="radtable" id="meanaccradtable">
+									<td style="color: dodgerblue">↳ 部首</td>
+								</tr>
+								<tr class="kantable" id="meanacckanjitable">
+									<td style="color: hotpink">↳ 漢字</td>
+								</tr>
+								<tr class="voctable" id="meanaccvocabtable">
+									<td style="color: mediumpurple">↳ 単語</td>
+								</tr>
+								<tr id="readacctable" style="border-top: 2px solid darkgrey">
+									<td style="text-align: left"> ↳ 読み</td>
+								</tr>
+								<tr class="radtable" id="readaccradtable">
+									<td style="color: dodgerblue">↳ 部首</td>
+								</tr>
+								<tr class="kantable" id="readacckanjitable">
+									<td style="color: hotpink">↳ 漢字</td>
+								</tr>
+								<tr class="voctable" id="readaccvocabtable">
+									<td style="color: mediumpurple">↳ 単語</td>
+								</tr>
 							</tbody>
 						</table>
+						<p style="font-size: 80%">* <i>Correct</i> is the percentages of items correctly answered in both reading and meaning first try which thus rise in SRS stage (this is the percentage shown at the end of reviews); <i>Accuracy</i> is the percentage of correct answers given out of the total amount of answers, including double wrong answers as well as reading and meaning answers (this is the percentage shown while doing reviews; used by WK stats)</p>
 					</div>
 
 					<div class="card">
 						<a id="WordInfo"></a>
 						<h2 class="heading">Word Info</h2>
 						<p><b>Tip:</b> Click data points to be able to scroll through the word data and to be able to click on individual words to be led to their respective WaniKani site.</p>
-						<div id="wordbubblechart"></div>
-						<div id="radbubblechart"></div>
+						<div id="wordbubblechart" class="chart"></div>
+						<div id="radbubblechart" class="chart"></div>
 					</div>
 
 					<div class="card">
 						<a id="WallofShame"></a>
 						<h2>Wall of Shame</h2>
-						<div id="worstwords"></div>
-						<div id="worstwordsradical"></div>
-						<div id="worstwordskanji"></div>
-						<div id="worstwordsvocab"></div>
+						<div id="worstwords" class="chart"></div>
+						<div id="worstwordsradical" class="chart"></div>
+						<div id="worstwordskanji" class="chart"></div>
+						<div id="worstwordsvocab" class="chart"></div>
 					</div>
 
 					<div class="card">
 						<a id="WallofFame"></a>
 						<h2>Wall of Fame</h2>
-						<div id="topwords"></div>
-						<div id="topwordsradical"></div>
-						<div id="topwordskanji"></div>
-						<div id="topwordsvocab"></div>
+						<div id="topwords" class="chart"></div>
+						<div id="topwordsradical" class="chart"></div>
+						<div id="topwordskanji" class="chart"></div>
+						<div id="topwordsvocab" class="chart"></div>
 					</div>
 				</div>
 			</div>
@@ -645,7 +400,7 @@
 				<div class="card">
 					<a id="UserInfo"></a>
 					<h2 class="heading">User Info</h2>
-					<pre style="color:black" id="userinfo"></pre>
+					<pre id="userinfo"></pre>
 					<pre id="future"></pre>
 					<div style="padding-top: 5px">
 						<input type="checkbox" id="projectionsspeed" name="projectionsspeed">
@@ -655,7 +410,7 @@
 				<div class="card">
 					<a id="WordProgress"></a>
 					<h2 class="heading">Word Progress</h2>
-					<div id="wordprogress"></div>
+					<div id="wordprogress" class="chart"></div>
 					<pre id="wordprogressinfo"></pre>
 				</div>
 				<div class="card" id="yojijukugoall" style="position: relative; display: block;">

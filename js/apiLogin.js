@@ -1,4 +1,4 @@
-const prevToken = localStorage.getItem('apiv2_key_override');
+﻿const prevToken = localStorage.getItem('apiv2_key_override');
 if (prevToken !== null) window.location.href = "Stats.html";
 
 const tokenInput = document.getElementById('tokeninput');

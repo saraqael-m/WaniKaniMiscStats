@@ -108,7 +108,7 @@ const P = {
         const levels = P.progressions.slice().concat(Array.from({length: P.maxLevel - current.level + 2},
                                                               (_, i) => ({level: current.level + 1 + i})));
         const medianSpeed = P.median(P.progressions.slice(0, -1).map(P.levelDuration).sort((a, b) => a - b));
-        const showPast = P.getID("showPast", "checked");
+        const showPast = false; //P.getID("showPast", "checked"); // is not commented out in real version
         const fools = P.getID("fools", "checked");
         const hypothetical = P.getID("hypothetical", "checked");
         const time = P.stats.map(d => d.length && d.sort((a, b) => a[0] - b[0])[Math.ceil(d.length * 0.9) - 1][0]);

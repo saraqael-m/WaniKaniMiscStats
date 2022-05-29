@@ -9,6 +9,11 @@ var apiToken;
 var requestHeaders;
 var db;
 
+// dark mode
+var modedivs = [...document.getElementsByClassName("card"), ...document.getElementsByClassName("settings"), ...document.getElementsByTagName("tr"), ...document.getElementsByClassName("toc"), document.getElementById("whiteoverlay"), ...document.getElementsByClassName("chart"), ...document.getElementsByClassName("radtable"), ...document.getElementsByClassName("kantable"), ...document.getElementsByClassName("voctable"), ...document.getElementsByTagName("ruby")];
+var lightMode = localStorage["mode"] == "light" ? true : false;
+changeMode();
+
 // elements
 const maindivs = document.getElementsByClassName("allinfo");
 const newdatediv = document.getElementById("newdatediv");
@@ -53,6 +58,9 @@ var reviewAccuracy = [];
 var resurrectedItems = [];
 var itemArray = [];
 var hiddenItems = [];
+var midreviewAccuracy = [];
+var readingAccuracy = [];
+var meaningAccuracy = [];
 var levelChart = [];
 var pureLevelChart = [];
 var combLevelChart = [];
@@ -168,6 +176,40 @@ function logout() {
     deleteDatabase('wkof.file_cache');
     localStorage.removeItem('apiv2_key_override');
     window.location.href = "index.html";
+}
+
+function changeMode() {
+    if (lightMode) {
+        lightMode = false;
+        let modebtn = document.getElementById('modebtn')
+        modebtn.innerHTML = "㊐ Light Mode";
+        modebtn.style.color = "black";
+        modebtn.style.backgroundColor = "white";
+        for (const div of modedivs) div.classList.add('dark-mode');
+        let header = document.getElementsByClassName('header')[0];
+        header.style["-webkit-filter"] = "invert(100%)";
+        header.style.filter = "invert(100%)";
+        let wkofdiv = document.getElementById('wkof_ds');
+        wkofdiv.style["-webkit-filter"] = "invert(100%)";
+        wkofdiv.style.filter = "invert(100%)";
+        document.body.style.background = "black";
+        localStorage["mode"] = "light";
+    } else {
+        lightMode = true;
+        let modebtn = document.getElementById('modebtn')
+        modebtn.innerHTML = "㊊ Dark Mode";
+        modebtn.style.color = "white";
+        modebtn.style.backgroundColor = "black";
+        for (const div of modedivs) div.classList.remove('dark-mode');
+        let header = document.getElementsByClassName('header')[0];
+        header.style["-webkit-filter"] = "";
+        header.style.filter = "";
+        let wkofdiv = document.getElementById('wkof_ds');
+        wkofdiv.style["-webkit-filter"] = "";
+        wkofdiv.style.filter = "";
+        document.body.style.background = "#f1f1f1";
+        localStorage["mode"] = "dark";
+    }
 }
 
 async function fetchLoop(apiEndpointUrl) {
@@ -296,6 +338,7 @@ async function fetchData() {
 
     repairSubjectArray();
     createResetArray();
+    repairLevelArray();
     for (let i = 0; i < assignmentData.length; i++) if (assignmentData[i]["data"]["resurrected_at"] != null) resurrectedItems.push([assignmentData[i]["data"]["resurrected_at"], assignmentData[i]["data"]["subject_id"]]);
     for (let i = 0; i < subjectData.length; i++) if (subjectData[i]["object"] != "placeholder" && subjectData[i]["data"]["hidden_at"] != null) hiddenItems.push([subjectData[i]["data"]["hidden_at"], subjectData[i]["id"], subjectData[i]]);
     resurrectedItems.sort((a, b) => new Date(a[0]) - new Date(b[0]));
@@ -356,6 +399,16 @@ function repairSubjectArray() {
     for (let i = 0; i < subjectData.length; i++) if (subjectData[i]["id"] != i) subjectData.splice(i, 0, { id: i, object: "placeholder" });
 }
 
+function repairLevelArray() {
+    currentLevel = levelData[0];
+    if (currentLevel["data"]["level"] != 1) {
+        var newLevels = [];
+        var prevDate = currentLevel["data"]["unlocked_at"];
+        for (let i = currentLevel["data"]["level"] - 1; i > 0; i--) newLevels.push({ "data": { "created_at": null, "level": i, "unlocked_at": prevDate, "started_at": prevDate, "passed_at": prevDate, "completed_at": prevDate, "abandoned_at": null } });
+        levelData.unshift(...newLevels.reverse());
+    }
+}
+
 async function loadGraphs() {
     userInfo();
     levelInfo().then(projections());
@@ -400,7 +453,7 @@ function levelReorder(lvl) {
 
 async function projections() {
     const annotationsArray = [[16, "N5 Kanji & Joyo 25%"], [27, "N4 Kanji"], [51, "N3 & N2 Kanji"], [7, "Joyo 10%"], [32, "Joyo 50%"], [48, "Joyo 75%"], [58, "Joyo 90%"]];
-    document.getElementById("expanded").value = userData["level"];
+    //document.getElementById("expanded").value = userData["level"];
     // create data array
     var [rawData, _] = P.api(userData, levelData, srsData, unalteredItemData); // raw projections data
     projectionsData = [["Level", { role: "tooltip", 'p': { 'html': true } }, { role: "annotation" }, "Fastest Finish", "Hypothetical Finish", "Reset Finish", "Predicted Finish"],
@@ -471,6 +524,7 @@ async function updateProjections() {
             style: 'line',
             domain: { stem: { color: '#7fbd7d' }} // darkgreen vertical lines
         },
+        backgroundColor: { fill: 'transparent' },
         focusTarget: 'category'
     };
     var chartDiv = document.getElementById('projectionschart');
@@ -518,9 +572,9 @@ async function reviewInfo() {
     var usedIds = [];
     var found;
     reviewAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, 1, 1, 1, 1]];
-    let midreviewAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, 1, 1, 1, 1]];
-    let readingAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, 1, 1, 1, 1]];
-    let meaningAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, 1, 1, 1, 1]];
+    midreviewAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, [1, 1], [1, 1], [1, 1], [1, 1]]];
+    readingAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, [1, 1], [1, 1], [1, 1], [1, 1]]];
+    meaningAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, [1, 1], [1, 1], [1, 1], [1, 1]]];
     reviewAccTotal = [[1, 1, 1, 1]];
     var correct;
     for (let i = 0; i < dataLength; i++) {
@@ -543,6 +597,7 @@ async function reviewInfo() {
         }
         // srs review data
         correct = currentReview["incorrect_meaning_answers"] == 0 && currentReview["incorrect_reading_answers"] == 0 ? 1 : 0;
+        let [incRead, incMean] = [currentReview["incorrect_reading_answers"], currentReview["incorrect_meaning_answers"]]; 
         let typeStart = levelReorder(currentReview["starting_srs_stage"]);
         let typeEnd = levelReorder(currentReview["ending_srs_stage"]);
         let foundSrs = srsArray.findIndex(element => (element[0].valueOf() == date.valueOf()));
@@ -559,6 +614,7 @@ async function reviewInfo() {
             itemArray.push([date, 0, 0, 0, 0]);
             reviewAccuracy.push([date, 0, 0, 0, 0]);
             reviewAccTotal.push([0, 0, 0, 0]);
+            midreviewAccuracy.push([date, [0, 0], [0, 0], [0, 0], [0, 0]]); meaningAccuracy.push([date, [0, 0], [0, 0], [0, 0], [0, 0]]); readingAccuracy.push([date, [0, 0], [0, 0], [0, 0], [0, 0]]);
             foundSrs = srsArray.length - 1;
         }
         srsArray[foundSrs][typeStart]--;
@@ -572,22 +628,34 @@ async function reviewInfo() {
         let accLength = reviewAccuracy.length - 1;
         reviewAccuracy[accLength][4] += correct;
         reviewAccTotal[accLength - 1][3]++;
+        midreviewAccuracy[accLength][4][0] += incRead + incMean; midreviewAccuracy[accLength][4][1] += incRead + incMean + (subjectData[subId]["object"] == "radical" ? 1 : 2);
+        meaningAccuracy[accLength][4][0] += incMean; meaningAccuracy[accLength][4][1] += incMean + 1;
+        readingAccuracy[accLength][4][0] += incRead; readingAccuracy[accLength][4][1] += incRead + (subjectData[subId]["object"] == "radical" ? 0 : 1);
         if (foundId == -1) itemArray[accLength][1]++;
         switch (subjectData[subId]["object"]) {
             case "vocabulary":
                 reviewAccuracy[accLength][3] += correct;
                 reviewAccTotal[accLength - 1][2]++;
                 if (foundId == -1) itemArray[accLength][4]++;
+                midreviewAccuracy[accLength][3][0] += incRead + incMean; midreviewAccuracy[accLength][3][1] += incRead + incMean + 2;
+                meaningAccuracy[accLength][3][0] += incMean; meaningAccuracy[accLength][3][1] += incMean + 1;
+                readingAccuracy[accLength][3][0] += incRead; readingAccuracy[accLength][3][1] += incRead + 1;
                 break;
             case "kanji":
                 reviewAccuracy[accLength][2] += correct;
                 reviewAccTotal[accLength - 1][1]++;
                 if (foundId == -1) itemArray[accLength][3]++;
+                midreviewAccuracy[accLength][2][0] += incRead + incMean; midreviewAccuracy[accLength][2][1] += incRead + incMean + 2;
+                meaningAccuracy[accLength][2][0] += incMean; meaningAccuracy[accLength][2][1] += incMean + 1;
+                readingAccuracy[accLength][2][0] += incRead; readingAccuracy[accLength][2][1] += incRead + 1;
                 break;
             case "radical":
                 reviewAccuracy[accLength][1] += correct;
                 reviewAccTotal[accLength - 1][0]++;
                 if (foundId == -1) itemArray[accLength][2]++;
+                midreviewAccuracy[accLength][1][0] += incRead + incMean; midreviewAccuracy[accLength][1][1] += incRead + incMean + 1;
+                meaningAccuracy[accLength][1][0] += incMean; meaningAccuracy[accLength][1][1] += incMean + 1;
+                readingAccuracy[accLength][1][0] += incRead; readingAccuracy[accLength][1][1] += incRead;
                 break;
         }
         let exactDate = new Date(currentReview["created_at"]);
@@ -649,6 +717,9 @@ async function reviewInfo() {
     srsArray.splice(1, 1);
     reviewAccuracy.splice(1, 1);
     reviewAccTotal.splice(1, 1);
+    midreviewAccuracy.splice(1, 1);
+    meaningAccuracy.splice(1, 1);
+    readingAccuracy.splice(1, 1);
     srsArray.sort((a, b) => a[0].valueOf() - b[0].valueOf());
     reviewArray.sort((a, b) => a[0].valueOf() - b[0].valueOf());
     for (let i = 0; i < 4; i++) {
@@ -682,6 +753,18 @@ async function reviewInfo() {
         runningTotal += reviewArray[i][1];
         totalArray.push([reviewArray[i][0], runningTotal]);
     }
+}
+
+function totalArrayToAcc(data) {
+    var newArray = [data[0]];
+    var prevItem = [1, 100, 100, 100, 100];
+    for (let i = 1; i < data.length; i++) {
+        let newItem = [data[i][0]];
+        for (let j = 1; j < data[i].length; j++) newItem.push(data[i][j][1] == 0 ? prevItem[j] : ((1 - data[i][j][0] / data[i][j][1]) * 100));
+        newArray.push(newItem);
+        prevItem = newItem.slice();
+    }
+    return newArray;
 }
 
 function dataDateShorten(dataPrev, date, nullify = false) {
@@ -718,7 +801,9 @@ async function updateReviewCharts() {
         curveType: 'none',
         legend: { position: "none" },
         width: 1000,
-        height: 333
+        height: 333,
+        tooltip: { isHtml: true },
+        backgroundColor: { fill: 'transparent' }
     };
     var chartDiv = document.getElementById('totalchart');
     var chart = new google.visualization.LineChart(chartDiv);
@@ -736,6 +821,8 @@ async function updateReviewCharts() {
         isStacked: true,
         width: 1000,
         height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
         focusTarget: 'category'
     };
     chartDiv = document.getElementById('srschart');
@@ -750,11 +837,18 @@ async function updateReviewCharts() {
         colors: ['pink', 'purple', 'darkblue', 'lightblue', 'black'],
         width: 1000,
         height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
         focusTarget: 'category'
     };
     chartDiv = document.getElementById('srschart2');
     chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
+}
+
+function roundToDecimals(num, n = 1, fill = false) {
+    let result = Math.round((num + Number.EPSILON) * (10 ** n)) / (10 ** n);
+    return fill && num != 100 ? result.toFixed(n) : result;
 }
 
 function updateTables(changeOffset = 0) {
@@ -773,10 +867,44 @@ function updateTables(changeOffset = 0) {
         datesEnd.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * (i-1), today.getDate() - durationDays * (i-1) - 1));
     }
     let dateElements = document.getElementById("tableheaddate").children;
-    for (let i = 1; i < dateElements.length; i++) dateElements[i].innerHTML = "<th>" + dateLongFormat(dates[i - 1]) + "</th>";
     let dateEndElements = document.getElementById("tableheadenddate").children;
-    for (let i = 1; i < dateEndElements.length; i++) dateEndElements[i].innerHTML = "<th>" + dateLongFormat(datesEnd[i - 1]) + "</th>";
     let intervalElements = document.getElementById("tableheadinterval").children;
+    let reviewElements = document.getElementById("reviewtable").children;
+    let reviewradElements = document.getElementById("reviewradtable").children;
+    let reviewkanjiElements = document.getElementById("reviewkanjitable").children;
+    let reviewvocabElements = document.getElementById("reviewvocabtable").children;
+    let corElements = document.getElementById("cortable").children;
+    let corradElements = document.getElementById("corradtable").children;
+    let corkanjiElements = document.getElementById("corkanjitable").children;
+    let corvocabElements = document.getElementById("corvocabtable").children;
+    let accElements = document.getElementById("acctable").children;
+    let accradElements = document.getElementById("accradtable").children;
+    let acckanjiElements = document.getElementById("acckanjitable").children;
+    let accvocabElements = document.getElementById("accvocabtable").children;
+    let readaccElements = document.getElementById("readacctable").children;
+    let readaccradElements = document.getElementById("readaccradtable").children;
+    let readacckanjiElements = document.getElementById("readacckanjitable").children;
+    let readaccvocabElements = document.getElementById("readaccvocabtable").children;
+    let meanaccElements = document.getElementById("meanacctable").children;
+    let meanaccradElements = document.getElementById("meanaccradtable").children;
+    let meanacckanjiElements = document.getElementById("meanacckanjitable").children;
+    let meanaccvocabElements = document.getElementById("meanaccvocabtable").children;
+    let itemElements = document.getElementById("itemtable").children;
+    let itemradElements = document.getElementById("itemradtable").children;
+    let itemkanjiElements = document.getElementById("itemkanjitable").children;
+    let itemvocabElements = document.getElementById("itemvocabtable").children;
+    var elementList = [dateElements, dateEndElements, reviewElements, reviewradElements, reviewkanjiElements, reviewvocabElements,
+        accElements, accradElements, acckanjiElements, accvocabElements, itemElements, itemradElements, itemkanjiElements, itemvocabElements,
+        readaccElements, readaccradElements, readacckanjiElements, readaccvocabElements, meanaccElements, meanaccradElements, meanacckanjiElements, meanaccvocabElements,
+        corElements, corradElements, corkanjiElements, corvocabElements];
+    if (dateElements.length == 1) {
+        for (let j = 0; j < elementList.length; j++) for (let i = 0; i < dateAmount; i++) {
+            let newtr = document.createElement(elementList[j][0].nodeName);
+            elementList[j][0].parentElement.appendChild(newtr);
+        }
+    }
+    for (let i = 1; i < dateElements.length; i++) dateElements[i].innerHTML = "<th>" + dateLongFormat(dates[i - 1]) + "</th>";
+    for (let i = 1; i < dateEndElements.length; i++) dateEndElements[i].innerHTML = "<th>" + dateLongFormat(datesEnd[i - 1]) + "</th>";
     for (let i = 1; i < intervalElements.length; i++) intervalElements[i].innerHTML = "<th>" + (dateAmount - i + tableOffset + 1) + "</th>";
     // reviews
     var reviewsTable = [];
@@ -791,18 +919,14 @@ function updateTables(changeOffset = 0) {
         }
         reviewsTable.push(runningTotal);
     }
-    let reviewElements = document.getElementById("reviewtable").children;
-    let reviewradElements = document.getElementById("reviewradtable").children;
-    let reviewkanjiElements = document.getElementById("reviewkanjitable").children;
-    let reviewvocabElements = document.getElementById("reviewvocabtable").children;
     for (let i = 1; i < reviewElements.length; i++) {
         reviewElements[i].innerHTML = reviewsTable[i - 1][0];
         reviewradElements[i].innerHTML = reviewsTable[i - 1][1];
         reviewkanjiElements[i].innerHTML = reviewsTable[i - 1][2];
         reviewvocabElements[i].innerHTML = reviewsTable[i - 1][3];
     }
-    // accuracy
-    var accTable = [];
+    // accuracy (correctness; end-review percentage; percentage items correct)
+    var corTable = [];
     for (let i = 0; i < dateAmount; i++) {
         let startFound = reviewAccuracy.findIndex(element => element[0] >= dates[i]);
         let endFound = reviewAccuracy.findIndex(element => element[0] >= dates[i + 1]);
@@ -814,18 +938,14 @@ function updateTables(changeOffset = 0) {
             for (let k = 0; k < 4; k++) runningTotal[k] += reviewAccuracy[j][k + 1] * reviewAccTotal[j - 1][k];
             for (let k = 0; k < 4; k++) runningAmount[k] += reviewAccTotal[j - 1][k];
         }
-        for (let k = 0; k < 4; k++) runningTotal[k] = runningAmount[k] == 0 ? "-" : parseInt(runningTotal[k] / runningAmount[k] * 10) / 10;
-        accTable.push([...runningTotal]);
+        for (let k = 0; k < 4; k++) runningTotal[k] = runningAmount[k] == 0 ? "-" : roundToDecimals(runningTotal[k] / runningAmount[k], 2, true);
+        corTable.push([...runningTotal]);
     }
-    let accElements = document.getElementById("acctable").children;
-    let accradElements = document.getElementById("accradtable").children;
-    let acckanjiElements = document.getElementById("acckanjitable").children;
-    let accvocabElements = document.getElementById("accvocabtable").children;
-    for (let i = 1; i < accElements.length; i++) {
-        accElements[i].innerHTML = accTable[i - 1][3];
-        accradElements[i].innerHTML = accTable[i - 1][0];
-        acckanjiElements[i].innerHTML = accTable[i - 1][1];
-        accvocabElements[i].innerHTML = accTable[i - 1][2];
+    for (let i = 1; i < corElements.length; i++) {
+        corElements[i].innerHTML = corTable[i - 1][3];
+        corradElements[i].innerHTML = corTable[i - 1][0];
+        corkanjiElements[i].innerHTML = corTable[i - 1][1];
+        corvocabElements[i].innerHTML = corTable[i - 1][2];
     }
     // new items
     var itemsTable = [];
@@ -840,15 +960,77 @@ function updateTables(changeOffset = 0) {
         }
         itemsTable.push(runningTotal);
     }
-    let itemElements = document.getElementById("itemtable").children;
-    let itemradElements = document.getElementById("itemradtable").children;
-    let itemkanjiElements = document.getElementById("itemkanjitable").children;
-    let itemvocabElements = document.getElementById("itemvocabtable").children;
     for (let i = 1; i < itemElements.length; i++) {
         itemElements[i].innerHTML = itemsTable[i - 1][0];
         itemradElements[i].innerHTML = itemsTable[i - 1][1];
         itemkanjiElements[i].innerHTML = itemsTable[i - 1][2];
         itemvocabElements[i].innerHTML = itemsTable[i - 1][3];
+    }
+    // reading accuracy
+    var accTable = [];
+    for (let i = 0; i < dateAmount; i++) {
+        let startFound = midreviewAccuracy.findIndex(element => element[0] >= dates[i]);
+        let endFound = midreviewAccuracy.findIndex(element => element[0] >= dates[i + 1]);
+        startFound = startFound == -1 ? midreviewAccuracy.length : startFound; // last column counts to now
+        endFound = endFound == -1 ? midreviewAccuracy.length : endFound; // last column counts to now
+        let runningTotal = [0, 0, 0, 0];
+        let runningAmount = [0, 0, 0, 0];
+        for (let j = startFound; j < endFound; j++) {
+            for (let k = 0; k < 4; k++) runningTotal[k] += midreviewAccuracy[j][k + 1][1];
+            for (let k = 0; k < 4; k++) runningAmount[k] += midreviewAccuracy[j][k + 1][0];
+        }
+        for (let k = 0; k < 4; k++) runningTotal[k] = runningAmount[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
+        accTable.push([...runningTotal]);
+    }
+    for (let i = 1; i < accElements.length; i++) {
+        accElements[i].innerHTML = accTable[i - 1][3];
+        accradElements[i].innerHTML = accTable[i - 1][0];
+        acckanjiElements[i].innerHTML = accTable[i - 1][1];
+        accvocabElements[i].innerHTML = accTable[i - 1][2];
+    }
+    // reading accuracy
+    var readaccTable = [];
+    for (let i = 0; i < dateAmount; i++) {
+        let startFound = readingAccuracy.findIndex(element => element[0] >= dates[i]);
+        let endFound = readingAccuracy.findIndex(element => element[0] >= dates[i + 1]);
+        startFound = startFound == -1 ? readingAccuracy.length : startFound; // last column counts to now
+        endFound = endFound == -1 ? readingAccuracy.length : endFound; // last column counts to now
+        let runningTotal = [0, 0, 0, 0];
+        let runningAmount = [0, 0, 0, 0];
+        for (let j = startFound; j < endFound; j++) {
+            for (let k = 0; k < 4; k++) runningTotal[k] += readingAccuracy[j][k + 1][1];
+            for (let k = 0; k < 4; k++) runningAmount[k] += readingAccuracy[j][k + 1][0];
+        }
+        for (let k = 0; k < 4; k++) runningTotal[k] = runningAmount[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
+        readaccTable.push([...runningTotal]);
+    }
+    for (let i = 1; i < readaccElements.length; i++) {
+        readaccElements[i].innerHTML = readaccTable[i - 1][3];
+        readaccradElements[i].innerHTML = readaccTable[i - 1][0];
+        readacckanjiElements[i].innerHTML = readaccTable[i - 1][1];
+        readaccvocabElements[i].innerHTML = readaccTable[i - 1][2];
+    }
+    // meaning accuracy
+    var meanaccTable = [];
+    for (let i = 0; i < dateAmount; i++) {
+        let startFound = meaningAccuracy.findIndex(element => element[0] >= dates[i]);
+        let endFound = meaningAccuracy.findIndex(element => element[0] >= dates[i + 1]);
+        startFound = startFound == -1 ? meaningAccuracy.length : startFound; // last column counts to now
+        endFound = endFound == -1 ? meaningAccuracy.length : endFound; // last column counts to now
+        let runningTotal = [0, 0, 0, 0];
+        let runningAmount = [0, 0, 0, 0];
+        for (let j = startFound; j < endFound; j++) {
+            for (let k = 0; k < 4; k++) runningTotal[k] += meaningAccuracy[j][k + 1][1];
+            for (let k = 0; k < 4; k++) runningAmount[k] += meaningAccuracy[j][k + 1][0];
+        }
+        for (let k = 0; k < 4; k++) runningTotal[k] = runningAmount[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
+        meanaccTable.push([...runningTotal]);
+    }
+    for (let i = 1; i < meanaccElements.length; i++) {
+        meanaccElements[i].innerHTML = meanaccTable[i - 1][3];
+        meanaccradElements[i].innerHTML = meanaccTable[i - 1][0];
+        meanacckanjiElements[i].innerHTML = meanaccTable[i - 1][1];
+        meanaccvocabElements[i].innerHTML = meanaccTable[i - 1][2];
     }
 }
 
@@ -857,11 +1039,10 @@ async function updateReviewAccuracy() {
     let smoothBool = (dayAverage != 0);
     let shortBool = newdateche.checked;
     let startDate = new Date(newdateinp.value);
-    var averageArray = [["Date", "Average Radical", "Average Kanji", "Average Vocab", "Average All"]], currentArray;
+    var averageArray = [["Date", "Average Radical", "Average Kanji", "Average Vocab", "Average All"]];
     // array
     if (smoothBool) {
-        if (shortBool) currentArray = dataDateShorten(reviewAccuracy, startDate);
-        else currentArray = reviewAccuracy;
+        var currentArray = shortBool ? dataDateShorten(reviewAccuracy, startDate) : reviewAccuracy;
         var runningTotal = [0, 0, 0, 0];
         var runningAmount = [0, 0, 0, 0];
         var average = [0, 0, 0, 0];
@@ -894,6 +1075,8 @@ async function updateReviewAccuracy() {
         colors: ['#55abf2', '#f032b1', '#bb31de', 'black'],
         width: 1000,
         height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
         focusTarget: 'category'
     };
     var chart = new google.visualization.LineChart(document.getElementById('percentagechart'));
@@ -937,6 +1120,8 @@ async function updateReviewsPerDay() {
         colors: ['black', '#55abf2', '#f032b1', '#bb31de'],
         width: 1000,
         height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
         focusTarget: 'category'
     };
     var chartDiv = document.getElementById('reviewchart');
@@ -975,14 +1160,6 @@ async function levelInfo() {
     const currentLevelColor = "grey";
     var j = 0;
     var level;
-    if (currentLevel["data"]["level"] != 1) {
-        var newLevels = [];
-        var prevDate = currentLevel["data"]["unlocked_at"];
-        for (let i = currentLevel["data"]["level"] - 1; i > 0; i--) newLevels.push({ "data": { "created_at": null, "level": i, "unlocked_at": prevDate, "started_at": prevDate, "passed_at": prevDate, "completed_at": prevDate, "abandoned_at": null } });
-        levelData["total_count"] += currentLevel["data"]["level"] - 1;
-        levelData.unshift(...newLevels.reverse());
-        currentLevel = levelData[0];
-    }
     while (currentLevel != null) {
         level = currentLevel["data"]["level"];
         let dateBefore = currentLevel["data"]["started_at"] == null ? new Date(currentLevel["data"]["unlocked_at"]) : new Date(currentLevel["data"]["started_at"]);
@@ -1013,12 +1190,18 @@ async function levelInfo() {
             } else {
                 levelChart.push([String(level), length, '#55a2e6', hoverText, 0, ""]); //sky blue
             }
-        } else levelChart.push([String(level), length, currentLevelColor, "<div style='margin: 5px; margin-top: 10px'>" + fixHtml("<b>Started:</b> ") + dateLongFormat(dateBefore) + "</div>", 0, ""]);
+        } else {
+            levelChart.push([String(level), length, currentLevelColor, "<div style='margin: 5px; margin-top: 10px'>" + fixHtml("<b>Started:</b> ") + dateLongFormat(dateBefore) + "</div>", 0, ""]);
+            levelDates.push([level, new Date(currentLevel["data"]["unlocked_at"]), dateAfter]);
+            levelLengths.push(length);
+            levelLengths[levelLengths.length - 1] += pureVocabTime;
+        }
         j++;
         currentLevel = levelData[j];
     }
 
     // reset level handling
+    levelLengths.splice(-1);
     var resetIndex = 1;
     for (let i = 0; i < resets.length; i++) {
         let endIndex = levelChart.slice(resetIndex).findIndex(element => (element[0].slice(-1) == "R" ? element[0].slice(0, -1) : element[0]) == String(resets[i][0] + resets[i][1])) + resetIndex;
@@ -1027,11 +1210,13 @@ async function levelInfo() {
             if (levelChart[j][0].slice(-1) != "R") levelChart[j][0] += "R";
             levelChart[j][2] = "lightsalmon";
             levelLengths[j - 1] = -1;
-            levelDates.find(element => element[1].getTime() != levelDates[j - 1][1].getTime() && element[0] == levelDates[j - 1][0]).push(...[levelDates[j - 1].slice(), "R"]);
+            let sameLevelElement = levelDates.find(element => element[1].getTime() != levelDates[j - 1][1].getTime() && element[0] == levelDates[j - 1][0]);
+            if (sameLevelElement != undefined) sameLevelElement.push(...[levelDates[j - 1].slice(), "R"]);
             levelDates[j - 1] = [-1, new Date()];
         }
         resetIndex = endIndex + 1;
     }
+    levelDates.splice(-1);
 
     levelLengths = levelLengths.reverse();
     for (let i = levelLengths.length - 1; i >= 0; i--) if (levelLengths[i] == -1) levelLengths.splice(i, 1);
@@ -1142,6 +1327,7 @@ function updateLevelChart() {
         seriesType: 'bars',
         isStacked: combBool ? 'false' : 'true',
         tooltip: { isHtml: true },
+        backgroundColor: { fill: 'transparent' },
         series: chartSeries
     };
     var chartDiv = document.getElementById('leveltimechart');
@@ -1183,7 +1369,7 @@ async function wordInfo() {
     var doneCounts = [0, 0, 0];
     kanjiWall = "";
     var specialKanjiWall = "";
-    var kanjiColors = ['#d128bd', '#9735cc', '#353dcc', '#359fcc', '#473802'];
+    var kanjiColors = ['#d128bd', '#9735cc', '#353dcc', '#359fcc', '#917c34'];
     var wordBubble = [["Meaning", "Reading", { role: "style" }, { role: "tooltip", 'p': { 'html': true } }]];
     var radBubble = [["Accuracy", "Level", { role: "style" }, { role: "tooltip", 'p': { 'html': true } }]];
     var kanjiInterpolator = d3.interpolateRgb("#FFC3D4", "#A26174 ");
@@ -1331,7 +1517,9 @@ async function wordInfo() {
         colors: ['#55abf2', '#f032b1', '#bb31de', '#d1e1ed', '#edd8e6', '#ded3e0'],
         pieSliceText: 'value',
         width: 300,
-        height: 300
+        height: 300,
+        tooltip: { isHtml: true },
+        backgroundColor: { fill: 'transparent' }
     };
     var chart = new google.visualization.PieChart(document.getElementById('wordprogress'));
     chart.draw(chartData, options);
@@ -1348,7 +1536,8 @@ async function wordInfo() {
         bubble: { textStyle: { fontSize: 11 } },
         tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
         width: 900,
-        height: 700
+        height: 700,
+        backgroundColor: { fill: 'transparent' }
     };
     var chartDiv = document.getElementById('wordbubblechart');
     var wbkchart = new google.visualization.ScatterChart(chartDiv);
@@ -1365,7 +1554,8 @@ async function wordInfo() {
         bubble: { textStyle: { fontSize: 11 } },
         tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
         width: 900,
-        height: 700
+        height: 700,
+        backgroundColor: { fill: 'transparent' }
     };
     chartDiv = document.getElementById('radbubblechart');
     chart = new google.visualization.ScatterChart(chartDiv);
@@ -1400,7 +1590,9 @@ async function hallCreation(words, divid, titleChart, colorChart) {
             }
         },
         width: 1000,
-        height: 333
+        height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true }
     };
     chartDiv = document.getElementById(divid);
     var chart = new google.visualization.ColumnChart(chartDiv);
