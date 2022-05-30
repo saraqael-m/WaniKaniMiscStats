@@ -37,35 +37,9 @@
 		</div>
 	</div>
 
-	<div id="blackoverlay" style="visibility: hidden; position: absolute; top: 0%; left: 0%; width: 100%; height: 150%; background: black; z-index: 1001; opacity: 0.5;"></div>
+	<div id="blackoverlay" style="visibility: hidden; position: fixed; top: 0%; left: 0%; width: 100%; height: 100%; background: black; z-index: 1001; opacity: 0.5;"></div>
 	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
 		<h3 style="margin-top: 10px">Loading Data...</h3>
-		<!--<p>Level Data</p>
-		<div id="progressbar" style="width: 200px; height: 15px">
-			<div id="levelpg" style="width: 0%"></div>
-		</div>
-		<p>Word Data</p>
-		<div id="progressbar" style="width: 200px; height: 15px">
-			<div id="wordpg" style="width: 0%"></div>
-		</div>
-		<p>Reset Data</p>
-		<div id="progressbar" style="width: 200px; height: 15px">
-			<div id="resetpg" style="width: 0%"></div>
-		</div>
-		<p>Subject Data</p>
-		<div id="progressbar" style="width: 200px; height: 15px">
-			<div id="subjectpg" style="width: 0%"></div>
-		</div>
-		<p>Assignment Data</p>
-		<div id="progressbar" style="width: 200px; height: 15px">
-			<div id="assignpg" style="width: 0%"></div>
-		</div>
-		<div id="reviewprogress" style="margin-bottom: 10px">
-			<p>Review Data</p>
-			<div id="progressbar" style="width: 200px; height: 15px">
-				<div id="reviewpg" style="width: 0%; text-align: center; color: white; font-size: 9px"></div>
-			</div>
-		</div>-->
 	</div>
 
 	<div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('images/wanikani_bg_icon.jpg');
@@ -74,7 +48,7 @@
         background-size: cover;
         background-position: top">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.５.１</div>
+		<div style="text-align: right; font-size: 12px">バージョン３.５.２</div>
 		<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
@@ -237,13 +211,18 @@
 					<div class="card">
 						<a id="AccuracyInfo"></a>
 						<h2 class="heading">Accuracy Info</h2>
-						<div id="percentagechart" class="chart"></div>
 						<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
-							<span>Average "Review Accuracy" chart over </span>
+							<span>Average all accuracy charts over </span>
 							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="0" max="9999" value="10">
 							<span> days.</span>
-							<button type="button" onclick="updateReviewAccuracy();">Generate Chart</button>
+							<button type="button" onclick="updateReviewAccuracy();">Generate Charts</button>
 						</div>
+						
+						<div style="position: relative"><img src="images/both.png" class="centerimg" style="height: 40%; opacity: 0.4" alt="" /><div id="accuracychart" class="chart"></div></div>
+						<div style="position: relative"><img src="images/meaning.png" class="centerimg" style="height: 40%; opacity: 0.4" alt="" /><div id="meanaccchart" class="chart"></div></div>
+						<div style="position: relative"><img src="images/reading.png" class="centerimg" style="height: 40%; opacity: 0.4" alt="" /><div id="readaccchart" class="chart"></div></div>
+						<div style="position: relative"><img src="images/correct.png" class="centerimg" style="height: 40%; opacity: 0.4" alt="" /><div id="percentagechart" class="chart"></div></div>
+						
 					</div>
 
 					<div class="card">
@@ -338,7 +317,7 @@
 									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
 								</tr>
 								<tr id="meanacctable" style="border-top: 2px solid darkgrey">
-									<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ 意味<span class="tooltiptext">Meaning Accuracy</span></td>
+									<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ <ruby>意味<rt class="nohidden">Meaning</rt></ruby></td>
 								</tr>
 								<tr class="radtable" id="meanaccradtable">
 									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
@@ -350,7 +329,7 @@
 									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
 								</tr>
 								<tr id="readacctable" style="border-top: 2px solid darkgrey">
-									<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ 読み<span class="tooltiptext">Reading Accuracy</span></td>
+									<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ <ruby>読み<rt class="nohidden">Reading</rt></ruby></td>
 								</tr>
 								<tr class="radtable" id="readaccradtable">
 									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>

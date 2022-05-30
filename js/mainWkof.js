@@ -10,7 +10,7 @@ var requestHeaders;
 var db;
 
 // dark mode
-var modedivs = [...document.getElementsByClassName("card"), ...document.getElementsByClassName("settings"), ...document.getElementsByTagName("tr"), ...document.getElementsByClassName("toc"), document.getElementById("whiteoverlay"), ...document.getElementsByClassName("chart"), ...document.getElementsByClassName("radtable"), ...document.getElementsByClassName("kantable"), ...document.getElementsByClassName("voctable"), ...document.getElementsByTagName("ruby")];
+var modedivs = [...document.getElementsByClassName("card"), ...document.getElementsByClassName("settings"), ...document.getElementsByTagName("tr"), ...document.getElementsByClassName("toc"), document.getElementById("whiteoverlay"), ...document.getElementsByClassName("chart"), ...document.getElementsByClassName("radtable"), ...document.getElementsByClassName("kantable"), ...document.getElementsByClassName("voctable"), ...document.getElementsByTagName("ruby"), ...document.getElementsByClassName("centerimg")];
 var lightMode = localStorage["mode"] == "light" ? true : false;
 changeMode();
 
@@ -79,6 +79,11 @@ levelResetsBox.addEventListener('change', () => { updateLevelChart(); });
 levelClampBox.addEventListener('change', () => { updateLevelChart(); });
 levelCombBox.addEventListener('change', () => { updateLevelChart(); });
 projSpeedBox.addEventListener('change', () => { updateSimpleProjections(); });
+
+// remember page position
+window.onbeforeunload = function () {
+    localStorage["scrollposition"] = document.documentElement.scrollTop || document.body.scrollTop;
+}
 
 // idb
 async function idbCount(db, name) {
@@ -349,7 +354,7 @@ async function fetchData() {
     blackOverlay.style.visibility = "hidden";
     whiteOverlay.style.visibility = "hidden";
     for (const maindiv of maindivs) maindiv.style.display = "block";
-    loadGraphs();
+    loadGraphs().then(() => { if (localStorage["scrollposition"]) document.documentElement.scrollTop = document.body.scrollTop = localStorage["scrollposition"] });
 }
 
 async function dataPasser() {
@@ -462,7 +467,7 @@ async function projections() {
     var prevReset = false;
     for (let i = 1; i < 62; i++) {
         if (i != 61) text = "<div style='margin: 5px'><div><b>Level " + i + "</b></div>";
-        else text = "<div style='margin: 5px'><div><b>Burn All Items (全火)</b></div>";
+        else text = "<div style='margin: 5px'><div style='color: #f0ca00'><b>Burn All Items (全火)</b></div>";
         if (i < userData["level"]) {
             text += "<div style='white-space: nowrap'>" + fixHtml("<i>Finished Level: </i>") + dateLongFormat(levelDates[i - 1][2]) + "</div>";
             let resetLevelDate = null;
@@ -495,7 +500,7 @@ async function updateProjections() {
     var text;
     for (let i = userData["level"] + 1; i <= 62; i++) {
         if (i != 62) text = "<div style='margin: 5px'><div><b>Level " + projectionsData[i][0] + "</b></div>";
-        else text = "<div style='margin: 5px'><div><b>Burn All Items (全火)</b></div>";
+        else text = "<div style='margin: 5px'><div style='color: #f0ca00'><b>Burn All Items (全火)</b></div>";
         let [f, h, p] = [projectionsData[i][3], new Date(rawData[i]['given']), projectionsData[i][6]];
         text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:darkgray'>Predicted Finish: </i>") + dateLongFormat(p) + "</div>";
         text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:#7aa7f5'>Hypothetical Finish: </i>") + dateLongFormat(h) + "</div>";
@@ -1041,32 +1046,129 @@ async function updateReviewAccuracy() {
     let smoothBool = (dayAverage != 0);
     let shortBool = newdateche.checked;
     let startDate = new Date(newdateinp.value);
-    var averageArray = [["Date", "Average Radical", "Average Kanji", "Average Vocab", "Average All"]];
+    var averageArray = [["Date", "Avg Radical Correct", "Avg Kanji Correct", "Avg Vocab Correct", "Avg All Correct"]];
     // array
     if (smoothBool) {
         var currentArray = shortBool ? dataDateShorten(reviewAccuracy, startDate) : reviewAccuracy;
+        var currentAccTotal = shortBool ? dataDateShorten(reviewAccTotal, startDate) : reviewAccTotal;
         var runningTotal = [0, 0, 0, 0];
         var runningAmount = [0, 0, 0, 0];
         var average = [0, 0, 0, 0];
-        var prevAvg = [0, 0, 0, 0];
+        var prevAvg = [100, 100, 100, 100];
         for (let i = 1; i < currentArray.length; i++) {
-            for (let j = 0; j < runningTotal.length; j++) { runningTotal[j] += currentArray[i][j + 1] * reviewAccTotal[i - 1][j]; runningAmount[j] += reviewAccTotal[i - 1][j]; }
+            for (let j = 0; j < runningTotal.length; j++) { runningTotal[j] += currentArray[i][j + 1] * currentAccTotal[i - 1][j]; runningAmount[j] += currentAccTotal[i - 1][j]; }
             if (i > dayAverage) {
-                for (let j = 0; j < 4; j++) runningTotal[j] -= currentArray[i - dayAverage][j + 1] * reviewAccTotal[i - 1 - dayAverage][j];
-                for (let j = 0; j < 4; j++) runningAmount[j] -= reviewAccTotal[i - 1 - dayAverage][j];
+                for (let j = 0; j < 4; j++) runningTotal[j] -= currentArray[i - dayAverage][j + 1] * currentAccTotal[i - 1 - dayAverage][j];
+                for (let j = 0; j < 4; j++) runningAmount[j] -= currentAccTotal[i - 1 - dayAverage][j];
             }
             for (let j = 0; j < 4; j++) average[j] = runningAmount[j] == 0 ? prevAvg[j] : runningTotal[j] / runningAmount[j];
             prevAvg = average.slice();
             averageArray.push([currentArray[i][0], ...average]);
         }
+        var averageArrays = [[[["Date", "Avg Radical Acc", "Avg Kanji Acc", "Avg Vocab Acc", "Avg All Acc"]], midreviewAccuracy],
+            [[["Date", "Avg Radical Reading Acc", "Avg Kanji Reading Acc", "Avg Vocab Reading Acc", "Avg All Reading Acc"]], meaningAccuracy],
+            [[["Date", "Avg Radical Meaning Acc", "Avg Kanji Meaning Acc", "Avg Vocab Meaning Acc", "Avg All Meaning Acc"]], readingAccuracy]];
+        for (let k = 0; k < 3; k++) {
+            var currentArray = shortBool ? dataDateShorten(averageArrays[k][1], startDate) : averageArrays[k][1];
+            var runningTotal = [0, 0, 0, 0];
+            var runningAmount = [0, 0, 0, 0];
+            var average = [0, 0, 0, 0];
+            var prevAvg = [100, 100, 100, 100];
+            for (let i = 1; i < currentArray.length; i++) {
+                for (let j = 0; j < runningTotal.length; j++) { runningTotal[j] += currentArray[i][j + 1][0]; runningAmount[j] += currentArray[i][j + 1][1]; }
+                if (i > dayAverage) {
+                    for (let j = 0; j < 4; j++) runningTotal[j] -= currentArray[i - dayAverage][j + 1][0];
+                    for (let j = 0; j < 4; j++) runningAmount[j] -= currentArray[i - dayAverage][j + 1][1];
+                }
+                for (let j = 0; j < 4; j++) average[j] = runningAmount[j] == 0 ? prevAvg[j] : (1 - runningTotal[j] / runningAmount[j]) * 100;
+                prevAvg = average.slice();
+                averageArrays[k][0].push([currentArray[i][0], ...average]);
+            }
+        }
+        var currentAccuracyArray = averageArrays[0][0], currentMeaningArray = averageArrays[1][0], currentReadingArray = averageArrays[2][0];
+    } else {
+        var currentAccuracyArray = totalArrayToAcc(midreviewAccuracy);
+        var currentMeaningArray = totalArrayToAcc(meaningAccuracy);
+        var currentReadingArray = totalArrayToAcc(readingAccuracy);
     }
+    for (let i = 0; i < currentMeaningArray.length; i++) currentMeaningArray[i].splice(1, 1);
+    for (let i = 0; i < currentReadingArray.length; i++) currentReadingArray[i].splice(1, 1);
     // review accuracy
+    var accChartData = google.visualization.arrayToDataTable(dataDateShorten(currentAccuracyArray, startDate));
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    dateFormatter.format(accChartData, 0);
+    var options = {
+        chartArea: { width: '80%', height: '80%' },
+        title: smoothBool ? 'Review Accuracy (Averaged over ' + dayAverage + ' days)' : 'Review Accuracy',
+        curveType: smoothBool ? 'function' : 'none',
+        legend: { position: 'none' },
+        vAxis: {
+            viewWindow: {
+                max: 100
+            }
+        },
+        colors: ['#55abf2', '#f032b1', '#bb31de', 'black'],
+        width: 1000,
+        height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
+        focusTarget: 'category'
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('accuracychart'));
+    chart.draw(accChartData, options);
+    // meaning accuracy
+    var meanChartData = google.visualization.arrayToDataTable(dataDateShorten(currentMeaningArray, startDate));
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    dateFormatter.format(meanChartData, 0);
+    var options = {
+        chartArea: { width: '80%', height: '80%' },
+        title: smoothBool ? 'Review Reading Accuracy (Averaged over ' + dayAverage + ' days)' : 'Review Reading Accuracy',
+        curveType: smoothBool ? 'function' : 'none',
+        legend: { position: 'none' },
+        vAxis: {
+            viewWindow: {
+                max: 100
+            }
+        },
+        colors: ['#f032b1', '#bb31de', 'black'],
+        width: 1000,
+        height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
+        focusTarget: 'category'
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('meanaccchart'));
+    chart.draw(meanChartData, options);
+    // reading accuracy
+    var readChartData = google.visualization.arrayToDataTable(dataDateShorten(currentReadingArray, startDate));
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    dateFormatter.format(readChartData, 0);
+    var options = {
+        chartArea: { width: '80%', height: '80%' },
+        title: smoothBool ? 'Review Meaning Accuracy (Averaged over ' + dayAverage + ' days)' : 'Review Meaning Accuracy',
+        curveType: smoothBool ? 'function' : 'none',
+        legend: { position: 'none' },
+        vAxis: {
+            viewWindow: {
+                max: 100
+            }
+        },
+        colors: ['#f032b1', '#bb31de', 'black'],
+        width: 1000,
+        height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
+        focusTarget: 'category'
+    };
+    var chart = new google.visualization.LineChart(document.getElementById('readaccchart'));
+    chart.draw(readChartData, options);
+    // review "correctness"
     var chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewAccuracy, startDate));
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
     dateFormatter.format(chartData, 0);
     var options = {
         chartArea: { width: '80%', height: '80%' },
-        title: smoothBool ? 'Review Accuracy (Averaged over ' + dayAverage + ' days)' : 'Review Accuracy',
+        title: smoothBool ? 'Review Percentage Correct Items (Averaged over ' + dayAverage + ' days)' : 'Review Percentage Correct Items',
         curveType: smoothBool ? 'function' : 'none',
         legend: { position: 'none' },
         vAxis: {
@@ -1371,7 +1473,7 @@ async function wordInfo() {
     var doneCounts = [0, 0, 0];
     kanjiWall = "";
     var specialKanjiWall = "";
-    var kanjiColors = ['#d128bd', '#9735cc', '#353dcc', '#359fcc', '#917c34'];
+    var kanjiColors = ['#d128bd', '#9735cc', '#353dcc', '#359fcc', '#f0ca00']; // burned is gold
     var wordBubble = [["Meaning", "Reading", { role: "style" }, { role: "tooltip", 'p': { 'html': true } }]];
     var radBubble = [["Accuracy", "Level", { role: "style" }, { role: "tooltip", 'p': { 'html': true } }]];
     var kanjiInterpolator = d3.interpolateRgb("#FFC3D4", "#A26174 ");

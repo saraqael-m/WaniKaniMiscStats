@@ -157,14 +157,14 @@ const P = {
                 unlocked = new Date(i.unlocked_at);
                 info = `<td> ${unlocked.format()} </td><td> - </td><td> - </td>`;
             } else if (l <= P.maxLevel) {
-                p[l] = {fastest: P.getFools(fastest = _fastest, fools).format(),
-                        real: (real = _real).format(),
-                        given: (given = _given).format()};
+                p[l] = {fastest: P.getFools(fastest = _fastest, fools),//.format(),
+                        real: (real = _real),//.format(),
+                        given: (given = _given)};//.format()};
                 info = `<td> ${p[l].real} </td><td> ${p[l].fastest} </td><td> ${p[l].given} </td>`;
             } else {
-                p[l] = {fastest: P.getFools(_fastest, fools).format(),
-                        real: _real.format(),
-                        given: _given.format()};
+                p[l] = {fastest: P.getFools(_fastest, fools),//.format(),
+                        real: _real,//.format(),
+                        given: _given};//.format()};
                 info = `<td> ${p[l].real} </td><td> ${p[l].fastest} </td><td> ${p[l].given} </td>`;
             }
 
