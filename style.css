@@ -72,6 +72,16 @@ tr.dark-mode {
 	color: black;
 }
 
+#detailwindow.dark-mode {
+	background-color: black;
+	color: white;
+}
+
+#detailwindow {
+	background-color: white;
+	color: black;
+}
+
 .chart.dark-mode text {
 	fill: white !important;
 }
@@ -84,9 +94,14 @@ div.dark-mode div.google-visualization-tooltip > ul > li > span {
 	color: white !important;
 }
 
-ruby.dark-mode:not(.nohidden) rt {
+ruby.dark-mode rt:not(.nohidden) {
 	color: transparent;
 	text-shadow: 0 0 12px rgba(255,255,255,0.99);
+}
+
+ruby.dark-mode.nohidden rt {
+	color: white;
+	text-shadow: none;
 }
 
 ruby.dark-mode rt:hover {
@@ -97,6 +112,7 @@ ruby.dark-mode rt:hover {
 .centerimg.dark-mode {
 	-webkit-filter: invert(100%);
 	filter: invert(100%);
+	opacity: 0.2;
 }
 
 .radtable.dark-mode {
@@ -142,21 +158,34 @@ ruby.dark-mode rt:hover {
 }
 
 /* button design */
-button {
+button:not(.closebtn) {
 	color: white;
 	text-align: center;
 	background-color: #555555;
 }
 
-button:hover {
+button:not(.closebtn):hover {
 	background-color: lightgrey;
 	color: black;
 }
 
-button:active {
+button:not(.closebtn):active {
 	background-color: white;
 	color: black;
 	border-color: lightgrey;
+}
+
+button.closebtn.dark-mode {
+	-webkit-filter: invert(100%);
+	filter: invert(100%);
+}
+
+button.closebtn:hover {
+	opacity: 0.5;
+}
+
+button.closebtn:active {
+	opacity: 0.7;
 }
 
 /* furigana design */
@@ -166,36 +195,54 @@ rt:not(.nohidden) {
 	text-shadow: 0 0 12px rgba(0,0,0,0.97);
 }
 
-rt:hover {
+rt:not(.nohidden):hover {
 	color: black;
 	text-shadow: none;
 }
 
 /* table design */
 
-table {
+table.normaltable {
 	border-collapse: collapse;
 }
 
-table tr {
+table.normaltable tr {
 	padding: 15px;
 }
 
-table thead tr {
+table.normaltable thead tr {
 	background-color: #54585d;
 }
 
-table thead tr th {
-	color: #ffffff;
+table.normaltable thead tr th {
 	font-weight: 200;
 	font-size: 80%;
 	border-right: 2px solid white;
 	border-left: 2px solid white;
 }
 
-table tbody tr {
-	color: #636363;
+table.normaltable tbody tr {
 	border: 1px solid #dddfe1;
+}
+
+table.normaltable thead tr:not(dark-mode) th {
+	color: #ffffff;
+}
+
+.charttableheaderdark {
+	color: white;
+	background-color: black;
+	font-weight: 400;
+}
+
+.charttablerowdark {
+	color: white;
+	background-color: black;
+}
+
+.charttablehoverdark {
+	color: white;
+	background-color: #292929;
 }
 
 /* other */
@@ -208,6 +255,7 @@ table tbody tr {
 	left: 0;
 	right: 0;
 	bottom: 0;
+	opacity: 0.1;
 }
 
 .header {

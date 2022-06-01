@@ -2,17 +2,48 @@ const prevToken = localStorage.getItem('apiv2_key_override');
 if (prevToken === null) window.location.href = "index.html";
 
 // load packages
-google.charts.load('current', { 'packages': ['corechart', 'bar'] });
+google.charts.load('current', { 'packages': ['corechart', 'bar', 'table'] });
+
+// device
+var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 // API vars
 var apiToken;
 var requestHeaders;
 var db;
 
-// dark mode
-var modedivs = [...document.getElementsByClassName("card"), ...document.getElementsByClassName("settings"), ...document.getElementsByTagName("tr"), ...document.getElementsByClassName("toc"), document.getElementById("whiteoverlay"), ...document.getElementsByClassName("chart"), ...document.getElementsByClassName("radtable"), ...document.getElementsByClassName("kantable"), ...document.getElementsByClassName("voctable"), ...document.getElementsByTagName("ruby"), ...document.getElementsByClassName("centerimg")];
+//// pre data-fetching ////
+// dark/light mode
+var modedivs = [...document.getElementsByClassName("card"), ...document.getElementsByClassName("settings"), ...document.getElementsByTagName("tr"), ...document.getElementsByClassName("toc"), document.getElementById("whiteoverlay"), ...document.getElementsByClassName("chart"), ...document.getElementsByClassName("radtable"), ...document.getElementsByClassName("kantable"), ...document.getElementsByClassName("voctable"), ...document.getElementsByTagName("ruby"), ...document.getElementsByClassName("centerimg"), ...document.getElementsByClassName("closebtn"), document.getElementById("detailwindow")];
 var lightMode = localStorage["mode"] == "light" ? true : false;
 changeMode();
+// current date
+let currentDate = new Date();
+currentDate.setFullYear(currentDate.getFullYear() - 1);
+currentDate = currentDate.toISOString().split('T')[0];
+// settings
+var defaultSettings = {
+    levelclamp: ['checked', false], // level chart
+    levelcomb: ['checked', false],
+    levelresets: ['checked', false],
+    showPast: ['checked', true], // projections
+    showBurn: ['checked', true],
+    showCheck: ['checked', true],
+    hypothetical: ['checked', false],
+    speed: ['value', 240],
+    'speed-current': ['value', 240],
+    'speed-590400': ['value', 240],
+    'speed-295200': ['value', 240],
+    projectionsspeed: ['checked', false], // simple projections
+    startdate: ['value', currentDate], // time settings
+    nullify: ['checked', false],
+    smoothreview: ['value', 0], // review
+    smoothacc: ['value', 10], // accuracy
+    tablemonth: ['value', 1], // info table
+    tableday: ['value', 0],
+};
+var settings = localStorage["settings"] === undefined || localStorage["settings"] == '[object Object]' ? undefined : JSON.parse(localStorage["settings"]);
+setSettings();
 
 // elements
 const maindivs = document.getElementsByClassName("allinfo");
@@ -24,6 +55,7 @@ const smoothInp = document.getElementById("smoothreview");
 const smoothAccInp = document.getElementById("smoothacc");
 const blackOverlay = document.getElementById("blackoverlay");
 const whiteOverlay = document.getElementById("whiteoverlay");
+const detailWindow = document.getElementById('detailwindow');
 const reviewProgress = document.getElementById("reviewprogress");
 const reviewAll = document.getElementById("reviewall");
 const wordAll = document.getElementById("wordall");
@@ -72,6 +104,7 @@ var projectionsData = [];
 var tableOffset = 0;
 var currentPage = 1;
 var shortLevels = [43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 1, 2];
+var totalAverages = [];
 
 // event listener
 newdateche.addEventListener('change', () => { updateReviewCharts(); updateReviewAccuracy(); });
@@ -79,108 +112,39 @@ levelResetsBox.addEventListener('change', () => { updateLevelChart(); });
 levelClampBox.addEventListener('change', () => { updateLevelChart(); });
 levelCombBox.addEventListener('change', () => { updateLevelChart(); });
 projSpeedBox.addEventListener('change', () => { updateSimpleProjections(); });
+document.onkeydown = function (evt) { // esc button closes detail window
+    evt = evt || window.event;
+    var isEscape = false;
+    if ("key" in evt) isEscape = (evt.key === "Escape" || evt.key === "Esc");
+    else isEscape = (evt.keyCode === 27);
+    if (isEscape) closeDetailWindow();
+};
 
 // remember page position
 window.onbeforeunload = function () {
     localStorage["scrollposition"] = document.documentElement.scrollTop || document.body.scrollTop;
 }
 
-// idb
-async function idbCount(db, name) {
-    return await new Promise((resolve, reject) => {
-        const txn = db.transaction(name, 'readonly');
-        const store = txn.objectStore(name);
-        let query = store.count(); // data
-        // success
-        query.onsuccess = function (event) {
-            resolve(event.target.result);
-        };
-        // error
-        query.onerror = function (event) {
-            reject(event.target.errorCode);
-        };
-    });
-}
-
-async function idbInsert(db, name, apit, data) {
-    return await new Promise((resolve, reject) => {
-        const txn = db.transaction(name, 'readwrite');
-        // get object store
-        const store = txn.objectStore(name);
-        let query = store.put(data, apit);
-        // success
-        query.onsuccess = function (event) {
-            resolve(true);
-        };
-        // error
-        query.onerror = function (event) {
-            reject(event.target.errorCode);
-        };
-    });
-}
-
-async function idbFetch(db, name, ind, apit) {
-    return await new Promise((resolve, reject) => {
-        const txn = db.transaction(name, 'readonly');
-        const store = txn.objectStore(name);
-        const index = store.index(ind);
-        let query = index.get(apit);
-        //var returnValue;
-        // success
-        query.onsuccess = (event) => {
-            if (event.target.result) {
-                //returnValue = event.target.result;
-                resolve(event.target.result);
-            } else resolve(undefined);
-        };
-        //error
-        query.onerror = (event) => {
-            reject(event.target.errorCode);
-        };
-    });
-}
-
-async function idbRemove(db, name, apit) {
-    return await new Promise((resolve, reject) => {
-        const txn = db.transaction(name, 'readwrite');
-        const store = txn.objectStore(name);
-        let query = store.delete(apit);
-        // success
-        query.onsuccess = function (event) {
-            resolve(true);
-        };
-        // error
-        query.onerror = function (event) {
-            reject(event.target.errorCode);
-        };
-    });
-}
-
-async function idbClear(db, name) {
-    return await new Promise((resolve, reject) => {
-        const txn = db.transaction(name, 'readwrite');
-        const store = txn.objectStore(name);
-        let query = store.clear();
-        // success
-        query.onsuccess = function (event) {
-            resolve(true);
-        };
-        // error
-        query.onerror = function (event) {
-            reject(event.target.errorCode);
-        };
-    });
-}
-
 // main code
-let currentDate = new Date();
-currentDate.setFullYear(currentDate.getFullYear() - 1);
-newdateinp.value = currentDate.toISOString().split('T')[0];
 
 function logout() {
     deleteDatabase('wkof.file_cache');
     localStorage.removeItem('apiv2_key_override');
     window.location.href = "index.html";
+}
+
+function openDetailWindow(htmlInput) {
+    document.body.style.overflow = 'hidden';
+    detailWindow.children[1].innerHTML = htmlInput;
+    detailWindow.style.visibility = 'visible';
+    blackOverlay.style.visibility = 'visible';
+}
+
+function closeDetailWindow() {
+    document.body.style.overflow = '';
+    detailWindow.style.visibility = 'hidden';
+    blackOverlay.style.visibility = 'hidden';
+    detailWindow.children[1].innerHTML = "";
 }
 
 function changeMode() {
@@ -217,46 +181,24 @@ function changeMode() {
     }
 }
 
-async function fetchLoop(apiEndpointUrl) {
-    while (1) {
-        let promise = fetch(new Request(apiEndpointUrl, { method: 'GET', headers: requestHeaders }))
-            .then(response => response.json())
-            .then(responseBody => responseBody);
-        let data = await promise;
-        let errorCode = data["code"];
-        if (errorCode !== undefined) {
-            if (errorCode != 429) {
-                errorDiv.innerHTML = "Error (Code " + data["code"] + "): " + data["error"];
-            } else {
-                console.log("Don't mind this error. No data is lost. The data will continue to downloaded once the throttling by the API ends.");
-            }
-            await new Promise(r => setTimeout(r, 10000));
-            continue;
-        }
-        errorDiv.innerHTML = "";
-        return data;
+function setSettings() {
+    if (typeof settings !== "object" || settings === null) settings = defaultSettings;
+    for (var key of Object.keys(defaultSettings)) {
+        let value = settings.hasOwnProperty(key) ? settings[key] : defaultSettings[key]; 
+        let element = document.getElementById(key);
+        if (element) element[value[0]] = value[1];
+        else console.log("Setting not found: ", key, settings[key]);
     }
+    saveSettings();
 }
 
-async function fetchMultiplePages(apiEndpointUrl, progressBarId) {
-    const pg = document.getElementById(progressBarId);
-    pg.style.width = "0%";
-    var data = await fetchLoop(apiEndpointUrl);
-    const totPages = data["total_count"];
-    const perPages = data["pages"]["per_page"];
-    const loops = Math.ceil(totPages / perPages);
-    var currentLoop = 0;
-    var newData;
-    var nextURL = data["pages"]["next_url"];
-    while (nextURL != null) {
-        newData = await fetchLoop(nextURL);
-        data["data"].push(...newData["data"]);
-        nextURL = newData["pages"]["next_url"];
-        currentLoop++;
-        pg.style.width = 100 * currentLoop / loops + "%";
+function saveSettings() {
+    for (var key of Object.keys(defaultSettings)) {
+        let element = document.getElementById(key);
+        if (element) settings[key] = [defaultSettings[key][0], element[defaultSettings[key][0]]];
+        else console.log("Element for setting not found: ", key);
     }
-    pg.style.width = "100%";
-    return await data;
+    localStorage["settings"] = JSON.stringify(settings);
 }
 
 async function deleteDatabase(dbName) {
@@ -270,62 +212,6 @@ async function deleteDatabase(dbName) {
 
         request.onsuccess = async (event) => { // deleted successfully
             resolve(event.result);
-        };
-    });
-}
-
-async function reviewCacheHandler(apiEndpointUrl, progressBarId) {
-    return await new Promise((resolve, reject) => {
-        const request = indexedDB.open('userdata', 1);
-
-        request.onerror = (event) => { // fails to open
-            console.error(`IndexedDatabase error: ${event.target.errorCode}`);
-            reject(`IndexedDatabase error: ${event.target.errorCode}`);
-        };
-
-        request.onsuccess = async (event) => { // main code
-            db = await event.target.result;
-
-            // delete if over 4 chached
-            let objCount = await idbCount(db, "reviews");
-            if (objCount > 4) await idbClear(db, "reviews");
-            // handle review data
-            var reviews = await idbFetch(db, "reviews", "apitoken", apiToken);
-            
-            if (reviews == undefined) {
-                reviews = await fetchMultiplePages(apiEndpointUrl, progressBarId);
-                reviews["apitoken"] = apiToken;
-                await idbInsert(db, "reviews", apiToken, reviews);
-                resolve(reviews);
-            }
-
-            const reviewpg = document.getElementById(progressBarId);
-            reviewpg.innerHTML = "Caching...";
-            var lastDate, lastId;
-            try { lastDate = new Date(reviews["data"][reviews["data"].length - 1]["data_updated_at"]);
-            } catch (e) { lastDate = new Date(1000);}
-            lastDate = new Date(lastDate.getTime() - 1000).toISOString();
-            var idReached = false;
-            try { lastId = reviews["data"][reviews["data"].length - 1]["id"];
-            } catch (e) { idReached = true; }
-            let newReviews = await fetchMultiplePages(apiEndpointUrl + "?updated_after=" + lastDate, progressBarId);
-            for (let i = 0; i < newReviews["data"].length; i++) {
-                if (idReached) reviews["data"].push(newReviews["data"][i]);
-                if (!idReached && newReviews["data"][i]["id"] == lastId) idReached = true;
-            }
-
-            reviews["apitoken"] = apiToken;
-            await idbInsert(db, "reviews", apiToken, reviews);
-            reviewpg.innerHTML = "";
-            resolve(reviews);
-        };
-
-        request.onupgradeneeded = (event) => { // first time opening -> create structure
-            let db = event.target.result; 
-            // store review 
-            let store = db.createObjectStore('reviews');
-            // index for apitoken
-            let index = store.createIndex('apitoken', 'apitoken', { unique: true });
         };
     });
 }
@@ -372,11 +258,6 @@ async function dataPasser() {
         wkof.Apiv2.get_endpoint('level_progressions').then(data => { progress['value']++; wkof.Progress.update(progress); levelData = Object.values(data); }),
         wkof.Apiv2.get_endpoint('spaced_repetition_systems').then(data => { progress['value']++; wkof.Progress.update(progress); srsData = data; }),
         wkof.Apiv2.get_endpoint('reviews').then(data => { progress['value']++; wkof.Progress.update(progress); reviewData = Object.values(data); })]);
-    /*wkof.ItemData.get_items('assignments, review_statistics').then(itemDataHandler)
-        .then(wkof.Apiv2.get_endpoint('user').then(data => userData = data))
-        .then(wkof.Apiv2.get_endpoint('resets').then(data => { resetData = data; console.log("reset", data); }))
-        .then(wkof.Apiv2.get_endpoint('level_progressions').then(data => levelData = data))
-        .then(wkof.Apiv2.get_endpoint('reviews').then(data => reviewData = data));*/
     wkofDiv.style.display = 'none';
 }
 
@@ -415,6 +296,7 @@ function repairLevelArray() {
 }
 
 async function loadGraphs() {
+    calculateTotalAverages();
     userInfo();
     levelInfo().then(projections());
     wordInfo();
@@ -496,6 +378,7 @@ async function projections() {
 }
 
 async function updateProjections() {
+    saveSettings();
     var [rawData, _] = P.api(userData, levelData, srsData, unalteredItemData);
     var text;
     for (let i = userData["level"] + 1; i <= 62; i++) {
@@ -542,13 +425,19 @@ async function updateProjections() {
         if (selection.length == 0) { specificDiv.style.display = 'none'; document.getElementById('expand').checked = false; return; }
         var level = chartData.getValue(chart.getSelection()[0]['row'], 0);
         if (level == 61 || level == 0) { specificDiv.style.display = 'none'; document.getElementById('expand').checked = false; return; }
-        specificDiv.children[0].innerHTML = '<b>Specific Item Breakdown for Level ' + level + '</b>';
         document.getElementById('expanded').value = String(level);
         document.getElementById('expand').checked = true;
         var [_, output] = P.api(userData, levelData, srsData, unalteredItemData);
         var specificData = output.slice(output.indexOf('<table class="coverage">'));
-        specificDiv.children[1].innerHTML = specificData;
-        specificDiv.style.display = 'block';
+        if (isMobile) {
+            specificDiv.children[0].innerHTML = '<b>Specific Item Breakdown for Level ' + level + '</b>';
+            specificDiv.children[1].innerHTML = specificData;
+            specificDiv.style.display = 'block';
+        } else {
+            specificData = '<div style="margin-bottom: 5px"><b>Specific Item Breakdown for Level ' + level + '</b></div><div>' + specificData + '</div>';
+            chart.setSelection();
+            openDetailWindow(specificData);
+        }
     });
 }
 
@@ -561,6 +450,68 @@ function expandHypothetical() {
         document.getElementById('easyhypothetical').style.display = 'block';
         document.getElementById('advhypothetical').style.display = 'none';
     }
+}
+
+function calculateTotalAverages() {
+    for (const arr of [midreviewAccuracy, readingAccuracy, meaningAccuracy]) {
+        let tempAcc = arr.slice(1).reduce((p, c) => { s = [undefined]; for (let i = 1; i < 5; i++) s.push([p[i][0] + c[i][0], p[i][1] + c[i][1]]); return s; }).slice(1);
+        for (let i = 0; i < 4; i++) tempAcc[i] = roundToDecimals((1 - tempAcc[i][0] / tempAcc[i][1]) * 100, 2) + "%";
+        totalAverages.push(...tempAcc);
+    }
+    let tempArr = reviewArray.slice(1).reduce((p, c) => { s = [undefined]; for (let i = 1; i < 5; i++) s.push(p[i] + c[i]); return s; }).slice(1);
+    for (let i = 0; i < 4; i++) tempArr[i] = roundToDecimals(tempArr[i] / reviewArray.length - 1, 1);
+    totalAverages.push(...tempArr);
+    tempArr = itemArray.slice(1).reduce((p, c) => { s = [undefined]; for (let i = 1; i < 5; i++) s.push(p[i] + c[i]); return s; }).slice(1);
+    for (let i = 0; i < 4; i++) tempArr[i] = roundToDecimals(tempArr[i] / itemArray.length - 1, 2);
+    totalAverages.push(...tempArr);
+}
+
+function sameDay(d1, d2) {
+    return Math.abs(d1 - d2) < 43200000; // twelve hourse 
+}
+
+function openSnapshot(date) {
+    let index = midreviewAccuracy.slice(1).findIndex(element => sameDay(element[0], date)) + 1;
+    let otherIndex = reviewArray.slice(1).findIndex(element => sameDay(element[0], date)) + 1;
+    snapshotData = [...midreviewAccuracy[index].slice(1), ...readingAccuracy[index].slice(1), ...meaningAccuracy[index].slice(1),
+        ...reviewArray[otherIndex].slice(1), ...itemArray[index].slice(1), totalArray[otherIndex][1]];
+    for (let i = 0; i < 12; i++) snapshotData[i] = snapshotData[i][1] == 0 ? "-" : roundToDecimals((1 - snapshotData[i][0] / snapshotData[i][1]) * 100) + "%";
+    let currentIndex = midreviewAccuracy.length - 1, currentOtherIndex = reviewArray.length - 1;
+    let current = [...midreviewAccuracy[currentIndex].slice(1), ...readingAccuracy[currentIndex].slice(1), ...meaningAccuracy[currentIndex].slice(1),
+        ...reviewArray[currentOtherIndex].slice(1), ...itemArray[currentIndex].slice(1), totalArray[currentOtherIndex][1]];
+    for (let i = 0; i < 12; i++) current[i] = current[i][1] == 0 ? "-" : roundToDecimals((1 - current[i][0] / current[i][1]) * 100) + "%";
+    chartArray = [["Data Point", dateLongFormat(date), dateLongFormat(midreviewAccuracy[midreviewAccuracy.length - 1][0]), "Average"]];
+    chartNames = ["Accuracy Radical", "Accuracy Kanji", "Accuracy Vocab", "Accuracy",
+        "Reading Acc Radical", "Reading Acc Kanji", "Reading Acc Vocab", "Reading Acc", 
+        "Meaning Acc Radical", "Meaning Acc Kanji", "Meaning Acc Vocab", "Meaning Acc", 
+        "Reviews", "Reviews Radical", "Reviews Kanji", "Reviews Vocab",
+        "Lessons", "Lessons Radical", "Lessons Kanji", "Lessons Vocab", "Total Reviews"]
+    for (const i of [3,0,1,2,7,4,5,6,11,8,9,10,12,13,14,15,16,17,18,19,20]) chartArray.push([chartNames[i], snapshotData[i], current[i], totalAverages[i] == undefined || totalAverages[i] == "NaN%" ? "-" : totalAverages[i]]);
+    // generate table
+    let tableData = google.visualization.arrayToDataTable(chartArray);
+    openDetailWindow('<h2>One Day Snapshot</h2><div id="snapshottable"></div>');
+    var table = new google.visualization.Table(document.getElementById('snapshottable'));
+    var options = {
+        showRowNumber: false,
+        allowHtml: true,
+        alternatingRowStyle: false,
+        width: '100%',
+        height: '100%',
+        sort: 'event', // no sorting
+        cssClassNames: lightMode ? undefined : {
+            headerRow: 'charttableheaderdark',
+            tableRow: 'charttablerowdark',
+            hoverTableRow: 'charttablehoverdark'
+        }
+    }
+    const colors = lightMode ? ['azure', '#ffe6f8', '#f3ebfc'] : ['#102b38', '#401439', '#2a1440'];
+    for (const row of [1, 5, 9, 13, 17]) {
+        for (let col = 0; col < 4; col++) tableData.setProperty(row, col, 'style', 'background-color: ' + colors[0] + ';');
+        for (let col = 0; col < 4; col++) tableData.setProperty(row+1, col, 'style', 'background-color: ' + colors[1] + ';');
+        for (let col = 0; col < 4; col++) tableData.setProperty(row+2, col, 'style', 'background-color: ' + colors[2] + ';');
+    }
+    table.draw(tableData, options);
+    google.visualization.events.addListener(table, 'select', () => { table.setSelection([]); }); // no selecting
 }
 
 async function reviewInfo() {
@@ -727,6 +678,7 @@ async function reviewInfo() {
     midreviewAccuracy.splice(1, 1);
     meaningAccuracy.splice(1, 1);
     readingAccuracy.splice(1, 1);
+    itemArray.splice(1, 1);
     srsArray.sort((a, b) => a[0].valueOf() - b[0].valueOf());
     reviewArray.sort((a, b) => a[0].valueOf() - b[0].valueOf());
     for (let i = 0; i < 4; i++) {
@@ -790,8 +742,9 @@ function dataDateShorten(dataPrev, date, nullify = false) {
 }
 
 async function updateReviewCharts() {
+    saveSettings();
     let startDate = new Date(newdateinp.value);
-    const loadingLbl = document.getElementById("reviewloading");
+    const loadingLbl = document.getElementById("reviewinfodiv");
     loadingLbl.innerHTML = "Time frame starts at " + String(startDate).split(' ').slice(1, 4).join(' ') + ".";
     let nullifyBool = newdateche.checked;
     if (reviewArray.length == 0) return;
@@ -799,8 +752,8 @@ async function updateReviewCharts() {
     // reviews per day
     updateReviewsPerDay();
     // total reviews
-    let chartData = google.visualization.arrayToDataTable(dataDateShorten(totalArray, startDate, nullifyBool));
-    dateFormatter.format(chartData, 0);
+    let totalChartData = google.visualization.arrayToDataTable(dataDateShorten(totalArray, startDate, nullifyBool));
+    dateFormatter.format(totalChartData, 0);
     var options = {
         chartArea: { width: '100%', height: '85%' },
         hAxis: { textPosition: 'in' }, vAxis: { textPosition: 'in' },
@@ -813,11 +766,18 @@ async function updateReviewCharts() {
         backgroundColor: { fill: 'transparent' }
     };
     var chartDiv = document.getElementById('totalchart');
-    var chart = new google.visualization.LineChart(chartDiv);
-    chart.draw(chartData, options);
+    var totalChart = new google.visualization.LineChart(chartDiv);
+    totalChart.draw(totalChartData, options);
+    google.visualization.events.addListener(totalChart, 'select', function () { // one day snapshot opener
+        let selection = totalChart.getSelection()[0];
+        if (selection === undefined || isMobile) return;
+        let date = totalChartData.getValue(selection["row"], 0);
+        totalChart.setSelection([]);
+        openSnapshot(date);
+    });
     // srs stacked
-    chartData = google.visualization.arrayToDataTable(dataDateShorten(srsArray, startDate, nullifyBool));
-    dateFormatter.format(chartData, 0);
+    srsStackChartData = google.visualization.arrayToDataTable(dataDateShorten(srsArray, startDate, nullifyBool));
+    dateFormatter.format(srsStackChartData, 0);
     options = {
         chartArea: { width: '100%', height: '80%' },
         legend: { position: 'in' },
@@ -833,8 +793,15 @@ async function updateReviewCharts() {
         focusTarget: 'category'
     };
     chartDiv = document.getElementById('srschart');
-    chart = new google.visualization.SteppedAreaChart(chartDiv);
-    chart.draw(chartData, options);
+    srsStackedChart = new google.visualization.SteppedAreaChart(chartDiv);
+    srsStackedChart.draw(srsStackChartData, options);
+    google.visualization.events.addListener(srsStackedChart, 'select', function () { // one day snapshot opener
+        let selection = srsStackedChart.getSelection()[0];
+        if (selection === undefined || isMobile) return;
+        let date = srsStackChartData.getValue(selection["row"], 0);
+        srsStackedChart.setSelection([]);
+        openSnapshot(date);
+    });
     // srs
     options = {
         chartArea: { width: '100%', height: '80%' },
@@ -850,7 +817,14 @@ async function updateReviewCharts() {
     };
     chartDiv = document.getElementById('srschart2');
     chart = new google.visualization.LineChart(chartDiv);
-    chart.draw(chartData, options);
+    chart.draw(srsStackChartData, options);
+    google.visualization.events.addListener(chart, 'select', function () { // one day snapshot opener
+        let selection = chart.getSelection()[0];
+        if (selection === undefined || isMobile) return;
+        let date = srsStackChartData.getValue(selection["row"], 0);
+        chart.setSelection([]);
+        openSnapshot(date);
+    });
 }
 
 function roundToDecimals(num, n = 1, fill = false) {
@@ -859,6 +833,7 @@ function roundToDecimals(num, n = 1, fill = false) {
 }
 
 function updateTables(changeOffset = 0) {
+    saveSettings();
     tableOffset += changeOffset;
     tableOffset = tableOffset < 0 || tableOffset >= 100000 ? 0 : tableOffset;
     document.getElementById("tableoffset").innerHTML = tableOffset;
@@ -973,7 +948,7 @@ function updateTables(changeOffset = 0) {
         itemkanjiElements[i].innerHTML = itemsTable[i - 1][2];
         itemvocabElements[i].innerHTML = itemsTable[i - 1][3];
     }
-    // reading accuracy
+    // accuracy
     var accTable = [];
     for (let i = 0; i < dateAmount; i++) {
         let startFound = midreviewAccuracy.findIndex(element => element[0] >= dates[i]);
@@ -1042,6 +1017,7 @@ function updateTables(changeOffset = 0) {
 }
 
 async function updateReviewAccuracy() {
+    saveSettings();
     const dayAverage = smoothAccInp.value;
     let smoothBool = (dayAverage != 0);
     let shortBool = newdateche.checked;
@@ -1091,7 +1067,7 @@ async function updateReviewAccuracy() {
         var currentMeaningArray = totalArrayToAcc(meaningAccuracy);
         var currentReadingArray = totalArrayToAcc(readingAccuracy);
     }
-    for (let i = 0; i < currentMeaningArray.length; i++) currentMeaningArray[i].splice(1, 1);
+    //for (let i = 0; i < currentMeaningArray.length; i++) currentMeaningArray[i].splice(1, 1);
     for (let i = 0; i < currentReadingArray.length; i++) currentReadingArray[i].splice(1, 1);
     // review accuracy
     var accChartData = google.visualization.arrayToDataTable(dataDateShorten(currentAccuracyArray, startDate));
@@ -1099,7 +1075,7 @@ async function updateReviewAccuracy() {
     dateFormatter.format(accChartData, 0);
     var options = {
         chartArea: { width: '80%', height: '80%' },
-        title: smoothBool ? 'Review Accuracy (Averaged over ' + dayAverage + ' days)' : 'Review Accuracy',
+        title: 'Review Accuracy' + (smoothBool ? ' (Averaged over ' + dayAverage + ' days)' : ''),
         curveType: smoothBool ? 'function' : 'none',
         legend: { position: 'none' },
         vAxis: {
@@ -1114,61 +1090,22 @@ async function updateReviewAccuracy() {
         tooltip: { isHtml: true },
         focusTarget: 'category'
     };
-    var chart = new google.visualization.LineChart(document.getElementById('accuracychart'));
-    chart.draw(accChartData, options);
+    var accChart = new google.visualization.LineChart(document.getElementById('accuracychart'));
+    accChart.draw(accChartData, options);
+    google.visualization.events.addListener(accChart, 'select', function () { // one day snapshot opener
+        let selection = accChart.getSelection()[0];
+        if (selection === undefined || isMobile) return;
+        let date = accChartData.getValue(selection["row"], 0);
+        accChart.setSelection([]);
+        openSnapshot(date);
+    });
     // meaning accuracy
     var meanChartData = google.visualization.arrayToDataTable(dataDateShorten(currentMeaningArray, startDate));
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
     dateFormatter.format(meanChartData, 0);
     var options = {
         chartArea: { width: '80%', height: '80%' },
-        title: smoothBool ? 'Review Reading Accuracy (Averaged over ' + dayAverage + ' days)' : 'Review Reading Accuracy',
-        curveType: smoothBool ? 'function' : 'none',
-        legend: { position: 'none' },
-        vAxis: {
-            viewWindow: {
-                max: 100
-            }
-        },
-        colors: ['#f032b1', '#bb31de', 'black'],
-        width: 1000,
-        height: 333,
-        backgroundColor: { fill: 'transparent' },
-        tooltip: { isHtml: true },
-        focusTarget: 'category'
-    };
-    var chart = new google.visualization.LineChart(document.getElementById('meanaccchart'));
-    chart.draw(meanChartData, options);
-    // reading accuracy
-    var readChartData = google.visualization.arrayToDataTable(dataDateShorten(currentReadingArray, startDate));
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
-    dateFormatter.format(readChartData, 0);
-    var options = {
-        chartArea: { width: '80%', height: '80%' },
-        title: smoothBool ? 'Review Meaning Accuracy (Averaged over ' + dayAverage + ' days)' : 'Review Meaning Accuracy',
-        curveType: smoothBool ? 'function' : 'none',
-        legend: { position: 'none' },
-        vAxis: {
-            viewWindow: {
-                max: 100
-            }
-        },
-        colors: ['#f032b1', '#bb31de', 'black'],
-        width: 1000,
-        height: 333,
-        backgroundColor: { fill: 'transparent' },
-        tooltip: { isHtml: true },
-        focusTarget: 'category'
-    };
-    var chart = new google.visualization.LineChart(document.getElementById('readaccchart'));
-    chart.draw(readChartData, options);
-    // review "correctness"
-    var chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewAccuracy, startDate));
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
-    dateFormatter.format(chartData, 0);
-    var options = {
-        chartArea: { width: '80%', height: '80%' },
-        title: smoothBool ? 'Review Percentage Correct Items (Averaged over ' + dayAverage + ' days)' : 'Review Percentage Correct Items',
+        title: 'Review Meaning Accuracy' + (smoothBool ? ' (Averaged over ' + dayAverage + ' days)' : ''),
         curveType: smoothBool ? 'function' : 'none',
         legend: { position: 'none' },
         vAxis: {
@@ -1183,11 +1120,79 @@ async function updateReviewAccuracy() {
         tooltip: { isHtml: true },
         focusTarget: 'category'
     };
-    var chart = new google.visualization.LineChart(document.getElementById('percentagechart'));
-    chart.draw(chartData, options);
+    var meanChart = new google.visualization.LineChart(document.getElementById('meanaccchart'));
+    meanChart.draw(meanChartData, options);
+    google.visualization.events.addListener(meanChart, 'select', function () { // one day snapshot opener
+        let selection = meanChart.getSelection()[0];
+        if (selection === undefined || isMobile) return;
+        let date = meanChartData.getValue(selection["row"], 0);
+        meanChart.setSelection([]);
+        openSnapshot(date);
+    });
+    // reading accuracy
+    var readChartData = google.visualization.arrayToDataTable(dataDateShorten(currentReadingArray, startDate));
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    dateFormatter.format(readChartData, 0);
+    var options = {
+        chartArea: { width: '80%', height: '80%' },
+        title: 'Review Reading Accuracy' + (smoothBool ? ' (Averaged over ' + dayAverage + ' days)' : ''),
+        curveType: smoothBool ? 'function' : 'none',
+        legend: { position: 'none' },
+        vAxis: {
+            viewWindow: {
+                max: 100
+            }
+        },
+        colors: ['#f032b1', '#bb31de', 'black'],
+        width: 1000,
+        height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
+        focusTarget: 'category'
+    };
+    var readChart = new google.visualization.LineChart(document.getElementById('readaccchart'));
+    readChart.draw(readChartData, options);
+    google.visualization.events.addListener(readChart, 'select', function () { // one day snapshot opener
+        let selection = readChart.getSelection()[0];
+        if (selection === undefined || isMobile) return;
+        let date = readChartData.getValue(selection["row"], 0);
+        readChart.setSelection([]);
+        openSnapshot(date);
+    });
+    // review "correctness"
+    var chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewAccuracy, startDate));
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    dateFormatter.format(chartData, 0);
+    var options = {
+        chartArea: { width: '80%', height: '80%' },
+        title: 'Review Percentage Correct Items' + (smoothBool ? ' (Averaged over ' + dayAverage + ' days)' : ''),
+        curveType: smoothBool ? 'function' : 'none',
+        legend: { position: 'none' },
+        vAxis: {
+            viewWindow: {
+                max: 100
+            }
+        },
+        colors: ['#55abf2', '#f032b1', '#bb31de', 'black'],
+        width: 1000,
+        height: 333,
+        backgroundColor: { fill: 'transparent' },
+        tooltip: { isHtml: true },
+        focusTarget: 'category'
+    };
+    var corChart = new google.visualization.LineChart(document.getElementById('percentagechart'));
+    corChart.draw(chartData, options);
+    google.visualization.events.addListener(corChart, 'select', function () { // one day snapshot opener
+        let selection = corChart.getSelection()[0];
+        if (selection === undefined || isMobile) return;
+        let date = chartData.getValue(selection["row"], 0);
+        corChart.setSelection([]);
+        openSnapshot(date);
+    });
 }
 
 async function updateReviewsPerDay() {
+    saveSettings();
     const dayAverage = smoothInp.value;
     let smoothBool = (dayAverage != 0);
     // array
@@ -1206,7 +1211,6 @@ async function updateReviewsPerDay() {
         }
     }
     // timeframe
-    let months = Math.ceil(newdateinp.value);
     let startDate = new Date(newdateinp.value);
     // reviews per day
     var chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewArray, startDate));
@@ -1215,7 +1219,7 @@ async function updateReviewsPerDay() {
     var options = {
         chartArea: { width: '90%', height: '85%' },
         hAxis: { textPosition: 'in' },
-        title: smoothBool ? 'Reviews Per Day (Averaged over ' + dayAverage + ' days)' : 'Reviews Per Day',
+        title: 'Reviews Per Day' + (smoothBool ? ' (Averaged over ' + dayAverage + ' days)' : ''),
         curveType: smoothBool ? 'function' : 'none',
         legend: { position: 'none' },
         vAxis: {
@@ -1231,6 +1235,13 @@ async function updateReviewsPerDay() {
     var chartDiv = document.getElementById('reviewchart');
     var chart = new google.visualization.LineChart(chartDiv);
     chart.draw(chartData, options);
+    google.visualization.events.addListener(chart, 'select', function () { // one day snapshot opener
+        let selection = chart.getSelection()[0];
+        if (selection === undefined || isMobile) return;
+        let date = chartData.getValue(selection["row"], 0);
+        chart.setSelection([]);
+        openSnapshot(date);
+    });
 }
 
 function median(values) {
@@ -1368,6 +1379,7 @@ async function levelInfo() {
 }
 
 function updateSimpleProjections() {
+    saveSettings();
     const speedBool = projSpeedBox.checked;
     const level = userData["level"];
     var time = levelLengths.reduce((partialSum, a) => partialSum + a, 0);
@@ -1406,12 +1418,12 @@ function daysToDurationString(x, includeHours = false, short = false) {
 }
 
 function updateLevelChart() {
-    // create chart
+    saveSettings();
     const resetBool = levelResetsBox.checked; const clampBool = levelClampBox.checked; const combBool = levelCombBox.checked;
     let currentLevelChart = resetBool ? (combBool ? combPureLevelChart : pureLevelChart) : (combBool ? combLevelChart : levelChart);
     const medianVal = levelChart[1][6];
-    let maxLength = currentLevelChart.slice(1).reduce(function (p, v) { return (v[1] + v[4] > p[1] + p[4] ? v : p); });
-    maxLength = maxLength[1] + maxLength[4];
+    let maxLength = currentLevelChart.slice(1).reduce(function (p, v) { return (v[1] + (combBool ? 0 : v[4]) > p[1] + (combBool ? 0 : p[4]) ? v : p); });
+    maxLength = maxLength[1] + (combBool ? 0 : maxLength[4]);
     let newChartData = new google.visualization.arrayToDataTable(currentLevelChart);
     const NumberFormat = new google.visualization.NumberFormat({ pattern: '##.#' });
     NumberFormat.format(newChartData, 1);
@@ -1466,7 +1478,6 @@ function changeYojijukugo(page) {
 }
 
 async function wordInfo() {
-    // create array
     wordAll.style.display = "block";
     if (reviewData.length == 0) { wordAll.style.display = "none"; return; }
     var kd;

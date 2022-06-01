@@ -41,6 +41,10 @@
 	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
 		<h3 style="margin-top: 10px">Loading Data...</h3>
 	</div>
+	<div id="detailwindow" class="w3-container" style="visibility: hidden; max-width: 60%; max-height: 90%; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
+		<button class="closebtn" style="position: fixed; top: 8px; right: 8px; background: url(images/closebtn.png); background-size: cover; height: 15px; width: 15px; border: none" onclick="closeDetailWindow();"></button>
+		<div style="margin-top: 20px"></div>
+	</div>
 
 	<div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('images/wanikani_bg_icon.jpg');
 		background-repeat: no-repeat;
@@ -48,7 +52,7 @@
         background-size: cover;
         background-position: top">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.５.２</div>
+		<div style="text-align: right; font-size: 12px">バージョン３.６.０</div>
 		<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
@@ -113,7 +117,7 @@
 				<div class="card">
 					<a id="Projections"></a>
 					<h2 class="heading">Projections</h2>
-					<p><b>Tip:</b> Click a level data point to see the specific item pass date breakdown below the projections chart.</p>
+					<p><b>Tip:</b> Click a level data point to see the specific item pass date breakdown.</p>
 					<div class="projectionchart">
 						<div id="projectionschart" class="chart"></div>
 						<div class="settings" style="padding: 10px; margin-top: 10px; display: inline-block">
@@ -172,10 +176,7 @@
 				<div class="card">
 					<h4>Set time frame for <i>SRS Item Info</i>, <i>Review Info</i>, <i>and Accuracy Info</i>:</h4>
 					<div class="settings" style="padding: 10px; padding-top: 0px; display: inline-block">
-						<pre id="reviewloading" style="padding-top: 0px"></pre>
-						<!--<span id="newdatediv">Change time frame to </span>
-						<input type="number" onkeydown="if (event.key === 'Enter') { updateReviewCharts(); updateReviewAccuracy(); }" style="width: 50px" id="newdateinp" min="1" max="9999">
-						<span> months. </span>-->
+						<pre id="reviewinfodiv" style="padding-top: 0px"></pre>
 						<label for="startdate">Start date for time frame:</label>
 						<input type="date" id="startdate" name="trip-start" value="2022-05-26">
 						<button type="button" onclick="updateReviewCharts(); updateReviewAccuracy();" id="newdatebtn">Generate Charts</button>
@@ -184,6 +185,7 @@
 							<label for="nullify">Start with 0</label>
 						</div>
 					</div>
+					<p><b>Tip:</b> Click a date data point on one of these charts to see a "One Day Snapshot" of that date (on desktop).</p>
 				</div>
 
 				<div id="reviewall">
@@ -199,7 +201,7 @@
 						<div id="reviewchart" class="chart"></div>
 						<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
 							<span>Average "Reviews Per Day" chart over </span>
-							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewsPerDay();" style="width: 70px" id="smoothreview" min="1" max="9999" value="0">
+							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewsPerDay();" style="width: 70px" id="smoothreview" min="0" max="9999" value="0">
 							<span> days.</span>
 							<button type="button" onclick="updateReviewsPerDay();">Generate Chart</button>
 						</div>
@@ -217,12 +219,12 @@
 							<span> days.</span>
 							<button type="button" onclick="updateReviewAccuracy();">Generate Charts</button>
 						</div>
-						
-						<div style="position: relative"><img src="images/both.png" class="centerimg" style="height: 40%; opacity: 0.4" alt="" /><div id="accuracychart" class="chart"></div></div>
-						<div style="position: relative"><img src="images/meaning.png" class="centerimg" style="height: 40%; opacity: 0.4" alt="" /><div id="meanaccchart" class="chart"></div></div>
-						<div style="position: relative"><img src="images/reading.png" class="centerimg" style="height: 40%; opacity: 0.4" alt="" /><div id="readaccchart" class="chart"></div></div>
-						<div style="position: relative"><img src="images/correct.png" class="centerimg" style="height: 40%; opacity: 0.4" alt="" /><div id="percentagechart" class="chart"></div></div>
-						
+
+						<div style="position: relative"><img src="images/both.png" class="centerimg" style="height: 40%" alt="" /><div id="accuracychart" class="chart"></div></div>
+						<div style="position: relative"><img src="images/meaning.png" class="centerimg" style="height: 40%" alt="" /><div id="meanaccchart" class="chart"></div></div>
+						<div style="position: relative"><img src="images/reading.png" class="centerimg" style="height: 40%" alt="" /><div id="readaccchart" class="chart"></div></div>
+						<div style="position: relative"><img src="images/correct.png" class="centerimg" style="height: 40%" alt="" /><div id="percentagechart" class="chart"></div></div>
+
 					</div>
 
 					<div class="card">
@@ -243,7 +245,7 @@
 								<button type="button" onclick="updateTables(100000);" style="border-width: 0px; margin: 5px">&gt;&gt;</button>
 							</div>
 						</div>
-						<table style="width: 100%; text-align: center">
+						<table class="normaltable" style="width: 100%; text-align: center">
 							<thead>
 								<tr id="tableheadinterval">
 									<th>Interval</th>
