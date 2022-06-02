@@ -23,7 +23,8 @@ currentDate.setFullYear(currentDate.getFullYear() - 1);
 currentDate = currentDate.toISOString().split('T')[0];
 // settings
 var defaultSettings = {
-    levelclamp: ['checked', false], // level chart
+    showmedian: ['checked', true], // level chart
+    levelclamp: ['checked', false],
     levelcomb: ['checked', false],
     levelresets: ['checked', false],
     showPast: ['checked', true], // projections
@@ -67,6 +68,7 @@ const reviewPg = document.getElementById("reviewpg");
 const levelResetsBox = document.getElementById("levelresets");
 const levelClampBox = document.getElementById("levelclamp");
 const levelCombBox = document.getElementById("levelcomb");
+const levelMedianBox = document.getElementById("showmedian");
 const projSpeedBox = document.getElementById("projectionsspeed");
 const wkofDiv = document.getElementById("wkof_ds");
 
@@ -118,6 +120,7 @@ newdateche.addEventListener('change', () => { updateReviewCharts(); updateReview
 levelResetsBox.addEventListener('change', () => { updateLevelChart(); });
 levelClampBox.addEventListener('change', () => { updateLevelChart(); });
 levelCombBox.addEventListener('change', () => { updateLevelChart(); });
+levelMedianBox.addEventListener('change', () => { levelChartMedianToggle(); });
 projSpeedBox.addEventListener('change', () => { updateSimpleProjections(); });
 document.onkeydown = function (evt) { // esc button closes detail window
     evt = evt || window.event;
@@ -1485,6 +1488,10 @@ async function levelInfo() {
     updateSimpleProjections();
 }
 
+function levelChartMedianToggle() {
+    document.getElementById('leveltimechart').firstChild.firstChild.firstChild.firstChild.children[2].children[1].children[3].style.display = levelMedianBox.checked ? '' : 'none';
+}
+
 function updateSimpleProjections() {
     const speedBool = projSpeedBox.checked;
     const level = userData["level"];
@@ -1554,6 +1561,7 @@ function updateLevelChart() {
     var chartDiv = document.getElementById('leveltimechart');
     var chart = new google.visualization.ComboChart(chartDiv);
     chart.draw(newChartData, options);
+    levelChartMedianToggle(); // update median line
 }
 
 function changeYojijukugoRandom() {
