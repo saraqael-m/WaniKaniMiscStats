@@ -1,3 +1,7 @@
+:root {
+	scroll-behavior: smooth;
+}
+
 * {
 	box-sizing: border-box;
 }
@@ -15,6 +19,9 @@ div.settings {
 h1, h2, h3, h4, h5, h6, label, p, pre {
 	font-family: Helvetica, Arial, Sans-Serif;
 	/*color: black;*/
+}
+.header {
+	color: black;
 }
 
 div.google-visualization-tooltip {
@@ -40,29 +47,29 @@ div.google-visualization-tooltip {
 
 /* dark mode */
 
-div.card.dark-mode {
+.dark-mode .card {
 	background-color: #292929;
 	color: white;
 }
 
-div.settings.dark-mode {
+.dark-mode .settings {
 	background-color: #1c1c1c;
 	color: white;
 }
 
-div.toc.dark-mode {
+.dark-mode .toc {
 	background-color: #525252;
 }
 
-div.toc.dark-mode a {
+.dark-mode .toc a {
 	color: white;
 }
 
-tr.dark-mode {
+.dark-mode tr {
 	color: white;
 }
 
-#whiteoverlay.dark-mode {
+.dark-mode #whiteoverlay {
 	background-color: black;
 	color: white;
 }
@@ -72,7 +79,7 @@ tr.dark-mode {
 	color: black;
 }
 
-#detailwindow.dark-mode {
+.dark-mode #detailwindow {
 	background-color: black;
 	color: white;
 }
@@ -82,48 +89,61 @@ tr.dark-mode {
 	color: black;
 }
 
-.chart.dark-mode text {
+.dark-mode .chart text {
 	fill: white !important;
 }
 
-div.dark-mode div.google-visualization-tooltip {
+.dark-mode g > g > g:first-child > rect {
+	fill: #525252;
+}
+.dark-mode g > g > g > rect:only-child {
+	fill: #d6d6d6;
+}
+.dark-mode g > g > g > rect:nth-child(1):nth-last-child(2) {
+	fill: #d6d6d6;
+}
+.dark-mode g > g > g > rect:nth-child(2):nth-last-child(1) {
+	fill: #d6d6d6;
+}
+
+.dark-mode div.google-visualization-tooltip {
 	background-color: #1c1c1c !important;
 }
 
-div.dark-mode div.google-visualization-tooltip > ul > li > span {
+.dark-mode div.google-visualization-tooltip > ul > li > span {
 	color: white !important;
 }
 
-ruby.dark-mode rt:not(.nohidden) {
+.dark-mode ruby rt:not(.nohidden) {
 	color: transparent;
 	text-shadow: 0 0 12px rgba(255,255,255,0.99);
 }
 
-ruby.dark-mode.nohidden rt {
+.dark-mode ruby.nohidden rt {
 	color: white;
 	text-shadow: none;
 }
 
-ruby.dark-mode rt:hover {
+.dark-mode ruby rt:hover {
 	color: white;
 	text-shadow: none;
 }
 
-.centerimg.dark-mode {
+.dark-mode .centerimg {
 	-webkit-filter: invert(100%);
 	filter: invert(100%);
 	opacity: 0.2;
 }
 
-.radtable.dark-mode {
+.dark-mode .radtable {
 	background-color: #102b38;
 }
 
-.kantable.dark-mode {
+.dark-mode .kantable {
 	background-color: #401439;
 }
 
-.voctable.dark-mode {
+.dark-mode .voctable {
 	background-color: #2a1440;
 }
 
@@ -268,6 +288,10 @@ table.normaltable thead tr:not(dark-mode) th {
 	font-size: 50px;
 }
 
+.dark-mode a {
+	color: #be8fee;
+}
+
 /* top navigation design */
 .topnav {
 	overflow: hidden;
@@ -279,19 +303,22 @@ table.normaltable thead tr:not(dark-mode) th {
 	display: block;
 	color: #f2f2f2;
 	text-align: center;
-	padding: 14px 16px;
+	padding: 14px 8px;
+	margin: 5px;
 	text-decoration: none;
 }
 
 .topnav a:hover {
 	background-color: #ddd;
 	color: black;
+	border-radius: 5px;
 }
 
 /* table of contents design */
 .toc {
 	overflow: hidden;
 	background-color: white;
+	border-radius: 0 0 6px 6px;
 }
 
 .toc a {
@@ -299,13 +326,16 @@ table.normaltable thead tr:not(dark-mode) th {
 	display: block;
 	color: dimgrey;
 	text-align: center;
-	padding: 8px 9px;
+	margin: 5px 0 5px 5px;
+	padding: 8px;
 	text-decoration: none;
 }
 
 .toc a:hover {
 	background-color: lightgrey;
 	color: black;
+	cursor: pointer;
+	border-radius: 5px;
 }
 
 /* create two unequal columns that floats next to each other */
@@ -336,6 +366,7 @@ table.normaltable thead tr:not(dark-mode) th {
 	background-color: white;
 	padding: 20px;
 	margin-top: 20px;
+	border-radius: 6px;
 }
 
 /* clear floats after the columns */

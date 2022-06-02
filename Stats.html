@@ -50,10 +50,13 @@
 		background-repeat: no-repeat;
         background-attachment: inherit;
         background-size: cover;
-        background-position: top">
+        background-position: top;
+		border-radius: 8px 8px 0 0;">
 
-		<div style="text-align: right; font-size: 12px">バージョン３.６.０</div>
-		<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
+		<div style="text-align: right; font-size: 12px">
+			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
+			<span style="float: right;">バージョン３.６.０</span>
+		</div>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
 	</div>
@@ -66,7 +69,7 @@
 	</div>
 
 	<div class="allinfo" style="display: none">
-		<div class="toc" style="margin-top: 20px">
+		<div class="toc">
 			<a onclick="window.location.hash = ''; window.location.hash = '#LevelInfo';">Level Info</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#Projections';">Projections</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#SrsInfo';">SRS Info</a>
@@ -439,7 +442,7 @@
 	</div>
 
 	<div class="allinfo" style="display: none">
-		<div class="footer">
+		<div class="footer card">
 			<h2>You have reached the end. おめでとう！</h2>
 		</div>
 	</div>

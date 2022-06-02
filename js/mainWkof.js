@@ -14,7 +14,7 @@ var db;
 
 //// pre data-fetching ////
 // dark/light mode
-var modedivs = [...document.getElementsByClassName("card"), ...document.getElementsByClassName("settings"), ...document.getElementsByTagName("tr"), ...document.getElementsByClassName("toc"), document.getElementById("whiteoverlay"), ...document.getElementsByClassName("chart"), ...document.getElementsByClassName("radtable"), ...document.getElementsByClassName("kantable"), ...document.getElementsByClassName("voctable"), ...document.getElementsByTagName("ruby"), ...document.getElementsByClassName("centerimg"), ...document.getElementsByClassName("closebtn"), document.getElementById("detailwindow")];
+//var modedivs = [...document.getElementsByClassName("card"), ...document.getElementsByClassName("settings"), ...document.getElementsByTagName("tr"), ...document.getElementsByClassName("toc"), document.getElementById("whiteoverlay"), ...document.getElementsByClassName("chart"), ...document.getElementsByClassName("radtable"), ...document.getElementsByClassName("kantable"), ...document.getElementsByClassName("voctable"), ...document.getElementsByTagName("ruby"), ...document.getElementsByClassName("centerimg"), ...document.getElementsByClassName("closebtn"), document.getElementById("detailwindow")];
 var lightMode = localStorage["mode"] == "light" ? true : false;
 changeMode();
 // current date
@@ -154,7 +154,9 @@ function changeMode() {
         modebtn.innerHTML = "㊐ Light Mode";
         modebtn.style.color = "black";
         modebtn.style.backgroundColor = "white";
-        for (const div of modedivs) div.classList.add('dark-mode');
+        //for (const div of modedivs) div.classList.add('dark-mode');
+        document.body.classList.add('dark-mode');
+        document.documentElement.style.setProperty('color-scheme', 'dark');
         let header = document.getElementsByClassName('header')[0];
         header.style["-webkit-filter"] = "invert(100%)";
         header.style.filter = "invert(100%)";
@@ -169,7 +171,9 @@ function changeMode() {
         modebtn.innerHTML = "㊊ Dark Mode";
         modebtn.style.color = "white";
         modebtn.style.backgroundColor = "black";
-        for (const div of modedivs) div.classList.remove('dark-mode');
+        //for (const div of modedivs) div.classList.remove('dark-mode');
+        document.body.classList.remove('dark-mode');
+        document.documentElement.style.setProperty('color-scheme', 'light');
         let header = document.getElementsByClassName('header')[0];
         header.style["-webkit-filter"] = "";
         header.style.filter = "";
@@ -756,7 +760,7 @@ async function updateReviewCharts() {
     dateFormatter.format(totalChartData, 0);
     var options = {
         chartArea: { width: '100%', height: '85%' },
-        hAxis: { textPosition: 'in' }, vAxis: { textPosition: 'in' },
+        hAxis: {}, vAxis: { textPosition: 'in' },
         title: 'Total Reviews',
         curveType: 'none',
         legend: { position: "none" },
@@ -1218,7 +1222,7 @@ async function updateReviewsPerDay() {
     dateFormatter.format(chartData, 0);
     var options = {
         chartArea: { width: '90%', height: '85%' },
-        hAxis: { textPosition: 'in' },
+        hAxis: {},
         title: 'Reviews Per Day' + (smoothBool ? ' (Averaged over ' + dayAverage + ' days)' : ''),
         curveType: smoothBool ? 'function' : 'none',
         legend: { position: 'none' },
@@ -1646,7 +1650,7 @@ async function wordInfo() {
         chartArea: { width: '85%', height: '80%' },
         title: 'Word Overview (Red: Kanji; Purple: Vocabulary; Lightness: WK Level)',
         hAxis: { textPosition: 'in', title: 'Meaning (%)' },
-        vAxis: { textPosition: 'in', title: 'Reading (%)' },
+        vAxis: { title: 'Reading (%)', format: '0' },
         legend: { position: 'none' },
         bubble: { textStyle: { fontSize: 11 } },
         tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
@@ -1664,7 +1668,7 @@ async function wordInfo() {
         chartArea: { width: '85%', height: '80%' },
         title: 'Radical Overview (Lightness: WK Level)',
         hAxis: { textPosition: 'in', title: 'Accuracy (%)' },
-        vAxis: { extPosition: 'in', title: 'Amount Reviewed', format: '0'},
+        vAxis: { title: 'Amount Reviewed', format: '0'},
         legend: { position: 'none' },
         bubble: { textStyle: { fontSize: 11 } },
         tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
