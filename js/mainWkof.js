@@ -316,7 +316,7 @@ async function dataPasser() {
 }
 
 function itemDataHandler(items) {
-    unalteredItemData = items;
+    unalteredItemData = items.filter(item => !item.data.hidden_at);
     for (let i = 0; i < items.length; i++) {
         currentItem = Object.assign({}, items[i]);
         if (currentItem['assignments'] != undefined) { assignmentData.push({ 'data': currentItem['assignments'] }); delete currentItem['assignments']; }
@@ -444,7 +444,7 @@ async function updateProjections() {
         projectionsData[i][1] = text;
         projectionsData[i][4] = h;
     }
-    let editedData = (document.getElementById('showPast').checked ? projectionsData.slice() : [projectionsData[0], ...projectionsData.slice(userData['level'] + 1)]).slice(...(document.getElementById('showBurn').checked ? [] : [0, -1]));
+    let editedData = (document.getElementById('pastLevels').checked ? projectionsData.slice() : [projectionsData[0], ...projectionsData.slice(userData['level'] + 1)]).slice(...(document.getElementById('showBurn').checked ? [] : [0, -1]));
     if (!document.getElementById('showCheck').checked) editedData = editedData.map(x => [...x.slice(0, 2), ...x.slice(3)])
     let chartData = google.visualization.arrayToDataTable(editedData);
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
