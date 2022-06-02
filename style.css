@@ -93,16 +93,16 @@ div.google-visualization-tooltip {
 	fill: white !important;
 }
 
-.dark-mode g > g > g:first-child > rect {
+.dark-mode svg > g > g > g:first-child > rect {
 	fill: #525252;
 }
-.dark-mode g > g > g > rect:only-child {
+.dark-mode svg > g > g > g > rect:only-child {
 	fill: #d6d6d6;
 }
-.dark-mode g > g > g > rect:nth-child(1):nth-last-child(2) {
+.dark-mode svg > g > g > g > rect:nth-child(1):nth-last-child(2) {
 	fill: #d6d6d6;
 }
-.dark-mode g > g > g > rect:nth-child(2):nth-last-child(1) {
+.dark-mode svg > g > g > g > rect:nth-child(2):nth-last-child(1) {
 	fill: #d6d6d6;
 }
 
