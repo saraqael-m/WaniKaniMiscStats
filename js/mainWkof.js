@@ -14,6 +14,11 @@ var requestHeaders;
 var db;
 
 //// pre data-fetching ////
+// scroll to top
+window.location.hash = ''; window.location.hash = '#top';
+// mobile snapshot
+const mobileSnapshot = document.getElementById("showsnapshot");
+if (isMobile) mobileSnapshot.parentNode.display = '';
 // dark/light mode
 var lightMode = localStorage["mode"] == "light" ? true : false;
 changeMode();
@@ -213,9 +218,8 @@ function setCardOrder() {
 }
 
 function sortCards(cards, order, fragment = '') {
-    console.log(cards, order)
     for (let i = 0; i < cards.length; i++) cards[i].id = String(order.findIndex(x => x === String(i))) + fragment;
-    var sortedCards = cards.sort((a, b) => { console.log(a.id, b.id, parseInt(a.id.slice(-1) == fragment ? a.id.slice(0, -1) : a.id), parseInt(a.id.slice(-1) == fragment ? a.id.slice(0, -1) : a.id) - parseInt(b.id.slice(-1) == fragment ? b.id.slice(0, -1) : b.id)); return parseInt(a.id.slice(-1) == fragment ? a.id.slice(0, -1) : a.id) - parseInt(b.id.slice(-1) == fragment ? b.id.slice(0, -1) : b.id); });
+    var sortedCards = cards.sort((a, b) => parseInt(a.id.slice(-1) == fragment ? a.id.slice(0, -1) : a.id) - parseInt(b.id.slice(-1) == fragment ? b.id.slice(0, -1) : b.id));
     sortedCards[0].parentElement.replaceChildren(...sortedCards);
     for (let i = 0; i < sortedCards.length; i++) sortedCards[i].id = order[i] + fragment;
     return sortedCards;
@@ -523,14 +527,12 @@ function updateCombinedAverages() {
     chartData[2][1] = "-";
     let wordProgressTotals = wordProgressData.slice(1, 4);
     let runningTotal = 0;
-    console.log(wordProgressTotals)
     for (let i = 0; i < 3; i++) {
         wordProgressTotals[i] = wordProgressTotals[i][1];
         runningTotal += wordProgressTotals[i];
     } 
     chartData.push([runningTotal, ...wordProgressTotals]);
     for (let i = 0; i < 7; i++) chartArray[i + 1].push(...chartData[i]);
-    console.log(chartArray);
     // generate table
     var averageTable = document.getElementById('averagetable');
     let tableHeadTr = averageTable.children[0].children[0];
@@ -884,7 +886,7 @@ async function updateReviewCharts() {
     totalChart.draw(totalChartData, options);
     google.visualization.events.addListener(totalChart, 'select', function () { // one day snapshot opener
         let selection = totalChart.getSelection()[0];
-        if (selection === undefined || isMobile) return;
+        if (selection === undefined || (isMobile && !mobileSnapshot.checked)) return;
         let date = totalChartData.getValue(selection["row"], 0);
         totalChart.setSelection([]);
         openSnapshot(date);
@@ -911,7 +913,7 @@ async function updateReviewCharts() {
     srsStackedChart.draw(srsStackChartData, options);
     google.visualization.events.addListener(srsStackedChart, 'select', function () { // one day snapshot opener
         let selection = srsStackedChart.getSelection()[0];
-        if (selection === undefined || isMobile) return;
+        if (selection === undefined || isMobile && !mobileSnapshot.checked) return;
         let date = srsStackChartData.getValue(selection["row"], 0);
         srsStackedChart.setSelection([]);
         openSnapshot(date);
@@ -934,7 +936,7 @@ async function updateReviewCharts() {
     chart.draw(srsStackChartData, options);
     google.visualization.events.addListener(chart, 'select', function () { // one day snapshot opener
         let selection = chart.getSelection()[0];
-        if (selection === undefined || isMobile) return;
+        if (selection === undefined || isMobile && !mobileSnapshot.checked) return;
         let date = srsStackChartData.getValue(selection["row"], 0);
         chart.setSelection([]);
         openSnapshot(date);
@@ -1206,7 +1208,7 @@ async function updateReviewAccuracy() {
     accChart.draw(accChartData, options);
     google.visualization.events.addListener(accChart, 'select', function () { // one day snapshot opener
         let selection = accChart.getSelection()[0];
-        if (selection === undefined || isMobile) return;
+        if (selection === undefined || isMobile && !mobileSnapshot.checked) return;
         let date = accChartData.getValue(selection["row"], 0);
         accChart.setSelection([]);
         openSnapshot(date);
@@ -1236,7 +1238,7 @@ async function updateReviewAccuracy() {
     meanChart.draw(meanChartData, options);
     google.visualization.events.addListener(meanChart, 'select', function () { // one day snapshot opener
         let selection = meanChart.getSelection()[0];
-        if (selection === undefined || isMobile) return;
+        if (selection === undefined || isMobile && !mobileSnapshot.checked) return;
         let date = meanChartData.getValue(selection["row"], 0);
         meanChart.setSelection([]);
         openSnapshot(date);
@@ -1266,7 +1268,7 @@ async function updateReviewAccuracy() {
     readChart.draw(readChartData, options);
     google.visualization.events.addListener(readChart, 'select', function () { // one day snapshot opener
         let selection = readChart.getSelection()[0];
-        if (selection === undefined || isMobile) return;
+        if (selection === undefined || isMobile && !mobileSnapshot.checked) return;
         let date = readChartData.getValue(selection["row"], 0);
         readChart.setSelection([]);
         openSnapshot(date);
@@ -1296,7 +1298,7 @@ async function updateReviewAccuracy() {
     corChart.draw(chartData, options);
     google.visualization.events.addListener(corChart, 'select', function () { // one day snapshot opener
         let selection = corChart.getSelection()[0];
-        if (selection === undefined || isMobile) return;
+        if (selection === undefined || isMobile && !mobileSnapshot.checked) return;
         let date = chartData.getValue(selection["row"], 0);
         corChart.setSelection([]);
         openSnapshot(date);
@@ -1347,7 +1349,7 @@ async function updateReviewsPerDay() {
     chart.draw(chartData, options);
     google.visualization.events.addListener(chart, 'select', function () { // one day snapshot opener
         let selection = chart.getSelection()[0];
-        if (selection === undefined || isMobile) return;
+        if (selection === undefined || isMobile && !mobileSnapshot.checked) return;
         let date = chartData.getValue(selection["row"], 0);
         chart.setSelection([]);
         openSnapshot(date);
