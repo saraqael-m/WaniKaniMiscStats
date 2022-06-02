@@ -5,7 +5,8 @@ if (prevToken === null) window.location.href = "index.html";
 google.charts.load('current', { 'packages': ['corechart', 'bar', 'table'] });
 
 // device
-var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+var isMobile = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) // normal mobile
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 0); // ipad pro
 
 // API vars
 var apiToken;
@@ -14,7 +15,6 @@ var db;
 
 //// pre data-fetching ////
 // dark/light mode
-//var modedivs = [...document.getElementsByClassName("card"), ...document.getElementsByClassName("settings"), ...document.getElementsByTagName("tr"), ...document.getElementsByClassName("toc"), document.getElementById("whiteoverlay"), ...document.getElementsByClassName("chart"), ...document.getElementsByClassName("radtable"), ...document.getElementsByClassName("kantable"), ...document.getElementsByClassName("voctable"), ...document.getElementsByTagName("ruby"), ...document.getElementsByClassName("centerimg"), ...document.getElementsByClassName("closebtn"), document.getElementById("detailwindow")];
 var lightMode = localStorage["mode"] == "light" ? true : false;
 changeMode();
 // current date
@@ -44,6 +44,10 @@ var defaultSettings = {
 };
 var settings = localStorage["settings"] === undefined || localStorage["settings"] == '[object Object]' ? undefined : JSON.parse(localStorage["settings"]);
 setSettings();
+// card order
+var leftCards = [].slice.call(document.getElementsByClassName('leftcolumn')[0].children);
+var rightCards = [].slice.call(document.getElementsByClassName('rightcolumn')[0].children[0].children);
+setCardOrder();
 
 // elements
 const maindivs = document.getElementsByClassName("allinfo");
@@ -57,8 +61,8 @@ const blackOverlay = document.getElementById("blackoverlay");
 const whiteOverlay = document.getElementById("whiteoverlay");
 const detailWindow = document.getElementById('detailwindow');
 const reviewProgress = document.getElementById("reviewprogress");
-const reviewAll = document.getElementById("reviewall");
-const wordAll = document.getElementById("wordall");
+const reviewAll = document.getElementsByClassName("reviewall");
+const wordAll = document.getElementsByClassName("wordall");
 const reviewPg = document.getElementById("reviewpg");
 const levelResetsBox = document.getElementById("levelresets");
 const levelClampBox = document.getElementById("levelclamp");
@@ -89,6 +93,7 @@ var assignmentData = [];
 var reviewAccuracy = [];
 var resurrectedItems = [];
 var itemArray = [];
+var wordProgressData = [];
 var hiddenItems = [];
 var midreviewAccuracy = [];
 var readingAccuracy = [];
@@ -105,6 +110,8 @@ var tableOffset = 0;
 var currentPage = 1;
 var shortLevels = [43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 1, 2];
 var totalAverages = [];
+var detailWindowOpen = false;
+var snapshotDate, snapshotData, currentSnapshot;
 
 // event listener
 newdateche.addEventListener('change', () => { updateReviewCharts(); updateReviewAccuracy(); });
@@ -118,11 +125,15 @@ document.onkeydown = function (evt) { // esc button closes detail window
     if ("key" in evt) isEscape = (evt.key === "Escape" || evt.key === "Esc");
     else isEscape = (evt.keyCode === 27);
     if (isEscape) closeDetailWindow();
+    if (evt.key == "ArrowLeft" || evt.key == "a") moveSnapshot(-1);
+    if (evt.key == "ArrowRight" || evt.key == "d") moveSnapshot(1);
 };
 
-// remember page position
+// before refresh or close (caching)
 window.onbeforeunload = function () {
     localStorage["scrollposition"] = document.documentElement.scrollTop || document.body.scrollTop;
+    saveSettings();
+    localStorage["cardorder"] = JSON.stringify([[].slice.call(leftCards[0].parentNode.children).map(element => element.id), [].slice.call(rightCards[0].parentNode.children).map(element => element.id.slice(0, -1))]);
 }
 
 // main code
@@ -134,6 +145,7 @@ function logout() {
 }
 
 function openDetailWindow(htmlInput) {
+    detailWindowOpen = true;
     document.body.style.overflow = 'hidden';
     detailWindow.children[1].innerHTML = htmlInput;
     detailWindow.style.visibility = 'visible';
@@ -141,6 +153,8 @@ function openDetailWindow(htmlInput) {
 }
 
 function closeDetailWindow() {
+    if (!detailWindowOpen) return;
+    detailWindowOpen = false;
     document.body.style.overflow = '';
     detailWindow.style.visibility = 'hidden';
     blackOverlay.style.visibility = 'hidden';
@@ -158,8 +172,8 @@ function changeMode() {
         document.body.classList.add('dark-mode');
         document.documentElement.style.setProperty('color-scheme', 'dark');
         let header = document.getElementsByClassName('header')[0];
-        header.style["-webkit-filter"] = "invert(100%)";
-        header.style.filter = "invert(100%)";
+        header.style["-webkit-filter"] = "invert(90%)";
+        header.style.filter = "invert(90%)";
         let wkofdiv = document.getElementById('wkof_ds');
         wkofdiv.style["-webkit-filter"] = "invert(100%)";
         wkofdiv.style.filter = "invert(100%)";
@@ -183,6 +197,35 @@ function changeMode() {
         document.body.style.background = "#f1f1f1";
         localStorage["mode"] = "dark";
     }
+}
+
+function setCardOrder() {
+    var cardOrder = localStorage['cardorder'];
+    if (cardOrder === undefined) return;
+    cardOrder = JSON.parse(cardOrder);
+    var leftCardOrder = cardOrder[0],
+        rightCardOrder = cardOrder[1];
+    leftCards = sortCards(leftCards, leftCardOrder);
+    rightCards = sortCards(rightCards, rightCardOrder, 'r');
+}
+
+function sortCards(cards, order, fragment = '') {
+    console.log(cards, order)
+    for (let i = 0; i < cards.length; i++) cards[i].id = String(order.findIndex(x => x === String(i))) + fragment;
+    var sortedCards = cards.sort((a, b) => { console.log(a.id, b.id, parseInt(a.id.slice(-1) == fragment ? a.id.slice(0, -1) : a.id), parseInt(a.id.slice(-1) == fragment ? a.id.slice(0, -1) : a.id) - parseInt(b.id.slice(-1) == fragment ? b.id.slice(0, -1) : b.id)); return parseInt(a.id.slice(-1) == fragment ? a.id.slice(0, -1) : a.id) - parseInt(b.id.slice(-1) == fragment ? b.id.slice(0, -1) : b.id); });
+    sortedCards[0].parentElement.replaceChildren(...sortedCards);
+    for (let i = 0; i < sortedCards.length; i++) sortedCards[i].id = order[i] + fragment;
+    return sortedCards;
+}
+
+function moveCard(card, direction, moveBool = true) {
+    var div = card.parentNode;
+    if (direction === -1 && card.previousElementSibling) {
+        div.insertBefore(card, card.previousElementSibling);
+    } else if (direction === 1 && card.nextElementSibling) {
+        div.insertBefore(card, card.nextElementSibling.nextElementSibling);
+    }
+    if (moveBool) { window.location.hash = ''; window.location.hash = '#' + card.getElementsByTagName('a')[0].id; }
 }
 
 function setSettings() {
@@ -303,7 +346,7 @@ async function loadGraphs() {
     calculateTotalAverages();
     userInfo();
     levelInfo().then(projections());
-    wordInfo();
+    wordInfo().then(updateCombinedAverages());
     updateReviewCharts();
     updateReviewAccuracy();
     updateTables();
@@ -382,7 +425,6 @@ async function projections() {
 }
 
 async function updateProjections() {
-    saveSettings();
     var [rawData, _] = P.api(userData, levelData, srsData, unalteredItemData);
     var text;
     for (let i = userData["level"] + 1; i <= 62; i++) {
@@ -457,9 +499,10 @@ function expandHypothetical() {
 }
 
 function calculateTotalAverages() {
+    // (each 4) midacc, readacc, meanacc, reviews, lessons
     for (const arr of [midreviewAccuracy, readingAccuracy, meaningAccuracy]) {
         let tempAcc = arr.slice(1).reduce((p, c) => { s = [undefined]; for (let i = 1; i < 5; i++) s.push([p[i][0] + c[i][0], p[i][1] + c[i][1]]); return s; }).slice(1);
-        for (let i = 0; i < 4; i++) tempAcc[i] = roundToDecimals((1 - tempAcc[i][0] / tempAcc[i][1]) * 100, 2) + "%";
+        for (let i = 0; i < 4; i++) tempAcc[i] = roundToDecimals((1 - tempAcc[i][0] / tempAcc[i][1]) * 100, 2, true) + "%";
         totalAverages.push(...tempAcc);
     }
     let tempArr = reviewArray.slice(1).reduce((p, c) => { s = [undefined]; for (let i = 1; i < 5; i++) s.push(p[i] + c[i]); return s; }).slice(1);
@@ -470,30 +513,93 @@ function calculateTotalAverages() {
     totalAverages.push(...tempArr);
 }
 
+function updateCombinedAverages() {
+    var chartArray = [["", "All", "部首", "漢字", "単語"], ["Accuracy"], ["↳ Meaning"], ["↳ Reading"], ["Avg Reviews"], ["Total Reviews"], ["Avg Lessons"], ["Total Words"]];
+    var chartData = [totalAverages.slice(0, 4), totalAverages.slice(8, 12), totalAverages.slice(4, 8), totalAverages.slice(12, 16), totalArray[totalArray.length - 1].slice(1), totalAverages.slice(16, 20)];
+    for (const i of [0, 1, 2]) chartData[i].unshift(chartData[i].pop());
+    chartData[2][1] = "-";
+    let wordProgressTotals = wordProgressData.slice(1, 4);
+    let runningTotal = 0;
+    console.log(wordProgressTotals)
+    for (let i = 0; i < 3; i++) {
+        wordProgressTotals[i] = wordProgressTotals[i][1];
+        runningTotal += wordProgressTotals[i];
+    } 
+    chartData.push([runningTotal, ...wordProgressTotals]);
+    for (let i = 0; i < 7; i++) chartArray[i + 1].push(...chartData[i]);
+    console.log(chartArray);
+    // generate table
+    var averageTable = document.getElementById('averagetable');
+    let tableHeadTr = averageTable.children[0].children[0];
+    let colors = ['dodgerblue', 'hotpink', 'mediumpurple'];
+    for (let i = 0; i < chartArray[0].length; i++) {
+        let thNew = document.createElement('th');
+        let text = i == 0 ? chartArray[0][i] : "<p style='" + (i == 1 ? "" : "color: " + colors[i-2] + "; ") +"font-size: 130%; margin: 0; padding: 0'>" + chartArray[0][i] + "</p>";
+        thNew.innerHTML = text;
+        tableHeadTr.appendChild(thNew);
+    }
+    let tableBody = averageTable.children[1];
+    for (let i = 1; i < chartArray.length; i++) {
+        let trNew = document.createElement('tr');
+        for (let j = 0; j < 5; j++) {
+            let tdNew = document.createElement('td');
+            switch (j) {
+                case 0: tdNew.style.textAlign = 'left'; tdNew.style.border = '1px solid #dddfe1'; break;
+                case 2: tdNew.classList.add('radtable'); break;
+                case 3: tdNew.classList.add('kantable'); break;
+                case 4: tdNew.classList.add('voctable'); break;
+            }
+            tdNew.innerHTML = chartArray[i][j];
+            trNew.appendChild(tdNew);
+        }
+        tableBody.appendChild(trNew);
+    }
+}
+
 function sameDay(d1, d2) {
     return Math.abs(d1 - d2) < 43200000; // twelve hourse 
 }
 
 function openSnapshot(date) {
+    // generate data
+    snapshotDate = new Date(date.getTime());
+    let currentIndex = midreviewAccuracy.length - 1, currentOtherIndex = reviewArray.length - 1;
+    currentSnapshot = [...midreviewAccuracy[currentIndex].slice(1), ...readingAccuracy[currentIndex].slice(1), ...meaningAccuracy[currentIndex].slice(1),
+        ...reviewArray[currentOtherIndex].slice(1), ...itemArray[currentIndex].slice(1), totalArray[currentOtherIndex][1]];
+    for (let i = 0; i < 12; i++) currentSnapshot[i] = currentSnapshot[i][1] == 0 ? "-" : roundToDecimals((1 - currentSnapshot[i][0] / currentSnapshot[i][1]) * 100) + "%";
+    openDetailWindow('<h2>One Day Snapshot</h2><div id="snapshottable"></div><p><b>Info:</b> Use arrow keys or a/d to change the currently viewed date.</p>'); // open window
+    moveSnapshot(0);
+}
+
+function moveSnapshot(n) {
+    if (!detailWindowOpen) return; // window not open
+    let date = new Date(snapshotDate.getTime()); // temporary date
+    date.setDate(date.getDate() + n);
     let index = midreviewAccuracy.slice(1).findIndex(element => sameDay(element[0], date)) + 1;
     let otherIndex = reviewArray.slice(1).findIndex(element => sameDay(element[0], date)) + 1;
-    snapshotData = [...midreviewAccuracy[index].slice(1), ...readingAccuracy[index].slice(1), ...meaningAccuracy[index].slice(1),
-        ...reviewArray[otherIndex].slice(1), ...itemArray[index].slice(1), totalArray[otherIndex][1]];
-    for (let i = 0; i < 12; i++) snapshotData[i] = snapshotData[i][1] == 0 ? "-" : roundToDecimals((1 - snapshotData[i][0] / snapshotData[i][1]) * 100) + "%";
-    let currentIndex = midreviewAccuracy.length - 1, currentOtherIndex = reviewArray.length - 1;
-    let current = [...midreviewAccuracy[currentIndex].slice(1), ...readingAccuracy[currentIndex].slice(1), ...meaningAccuracy[currentIndex].slice(1),
-        ...reviewArray[currentOtherIndex].slice(1), ...itemArray[currentIndex].slice(1), totalArray[currentOtherIndex][1]];
-    for (let i = 0; i < 12; i++) current[i] = current[i][1] == 0 ? "-" : roundToDecimals((1 - current[i][0] / current[i][1]) * 100) + "%";
-    chartArray = [["Data Point", dateLongFormat(date), dateLongFormat(midreviewAccuracy[midreviewAccuracy.length - 1][0]), "Average"]];
+    if (otherIndex == 0) return; // is out of range (date before start or after today)
+    snapshotDate.setDate(snapshotDate.getDate() + n);
+    if (index == 0) snapshotData = ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-",
+        ...reviewArray[otherIndex].slice(1), "-", "-", "-", "-", totalArray[otherIndex][1]];
+    else { // there is data
+        snapshotData = [...midreviewAccuracy[index].slice(1), ...readingAccuracy[index].slice(1), ...meaningAccuracy[index].slice(1),
+            ...reviewArray[otherIndex].slice(1), ...itemArray[index].slice(1), totalArray[otherIndex][1]];
+        for (let i = 0; i < 12; i++) snapshotData[i] = snapshotData[i][1] == 0 ? "-" : roundToDecimals((1 - snapshotData[i][0] / snapshotData[i][1]) * 100) + "%";
+    }
+    generateSnapshotTable();
+}
+
+function generateSnapshotTable() {
+    // fill out chart array
+    chartArray = [["Data Point", dateLongFormat(snapshotDate), dateLongFormat(midreviewAccuracy[midreviewAccuracy.length - 1][0]), "Average"]];
     chartNames = ["Accuracy Radical", "Accuracy Kanji", "Accuracy Vocab", "Accuracy",
-        "Reading Acc Radical", "Reading Acc Kanji", "Reading Acc Vocab", "Reading Acc", 
-        "Meaning Acc Radical", "Meaning Acc Kanji", "Meaning Acc Vocab", "Meaning Acc", 
+        "Reading Acc Radical", "Reading Acc Kanji", "Reading Acc Vocab", "Reading Acc",
+        "Meaning Acc Radical", "Meaning Acc Kanji", "Meaning Acc Vocab", "Meaning Acc",
         "Reviews", "Reviews Radical", "Reviews Kanji", "Reviews Vocab",
         "Lessons", "Lessons Radical", "Lessons Kanji", "Lessons Vocab", "Total Reviews"]
-    for (const i of [3,0,1,2,7,4,5,6,11,8,9,10,12,13,14,15,16,17,18,19,20]) chartArray.push([chartNames[i], snapshotData[i], current[i], totalAverages[i] == undefined || totalAverages[i] == "NaN%" ? "-" : totalAverages[i]]);
+    for (const i of [3, 0, 1, 2, 7, 4, 5, 6, 11, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20]) chartArray.push([chartNames[i], snapshotData[i], currentSnapshot[i], totalAverages[i] == undefined || totalAverages[i] == "NaN%" ? "-" : totalAverages[i]]);
     // generate table
     let tableData = google.visualization.arrayToDataTable(chartArray);
-    openDetailWindow('<h2>One Day Snapshot</h2><div id="snapshottable"></div>');
     var table = new google.visualization.Table(document.getElementById('snapshottable'));
     var options = {
         showRowNumber: false,
@@ -511,8 +617,8 @@ function openSnapshot(date) {
     const colors = lightMode ? ['azure', '#ffe6f8', '#f3ebfc'] : ['#102b38', '#401439', '#2a1440'];
     for (const row of [1, 5, 9, 13, 17]) {
         for (let col = 0; col < 4; col++) tableData.setProperty(row, col, 'style', 'background-color: ' + colors[0] + ';');
-        for (let col = 0; col < 4; col++) tableData.setProperty(row+1, col, 'style', 'background-color: ' + colors[1] + ';');
-        for (let col = 0; col < 4; col++) tableData.setProperty(row+2, col, 'style', 'background-color: ' + colors[2] + ';');
+        for (let col = 0; col < 4; col++) tableData.setProperty(row + 1, col, 'style', 'background-color: ' + colors[1] + ';');
+        for (let col = 0; col < 4; col++) tableData.setProperty(row + 2, col, 'style', 'background-color: ' + colors[2] + ';');
     }
     table.draw(tableData, options);
     google.visualization.events.addListener(table, 'select', () => { table.setSelection([]); }); // no selecting
@@ -520,9 +626,9 @@ function openSnapshot(date) {
 
 async function reviewInfo() {
     // create array
-    reviewAll.style.display = "block";
+    for (const div of reviewAll) div.style.display = "block";
     const dataLength = reviewData.length;
-    if (dataLength == 0) { reviewAll.style.display = "none"; return; }
+    if (dataLength == 0) { for (const div of reviewAll) div.style.display = "none"; return; }
     //reviewPg.style.width = "0%";
     //reviewPg.style.backgroundColor = "lightblue";
     var resetArray = [];
@@ -710,11 +816,11 @@ async function reviewInfo() {
     }
 
     // total reviews
-    let runningTotal = 0;
-    totalArray = [["Date", "Total Reviews"]];
+    let runningTotal = [0, 0, 0, 0];
+    totalArray = [["Date", "Total Reviews", "Total Radical", "Total Kanji", "Total Vocab"]];
     for (let i = 1; i < reviewArray.length; i++) {
-        runningTotal += reviewArray[i][1];
-        totalArray.push([reviewArray[i][0], runningTotal]);
+        for (let j = 0; j < 4; j++) runningTotal[j] += reviewArray[i][j + 1];
+        totalArray.push([reviewArray[i][0], ...runningTotal]);
     }
 }
 
@@ -746,7 +852,6 @@ function dataDateShorten(dataPrev, date, nullify = false) {
 }
 
 async function updateReviewCharts() {
-    saveSettings();
     let startDate = new Date(newdateinp.value);
     const loadingLbl = document.getElementById("reviewinfodiv");
     loadingLbl.innerHTML = "Time frame starts at " + String(startDate).split(' ').slice(1, 4).join(' ') + ".";
@@ -767,7 +872,9 @@ async function updateReviewCharts() {
         width: 1000,
         height: 333,
         tooltip: { isHtml: true },
-        backgroundColor: { fill: 'transparent' }
+        colors: ['black', '#55abf2', '#f032b1', '#bb31de'],
+        backgroundColor: { fill: 'transparent' },
+        focusTarget: 'category'
     };
     var chartDiv = document.getElementById('totalchart');
     var totalChart = new google.visualization.LineChart(chartDiv);
@@ -788,7 +895,7 @@ async function updateReviewCharts() {
         hAxis: { textPosition: 'bottom' }, vAxis: { textPosition: 'in' },
         //title: "Item Types Stacked",
         connectSteps: true,
-        colors: ['pink', 'purple', 'darkblue', 'lightblue', 'black'],
+        colors: ['pink', 'purple', 'darkblue', 'lightblue', '#f0ca00'], // burned is gold
         isStacked: true,
         width: 1000,
         height: 333,
@@ -812,7 +919,7 @@ async function updateReviewCharts() {
         legend: { position: 'in' },
         hAxis: { textPosition: 'bottom' }, vAxis: { textPosition: 'in' },
         //title: "Item Types",
-        colors: ['pink', 'purple', 'darkblue', 'lightblue', 'black'],
+        colors: ['pink', 'purple', 'darkblue', 'lightblue', '#f0ca00'],
         width: 1000,
         height: 333,
         backgroundColor: { fill: 'transparent' },
@@ -837,7 +944,6 @@ function roundToDecimals(num, n = 1, fill = false) {
 }
 
 function updateTables(changeOffset = 0) {
-    saveSettings();
     tableOffset += changeOffset;
     tableOffset = tableOffset < 0 || tableOffset >= 100000 ? 0 : tableOffset;
     document.getElementById("tableoffset").innerHTML = tableOffset;
@@ -1021,7 +1127,6 @@ function updateTables(changeOffset = 0) {
 }
 
 async function updateReviewAccuracy() {
-    saveSettings();
     const dayAverage = smoothAccInp.value;
     let smoothBool = (dayAverage != 0);
     let shortBool = newdateche.checked;
@@ -1196,7 +1301,6 @@ async function updateReviewAccuracy() {
 }
 
 async function updateReviewsPerDay() {
-    saveSettings();
     const dayAverage = smoothInp.value;
     let smoothBool = (dayAverage != 0);
     // array
@@ -1222,7 +1326,6 @@ async function updateReviewsPerDay() {
     dateFormatter.format(chartData, 0);
     var options = {
         chartArea: { width: '90%', height: '85%' },
-        hAxis: {},
         title: 'Reviews Per Day' + (smoothBool ? ' (Averaged over ' + dayAverage + ' days)' : ''),
         curveType: smoothBool ? 'function' : 'none',
         legend: { position: 'none' },
@@ -1383,7 +1486,6 @@ async function levelInfo() {
 }
 
 function updateSimpleProjections() {
-    saveSettings();
     const speedBool = projSpeedBox.checked;
     const level = userData["level"];
     var time = levelLengths.reduce((partialSum, a) => partialSum + a, 0);
@@ -1422,7 +1524,6 @@ function daysToDurationString(x, includeHours = false, short = false) {
 }
 
 function updateLevelChart() {
-    saveSettings();
     const resetBool = levelResetsBox.checked; const clampBool = levelClampBox.checked; const combBool = levelCombBox.checked;
     let currentLevelChart = resetBool ? (combBool ? combPureLevelChart : pureLevelChart) : (combBool ? combLevelChart : levelChart);
     const medianVal = levelChart[1][6];
@@ -1482,8 +1583,8 @@ function changeYojijukugo(page) {
 }
 
 async function wordInfo() {
-    wordAll.style.display = "block";
-    if (reviewData.length == 0) { wordAll.style.display = "none"; return; }
+    for (const div of wordAll) div.style.display = "block";
+    if (reviewData.length == 0) { for (const div of wordAll) div.style.display = "none"; return; }
     var kd;
     var doneCounts = [0, 0, 0];
     kanjiWall = "";
@@ -1603,10 +1704,10 @@ async function wordInfo() {
         for (let j = 0; j < 4; j++) if (!kanjiWall.includes(word[j])) isPossible = false;
         if (isPossible) possibleYojijukugo.push(yojijukugoData[i]);
     }
-    if (possibleYojijukugo.length == 0) document.getElementById("yojijukugoall").style.display = "none";
+    if (possibleYojijukugo.length == 0) document.getElementsByClassName("yojijukugoall")[0].style.display = "none";
     else {
         changeYojijukugoRandom();
-        document.getElementById("yojijukugoall").style.display = "block";
+        document.getElementsByClassName("yojijukugoall")[0].style.display = "block";
     }
 
     // word progress
@@ -1624,7 +1725,7 @@ async function wordInfo() {
                 break;
         }
     }
-    const wordProgressData = [["Type", "Count", { role: "tooltip" }],
+    wordProgressData = [["Type", "Count", { role: "tooltip" }],
         ["Radical Learned", doneCounts[0], doneCounts[0] / totalCounts[0] * 100], ["Kanji Learned", doneCounts[1], doneCounts[1] / totalCounts[1] * 100], ["Vocab Learned", doneCounts[2], doneCounts[1] / totalCounts[1] * 100],
         ["Radical Unknown", totalCounts[0] - doneCounts[0], (1 - doneCounts[0] / totalCounts[0]) * 100], ["Kanji Unknown", totalCounts[1] - doneCounts[1], (1 - doneCounts[1] / totalCounts[1]) * 100], ["Vocab Unknown", totalCounts[2] - doneCounts[2], (1 - doneCounts[2] / totalCounts[2]) * 100]];
     for (let i = 1; i < wordProgressData.length; i++) wordProgressData[i][2] = "Percentage " + wordProgressData[i][0] + ": " + Math.round(wordProgressData[i][2] * 10) / 10 + " % (" + wordProgressData[i][1] + ")";

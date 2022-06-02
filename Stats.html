@@ -38,7 +38,7 @@
 	</div>
 
 	<div id="blackoverlay" style="visibility: hidden; position: fixed; top: 0%; left: 0%; width: 100%; height: 100%; background: black; z-index: 1001; opacity: 0.5;"></div>
-	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
+	<div id="whiteoverlay" class="w3-container" style="visibility: hidden; border-radius: 6px; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
 		<h3 style="margin-top: 10px">Loading Data...</h3>
 	</div>
 	<div id="detailwindow" class="w3-container" style="visibility: hidden; max-width: 60%; max-height: 90%; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
@@ -55,7 +55,7 @@
 
 		<div style="text-align: right; font-size: 12px">
 			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
-			<span style="float: right;">バージョン３.６.０</span>
+			<span style="float: right;">バージョン３.７.０</span>
 		</div>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
@@ -80,6 +80,7 @@
 			<a onclick="window.location.hash = ''; window.location.hash = '#WallofShame';">Wall of Shame</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#WallofFame';">Wall of Fame</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#UserInfo';">User Info</a>
+			<a onclick="window.location.hash = ''; window.location.hash = '#Averages';">Averages</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#WordProgress';">Word Progress</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#Yojijukugo';">Yojijukugo</a>
 			<a onclick="window.location.hash = ''; window.location.hash = '#KanjiWall';">Kanji Wall</a>
@@ -89,299 +90,327 @@
 
 	<div class="row">
 
-		<div class="allinfo" style="display: none">
+		<div class="leftcolumn allinfo" style="display: none">
 
-			<div class="leftcolumn">
+			<div id="0" class="card">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
-				<div class="card">
-					<a id="LevelInfo"></a>
-					<h2 class="heading">Level Info</h2>
-					<div id="leveltimechart" class="chart"></div>
-					<span class="projections">
+				<a id="LevelInfo"></a>
+				<h2 class="heading">Level Info</h2>
+				<div id="leveltimechart" class="chart"></div>
+				<span class="projections">
 
-					</span>
-					<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
+				</span>
+				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
+					<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
+					<div style="padding-top: 5px">
+						<input type="checkbox" id="levelclamp" name="levelclamp">
+						<label for="levelclamp">Show Full y-Axis</label>
+					</div>
+					<div style="padding-top: 5px">
+						<input type="checkbox" id="levelcomb" name="levelcomb">
+						<label for="levelcomb">Combine Time Per Column</label>
+					</div>
+					<div style="padding-top: 5px">
+						<input type="checkbox" id="levelresets" name="levelresets">
+						<label for="levelresets">Hide Reset Levels</label>
+					</div>
+				</div>
+			</div>
+
+			<div id="1" class="card">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+				<a id="Projections"></a>
+				<h2 class="heading">Projections</h2>
+				<p><b>Tip:</b> Click a level data point to see the specific item pass date breakdown.</p>
+				<div class="projectionchart">
+					<div id="projectionschart" class="chart"></div>
+					<div class="settings" style="padding: 10px; margin-top: 10px; display: inline-block">
 						<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
-						<div style="padding-top: 5px">
-							<input type="checkbox" id="levelclamp" name="levelclamp">
-							<label for="levelclamp">Show Full y-Axis</label>
+						<div style="display: none">
+							<input type="checkbox" id="expand" class="project">
+							<!--<label for="speed">Show Details for Level:</label>-->
+							<input type="number" id="expanded" size="3" value="60"><br>
 						</div>
-						<div style="padding-top: 5px">
-							<input type="checkbox" id="levelcomb" name="levelcomb">
-							<label for="levelcomb">Combine Time Per Column</label>
+						<input onchange="updateProjections();" type="checkbox" id="showPast" class="project" checked>
+						<label for="showPast">Show Past Levels</label><br>
+						<input onchange="updateProjections();" type="checkbox" id="showBurn" class="project" checked>
+						<label for="showBurn">Show Burn Completion</label><br>
+						<input onchange="updateProjections();" type="checkbox" id="showCheck" class="project" checked>
+						<label for="showCheck">Show Check Points</label><br>
+						<input type="checkbox" id="fools">
+						<label for="fools">Dark Blockchain</label><br>
+						<input onchange="expandHypothetical();" type="checkbox" id="hypothetical" class="project">
+						<label for="hypothetical">Advanced Hypotheticals</label><br>
+						<div id="easyhypothetical">
+							<label for="speed">Hypothetical Speed:</label>
+							<input type="number" id="speed" size="4" value="240">
+							<span> hours</span>
 						</div>
-						<div style="padding-top: 5px">
-							<input type="checkbox" id="levelresets" name="levelresets">
-							<label for="levelresets">Hide Reset Levels</label>
-						</div>
-					</div>
-				</div>
-
-				<div class="card">
-					<a id="Projections"></a>
-					<h2 class="heading">Projections</h2>
-					<p><b>Tip:</b> Click a level data point to see the specific item pass date breakdown.</p>
-					<div class="projectionchart">
-						<div id="projectionschart" class="chart"></div>
-						<div class="settings" style="padding: 10px; margin-top: 10px; display: inline-block">
-							<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
-							<div style="display: none">
-								<input type="checkbox" id="expand" class="project">
-								<!--<label for="speed">Show Details for Level:</label>-->
-								<input type="number" id="expanded" size="3" value="60"><br>
-							</div>
-							<input onchange="updateProjections();" type="checkbox" id="showPast" class="project" checked>
-							<label for="showPast">Show Past Levels</label><br>
-							<input onchange="updateProjections();" type="checkbox" id="showBurn" class="project" checked>
-							<label for="showBurn">Show Burn Completion</label><br>
-							<input onchange="updateProjections();" type="checkbox" id="showCheck" class="project" checked>
-							<label for="showCheck">Show Check Points</label><br>
-							<input type="checkbox" id="fools">
-							<label for="fools">Dark Blockchain</label><br>
-							<input onchange="expandHypothetical();" type="checkbox" id="hypothetical" class="project">
-							<label for="hypothetical">Advanced Hypotheticals</label><br>
-							<div id="easyhypothetical">
-								<label for="speed">Hypothetical Speed:</label>
-								<input type="number" id="speed" size="4" value="240">
-								<span> hours</span>
-							</div>
-							<div id="advhypothetical" style="display: none">
-								<label for="speed-current">
-									Hypothetical speed for current level
-								</label>
-								<input type="number" id="speed-current" size="4" value="240">
-								<span> hours</span>
-								<br>
-								<label for="speed-590400">
-									Hypothetical speed for normal levels
-								</label>
-								<input type="number" id="speed-590400" size="4" value="240">
-								<span> hours</span>
-								<br>
-								<label for="speed-295200">
-									Hypothetical speed for fast levels
-								</label>
-								<input type="number" id="speed-295200" size="4" value="240">
-								<span> hours</span>
-							</div>
+						<div id="advhypothetical" style="display: none">
+							<label for="speed-current">
+								Hypothetical speed for current level
+							</label>
+							<input type="number" id="speed-current" size="4" value="240">
+							<span> hours</span>
 							<br>
-							<button id="project" class="project" onclick="updateProjections();">Project</button><br>
+							<label for="speed-590400">
+								Hypothetical speed for normal levels
+							</label>
+							<input type="number" id="speed-590400" size="4" value="240">
+							<span> hours</span>
+							<br>
+							<label for="speed-295200">
+								Hypothetical speed for fast levels
+							</label>
+							<input type="number" id="speed-295200" size="4" value="240">
+							<span> hours</span>
 						</div>
-						<div id="specifics" style="display: none; margin: 10px">
-							<div style="margin-bottom: 5px"><b>Specific Item Breakdown for Level </b></div>
-							<div></div>
-							<button style="margin-top: 5px" onclick="window.location.hash = ''; window.location.hash = '#Projections'; document.getElementById('specifics').style.display = 'none';">Hide Specifics</button>
-						</div>
-						<pre style="font-size: 10px">Original Userscript Creator: <a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a></pre>
+						<br>
+						<button id="project" class="project" onclick="updateProjections();">Project</button><br>
+					</div>
+					<div id="specifics" style="display: none; margin: 10px">
+						<div style="margin-bottom: 5px"><b>Specific Item Breakdown for Level </b></div>
+						<div></div>
+						<button style="margin-top: 5px" onclick="window.location.hash = ''; window.location.hash = '#Projections'; document.getElementById('specifics').style.display = 'none';">Hide Specifics</button>
+					</div>
+					<pre style="font-size: 10px">Original Userscript Creator: <a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a></pre>
+				</div>
+			</div>
+
+			<div id="2" class="card">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+				<a id="TimeChartSettings"></a>
+				<h4>Set time frame for <i>SRS Item Info</i>, <i>Review Info</i>, <i>and Accuracy Info</i>:</h4>
+				<div class="settings" style="padding: 10px; padding-top: 0px; display: inline-block">
+					<pre id="reviewinfodiv" style="padding-top: 0px"></pre>
+					<label for="startdate">Start date for time frame:</label>
+					<input type="date" id="startdate" name="trip-start" value="2022-05-26">
+					<button type="button" onclick="updateReviewCharts(); updateReviewAccuracy();" id="newdatebtn">Generate Charts</button>
+					<div style="padding-top: 5px">
+						<input type="checkbox" id="nullify" name="nullify">
+						<label for="nullify">Start with 0</label>
 					</div>
 				</div>
+				<p><b>Tip:</b> Click a date data point on one of these charts to see a "One Day Snapshot" of that date (on desktop).</p>
+			</div>
 
-				<div class="card">
-					<h4>Set time frame for <i>SRS Item Info</i>, <i>Review Info</i>, <i>and Accuracy Info</i>:</h4>
-					<div class="settings" style="padding: 10px; padding-top: 0px; display: inline-block">
-						<pre id="reviewinfodiv" style="padding-top: 0px"></pre>
-						<label for="startdate">Start date for time frame:</label>
-						<input type="date" id="startdate" name="trip-start" value="2022-05-26">
-						<button type="button" onclick="updateReviewCharts(); updateReviewAccuracy();" id="newdatebtn">Generate Charts</button>
-						<div style="padding-top: 5px">
-							<input type="checkbox" id="nullify" name="nullify">
-							<label for="nullify">Start with 0</label>
-						</div>
-					</div>
-					<p><b>Tip:</b> Click a date data point on one of these charts to see a "One Day Snapshot" of that date (on desktop).</p>
+			<div id="3" class="card reviewall">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+				<a id="SrsInfo"></a>
+				<h2 class="heading" style="padding-bottom: 0px">SRS Item Info</h2>
+				<div id="srschart2" class="chart"></div>
+				<div id="srschart" class="chart"></div>
+			</div>
+
+			<div id="4" class="card reviewall">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+				<a id="ReviewInfo"></a>
+				<h2 class="heading">Review Info</h2>
+				<div id="reviewchart" class="chart"></div>
+				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
+					<span>Average "Reviews Per Day" chart over </span>
+					<input type="number" onkeydown="if (event.key === 'Enter') updateReviewsPerDay();" style="width: 70px" id="smoothreview" min="0" max="9999" value="0">
+					<span> days.</span>
+					<button type="button" onclick="updateReviewsPerDay();">Generate Chart</button>
+				</div>
+				<div id="totalchart" class="chart"></div>
+			</div>
+
+			<div id="5" class="card wordall">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+				<a id="AccuracyInfo"></a>
+				<h2 class="heading">Accuracy Info</h2>
+				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
+					<span>Average all accuracy charts over </span>
+					<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="0" max="9999" value="10">
+					<span> days.</span>
+					<button type="button" onclick="updateReviewAccuracy();">Generate Charts</button>
 				</div>
 
-				<div id="reviewall">
-					<div class="card">
-						<a id="SrsInfo"></a>
-						<h2 class="heading" style="padding-bottom: 0px">SRS Item Info</h2>
-						<div id="srschart2" class="chart"></div>
-						<div id="srschart" class="chart"></div>
-					</div>
-					<div class="card">
-						<a id="ReviewInfo"></a>
-						<h2 class="heading">Review Info</h2>
-						<div id="reviewchart" class="chart"></div>
-						<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
-							<span>Average "Reviews Per Day" chart over </span>
-							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewsPerDay();" style="width: 70px" id="smoothreview" min="0" max="9999" value="0">
-							<span> days.</span>
-							<button type="button" onclick="updateReviewsPerDay();">Generate Chart</button>
-						</div>
-						<div id="totalchart" class="chart"></div>
-					</div>
-				</div>
+				<div style="position: relative"><img src="images/both.png" class="centerimg" style="height: 40%" alt="" /><div id="accuracychart" class="chart"></div></div>
+				<div style="position: relative"><img src="images/meaning.png" class="centerimg" style="height: 40%" alt="" /><div id="meanaccchart" class="chart"></div></div>
+				<div style="position: relative"><img src="images/reading.png" class="centerimg" style="height: 40%" alt="" /><div id="readaccchart" class="chart"></div></div>
+				<div style="position: relative"><img src="images/correct.png" class="centerimg" style="height: 40%" alt="" /><div id="percentagechart" class="chart"></div></div>
 
-				<div id="wordall">
-					<div class="card">
-						<a id="AccuracyInfo"></a>
-						<h2 class="heading">Accuracy Info</h2>
-						<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
-							<span>Average all accuracy charts over </span>
-							<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="0" max="9999" value="10">
-							<span> days.</span>
-							<button type="button" onclick="updateReviewAccuracy();">Generate Charts</button>
-						</div>
+			</div>
 
-						<div style="position: relative"><img src="images/both.png" class="centerimg" style="height: 40%" alt="" /><div id="accuracychart" class="chart"></div></div>
-						<div style="position: relative"><img src="images/meaning.png" class="centerimg" style="height: 40%" alt="" /><div id="meanaccchart" class="chart"></div></div>
-						<div style="position: relative"><img src="images/reading.png" class="centerimg" style="height: 40%" alt="" /><div id="readaccchart" class="chart"></div></div>
-						<div style="position: relative"><img src="images/correct.png" class="centerimg" style="height: 40%" alt="" /><div id="percentagechart" class="chart"></div></div>
+			<div id="6" class="card wordall">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
-					</div>
-
-					<div class="card">
-						<a id="InfoTable"></a>
-						<h2 class="heading">Info Table</h2>
-						<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
-							<span>Column time span of </span>
-							<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tablemonth" min="0" max="9999" value="1">
-							<span> months and </span>
-							<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tableday" min="0" max="9999" value="0">
-							<span> days.</span>
-							<button type="button" onclick="updateTables();">Generate Table</button>
-							<div style="margin-top: 10px"><i>Change time interval offset (shift table):</i></div>
-							<div style="margin-top: 6px"></div><div style="margin: 0">
-								<button type="button" onclick="updateTables(1);" style="border-width: 0px; margin: 5px">&lt;</button>
-								<span>Offset: </span><span id="tableoffset"></span>
-								<button type="button" onclick="updateTables(-1);" style="border-width: 0px; margin: 5px">&gt;</button>
-								<button type="button" onclick="updateTables(100000);" style="border-width: 0px; margin: 5px">&gt;&gt;</button>
-							</div>
-						</div>
-						<table class="normaltable" style="width: 100%; text-align: center">
-							<thead>
-								<tr id="tableheadinterval">
-									<th>Interval</th>
-									<th>1</th>
-									<th>2</th>
-									<th>3</th>
-									<th>4</th>
-									<th>5</th>
-									<th>6</th>
-									<th>7</th>
-									<th>8</th>
-									<th>9</th>
-									<th>10</th>
-									<th>11</th>
-									<th>12</th>
-								</tr>
-								<tr id="tableheaddate">
-									<th>Start Date</th>
-								</tr>
-								<tr id="tableheadenddate">
-									<th>End Date</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr id="reviewtable" style="border-top: 4px solid darkgrey">
-									<td style="border-right: 2px solid darkgrey; text-align: left">Reviews</td>
-								</tr>
-								<tr class="radtable" id="reviewradtable">
-									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
-								</tr>
-								<tr class="kantable" id="reviewkanjitable">
-									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
-								</tr>
-								<tr class="voctable" id="reviewvocabtable">
-									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
-								</tr>
-								<tr id="itemtable" style="border-top: 4px solid darkgrey">
-									<td style="border-right: 2px solid darkgrey; text-align: left">Lessons</td>
-								</tr>
-								<tr class="radtable" id="itemradtable">
-									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
-								</tr>
-								<tr class="kantable" id="itemkanjitable">
-									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
-								</tr>
-								<tr class="voctable" id="itemvocabtable">
-									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
-								</tr>
-								<tr id="cortable" style="border-top: 4px solid darkgrey">
-									<td style="border-right: 2px solid darkgrey; text-align: left">Correct*</td>
-								</tr>
-								<tr class="radtable" id="corradtable">
-									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
-								</tr>
-								<tr class="kantable" id="corkanjitable">
-									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
-								</tr>
-								<tr class="voctable" id="corvocabtable">
-									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
-								</tr>
-								<tr id="acctable" style="border-top: 4px solid darkgrey">
-									<td style="border-right: 2px solid darkgrey; text-align: left">Accuracy</td>
-								</tr>
-								<tr class="radtable" id="accradtable">
-									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
-								</tr>
-								<tr class="kantable" id="acckanjitable">
-									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
-								</tr>
-								<tr class="voctable" id="accvocabtable">
-									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
-								</tr>
-								<tr id="meanacctable" style="border-top: 2px solid darkgrey">
-									<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ <ruby>意味<rt class="nohidden">Meaning</rt></ruby></td>
-								</tr>
-								<tr class="radtable" id="meanaccradtable">
-									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
-								</tr>
-								<tr class="kantable" id="meanacckanjitable">
-									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
-								</tr>
-								<tr class="voctable" id="meanaccvocabtable">
-									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
-								</tr>
-								<tr id="readacctable" style="border-top: 2px solid darkgrey">
-									<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ <ruby>読み<rt class="nohidden">Reading</rt></ruby></td>
-								</tr>
-								<tr class="radtable" id="readaccradtable">
-									<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
-								</tr>
-								<tr class="kantable" id="readacckanjitable">
-									<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
-								</tr>
-								<tr class="voctable" id="readaccvocabtable">
-									<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
-								</tr>
-							</tbody>
-						</table>
-						<p style="font-size: 80%">* <i>Correct</i> is the percentages of items correctly answered in both reading and meaning first try which thus rise in SRS stage (this is the percentage shown at the end of reviews); <i>Accuracy</i> is the percentage of correct answers given out of the total amount of answers, including double wrong answers as well as reading and meaning answers (this is the percentage shown while doing reviews; used by WK stats)</p>
-					</div>
-
-					<div class="card">
-						<a id="WordInfo"></a>
-						<h2 class="heading">Word Info</h2>
-						<p><b>Tip:</b> Click data points to be able to scroll through the word data and to be able to click on individual words to be led to their respective WaniKani site.</p>
-						<div id="wordbubblechart" class="chart"></div>
-						<div id="radbubblechart" class="chart"></div>
-					</div>
-
-					<div class="card">
-						<a id="WallofShame"></a>
-						<h2>Wall of Shame</h2>
-						<div id="worstwords" class="chart"></div>
-						<div id="worstwordsradical" class="chart"></div>
-						<div id="worstwordskanji" class="chart"></div>
-						<div id="worstwordsvocab" class="chart"></div>
-					</div>
-
-					<div class="card">
-						<a id="WallofFame"></a>
-						<h2>Wall of Fame</h2>
-						<div id="topwords" class="chart"></div>
-						<div id="topwordsradical" class="chart"></div>
-						<div id="topwordskanji" class="chart"></div>
-						<div id="topwordsvocab" class="chart"></div>
+				<a id="InfoTable"></a>
+				<h2 class="heading">Info Table</h2>
+				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
+					<span>Column time span of </span>
+					<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tablemonth" min="0" max="9999" value="1">
+					<span> months and </span>
+					<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tableday" min="0" max="9999" value="0">
+					<span> days.</span>
+					<button type="button" onclick="updateTables();">Generate Table</button>
+					<div style="margin-top: 10px"><i>Change time interval offset (shift table):</i></div>
+					<div style="margin-top: 6px"></div><div style="margin: 0">
+						<button type="button" onclick="updateTables(1);" style="border-width: 0px; margin: 5px">&lt;</button>
+						<span>Offset: </span><span id="tableoffset"></span>
+						<button type="button" onclick="updateTables(-1);" style="border-width: 0px; margin: 5px">&gt;</button>
+						<button type="button" onclick="updateTables(100000);" style="border-width: 0px; margin: 5px">&gt;&gt;</button>
 					</div>
 				</div>
+				<table class="normaltable thick" style="width: 100%; text-align: center">
+					<thead>
+						<tr id="tableheadinterval">
+							<th>Interval</th>
+							<th>1</th>
+							<th>2</th>
+							<th>3</th>
+							<th>4</th>
+							<th>5</th>
+							<th>6</th>
+							<th>7</th>
+							<th>8</th>
+							<th>9</th>
+							<th>10</th>
+							<th>11</th>
+							<th>12</th>
+						</tr>
+						<tr id="tableheaddate">
+							<th>Start Date</th>
+						</tr>
+						<tr id="tableheadenddate">
+							<th>End Date</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr id="reviewtable" style="border-top: 4px solid darkgrey">
+							<td style="border-right: 2px solid darkgrey; text-align: left">Reviews</td>
+						</tr>
+						<tr class="radtable" id="reviewradtable">
+							<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
+						</tr>
+						<tr class="kantable" id="reviewkanjitable">
+							<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
+						</tr>
+						<tr class="voctable" id="reviewvocabtable">
+							<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
+						</tr>
+						<tr id="itemtable" style="border-top: 4px solid darkgrey">
+							<td style="border-right: 2px solid darkgrey; text-align: left">Lessons</td>
+						</tr>
+						<tr class="radtable" id="itemradtable">
+							<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
+						</tr>
+						<tr class="kantable" id="itemkanjitable">
+							<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
+						</tr>
+						<tr class="voctable" id="itemvocabtable">
+							<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
+						</tr>
+						<tr id="cortable" style="border-top: 4px solid darkgrey">
+							<td style="border-right: 2px solid darkgrey; text-align: left">Correct*</td>
+						</tr>
+						<tr class="radtable" id="corradtable">
+							<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
+						</tr>
+						<tr class="kantable" id="corkanjitable">
+							<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
+						</tr>
+						<tr class="voctable" id="corvocabtable">
+							<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
+						</tr>
+						<tr id="acctable" style="border-top: 4px solid darkgrey">
+							<td style="border-right: 2px solid darkgrey; text-align: left">Accuracy</td>
+						</tr>
+						<tr class="radtable" id="accradtable">
+							<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
+						</tr>
+						<tr class="kantable" id="acckanjitable">
+							<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
+						</tr>
+						<tr class="voctable" id="accvocabtable">
+							<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
+						</tr>
+						<tr id="meanacctable" style="border-top: 2px solid darkgrey">
+							<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ <ruby>意味<rt class="nohidden">Meaning</rt></ruby></td>
+						</tr>
+						<tr class="radtable" id="meanaccradtable">
+							<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
+						</tr>
+						<tr class="kantable" id="meanacckanjitable">
+							<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
+						</tr>
+						<tr class="voctable" id="meanaccvocabtable">
+							<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
+						</tr>
+						<tr id="readacctable" style="border-top: 2px solid darkgrey">
+							<td style="border-right: 2px solid darkgrey; text-align: left" class="tooltip"> ↳ <ruby>読み<rt class="nohidden">Reading</rt></ruby></td>
+						</tr>
+						<tr class="radtable" id="readaccradtable">
+							<td style="border-right: 2px solid darkgrey; color: dodgerblue">↳ 部首</td>
+						</tr>
+						<tr class="kantable" id="readacckanjitable">
+							<td style="border-right: 2px solid darkgrey; color: hotpink">↳ 漢字</td>
+						</tr>
+						<tr class="voctable" id="readaccvocabtable">
+							<td style="border-right: 2px solid darkgrey; color: mediumpurple">↳ 単語</td>
+						</tr>
+					</tbody>
+				</table>
+				<p style="font-size: 80%">* <i>Correct</i> is the percentages of items correctly answered in both reading and meaning first try which thus rise in SRS stage (this is the percentage shown at the end of reviews); <i>Accuracy</i> is the percentage of correct answers given out of the total amount of answers, including double wrong answers as well as reading and meaning answers (this is the percentage shown while doing reviews; used by WK stats)</p>
+			</div>
+
+			<div id="7" class="card wordall">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+				<a id="WordInfo"></a>
+				<h2 class="heading">Word Info</h2>
+				<p><b>Tip:</b> Click data points to be able to scroll through the word data and to be able to click on individual words to be led to their respective WaniKani site.</p>
+				<div id="wordbubblechart" class="chart"></div>
+				<div id="radbubblechart" class="chart"></div>
+			</div>
+
+			<div id="8" class="card wordall">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+				<a id="WallofShame"></a>
+				<h2>Wall of Shame</h2>
+				<div id="worstwords" class="chart"></div>
+				<div id="worstwordsradical" class="chart"></div>
+				<div id="worstwordskanji" class="chart"></div>
+				<div id="worstwordsvocab" class="chart"></div>
+			</div>
+
+			<div id="9" class="card wordall">
+				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+				<a id="WallofFame"></a>
+				<h2>Wall of Fame</h2>
+				<div id="topwords" class="chart"></div>
+				<div id="topwordsradical" class="chart"></div>
+				<div id="topwordskanji" class="chart"></div>
+				<div id="topwordsvocab" class="chart"></div>
 			</div>
 		</div>
 
 		<div class="rightcolumn">
 			<div class="allinfo" style="display: none">
-				<div class="card">
+				<div id="0r" class="card">
+					<button onclick="moveCard(this.parentNode, -1, false);" class="movebtn">▲</button>
+					<button onclick="moveCard(this.parentNode, 1, false);" class="movebtn">▼</button>
+
 					<a id="UserInfo"></a>
 					<h2 class="heading">User Info</h2>
 					<pre id="userinfo"></pre>
@@ -391,13 +420,34 @@
 						<label for="projectionsspeed">Calculate With Short Levels</label>
 					</div>
 				</div>
-				<div class="card">
+				<div id="1r" class="card">
+					<button onclick="moveCard(this.parentNode, -1, false);" class="movebtn">▲</button>
+					<button onclick="moveCard(this.parentNode, 1, false);" class="movebtn">▼</button>
+
+					<a id="Averages"></a>
+					<h2 class="heading">Combined Averages</h2>
+					<div id="avgtotals" class="chart"></div>
+					<table id="averagetable" class="normaltable" style="font-size: 80%; width: 100%; text-align: center">
+						<thead>
+							<tr></tr>
+						</thead>
+						<tbody>
+						</tbody>
+					</table>
+				</div>
+				<div id="2r" class="card">
+					<button onclick="moveCard(this.parentNode, -1, false);" class="movebtn">▲</button>
+					<button onclick="moveCard(this.parentNode, 1, false);" class="movebtn">▼</button>
+
 					<a id="WordProgress"></a>
 					<h2 class="heading">Word Progress</h2>
 					<div id="wordprogress" class="chart"></div>
 					<pre id="wordprogressinfo"></pre>
 				</div>
-				<div class="card" id="yojijukugoall" style="position: relative; display: block;">
+				<div id="3r" class="card yojijukugoall" style="position: relative; display: block;">
+					<button onclick="moveCard(this.parentNode, -1, false);" class="movebtn">▲</button>
+					<button onclick="moveCard(this.parentNode, 1, false);" class="movebtn">▼</button>
+
 					<a id="Yojijukugo"></a>
 					<h2 class="heading"><ruby>四字熟語<rt>よじじゅくご</rt></ruby> (Yojijukugo)</h2>
 					<p style="margin-bottom: 10px"><i>These idioms in the form of four character compounds are called <a href="https://www.tofugu.com/japanese/yojijukugo-idioms/">四字熟語</a>. You should already be able to read these:</i></p>
@@ -418,7 +468,10 @@
 
 					<pre style="font-size: 10px">Source: <a href="http://www.edrdg.org/projects/yojijukugo.html">EDRDG</a></pre>
 				</div>
-				<div class="card">
+				<div id="4r" class="card">
+					<button onclick="moveCard(this.parentNode, -1, false);" class="movebtn">▲</button>
+					<button onclick="moveCard(this.parentNode, 1, false);" class="movebtn">▼</button>
+
 					<a id="KanjiWall"></a>
 					<h2 class="heading">Kanji Wall</h2>
 					<span><i>You (hopefully) already know these Kanji:</i></span>

@@ -20,6 +20,7 @@ h1, h2, h3, h4, h5, h6, label, p, pre {
 	font-family: Helvetica, Arial, Sans-Serif;
 	/*color: black;*/
 }
+
 .header {
 	color: black;
 }
@@ -61,9 +62,9 @@ div.google-visualization-tooltip {
 	background-color: #525252;
 }
 
-.dark-mode .toc a {
-	color: white;
-}
+	.dark-mode .toc a {
+		color: white;
+	}
 
 .dark-mode tr {
 	color: white;
@@ -96,12 +97,15 @@ div.google-visualization-tooltip {
 .dark-mode svg > g > g > g:first-child > rect {
 	fill: #525252;
 }
+
 .dark-mode svg > g > g > g > rect:only-child {
 	fill: #d6d6d6;
 }
+
 .dark-mode svg > g > g > g > rect:nth-child(1):nth-last-child(2) {
 	fill: #d6d6d6;
 }
+
 .dark-mode svg > g > g > g > rect:nth-child(2):nth-last-child(1) {
 	fill: #d6d6d6;
 }
@@ -110,9 +114,9 @@ div.google-visualization-tooltip {
 	background-color: #1c1c1c !important;
 }
 
-.dark-mode div.google-visualization-tooltip > ul > li > span {
-	color: white !important;
-}
+	.dark-mode div.google-visualization-tooltip > ul > li > span {
+		color: white !important;
+	}
 
 .dark-mode ruby rt:not(.nohidden) {
 	color: transparent;
@@ -162,38 +166,39 @@ div.google-visualization-tooltip {
 /* progressbar design */
 
 #progressbar {
-  background-color: grey;
-  border-radius: 13px;
-  padding: 3px;
+	background-color: grey;
+	border-radius: 13px;
+	padding: 3px;
 }
 
-#progressbar>div {
-  background-color: lightblue;
-  height: 9px;
-  border-radius: 9px;
-}
+	#progressbar > div {
+		background-color: lightblue;
+		height: 9px;
+		border-radius: 9px;
+	}
 
 #wkof_ds {
 	width: 10px;
 }
 
 /* button design */
+
 button:not(.closebtn) {
 	color: white;
 	text-align: center;
 	background-color: #555555;
 }
 
-button:not(.closebtn):hover {
-	background-color: lightgrey;
-	color: black;
-}
+	button:not(.closebtn):hover {
+		background-color: lightgrey;
+		color: black;
+	}
 
-button:not(.closebtn):active {
-	background-color: white;
-	color: black;
-	border-color: lightgrey;
-}
+	button:not(.closebtn):active {
+		background-color: white;
+		color: black;
+		border-color: lightgrey;
+	}
 
 button.closebtn.dark-mode {
 	-webkit-filter: invert(100%);
@@ -208,17 +213,38 @@ button.closebtn:active {
 	opacity: 0.7;
 }
 
-/* furigana design */
+button.movebtn {
+	border-width: 0px;
+	border-radius: 3px;
+	margin: 5px;
+	background-color: #dbdbdb; /*really light grey*/
+	color: white;
+}
 
+.dark-mode button.movebtn {
+	background-color: #555555;
+	color: black;
+}
+
+	.dark-mode button.movebtn:hover {
+		color: white;
+	}
+
+	.dark-mode button.movebtn:active {
+		background-color: #292929;
+		color: white;
+	}
+
+/* furigana design */
 rt:not(.nohidden) {
 	color: transparent;
 	text-shadow: 0 0 12px rgba(0,0,0,0.97);
 }
 
-rt:not(.nohidden):hover {
-	color: black;
-	text-shadow: none;
-}
+	rt:not(.nohidden):hover {
+		color: black;
+		text-shadow: none;
+	}
 
 /* table design */
 
@@ -226,28 +252,34 @@ table.normaltable {
 	border-collapse: collapse;
 }
 
-table.normaltable tr {
-	padding: 15px;
-}
+	table.normaltable tr {
+		padding: 15px;
+	}
 
-table.normaltable thead tr {
-	background-color: #54585d;
-}
+	table.normaltable thead tr {
+		background-color: #54585d;
+	}
 
-table.normaltable thead tr th {
-	font-weight: 200;
-	font-size: 80%;
-	border-right: 2px solid white;
-	border-left: 2px solid white;
-}
+	table.normaltable.thick thead tr th {
+		font-weight: 200;
+		font-size: 80%;
+		border-right: 2px solid white;
+		border-left: 2px solid white;
+	}
 
-table.normaltable tbody tr {
-	border: 1px solid #dddfe1;
-}
+	table.normaltable:not(thick) thead tr th {
+		border-right: 1px solid #dddfe1;
+		border-left: 1px solid #dddfe1;
+		border-top: 1px solid #dddfe1;
+	}
 
-table.normaltable thead tr:not(dark-mode) th {
-	color: #ffffff;
-}
+	table.normaltable tbody tr {
+		border: 1px solid #dddfe1;
+	}
+
+	table.normaltable thead tr:not(dark-mode) th {
+		color: #ffffff;
+	}
 
 .charttableheaderdark {
 	color: white;
@@ -263,6 +295,21 @@ table.normaltable thead tr:not(dark-mode) th {
 .charttablehoverdark {
 	color: white;
 	background-color: #292929;
+}
+
+.charttableheadermiddle {
+	background-color: dimgrey;
+	font-weight: 400;
+}
+
+.charttablerowmiddle {
+	color: black;
+	background-color: darkgrey;
+}
+
+.charttablehovermiddle {
+	color: black;
+	background-color: darkgrey;
 }
 
 /* other */
@@ -284,15 +331,20 @@ table.normaltable thead tr:not(dark-mode) th {
 	background: white;
 }
 
-.header h1 {
-	font-size: 50px;
-}
+	.header h1 {
+		font-size: 50px;
+	}
 
 .dark-mode a {
 	color: #be8fee;
 }
 
+.settings {
+	border-radius: 6px;
+}
+
 /* top navigation design */
+
 .topnav {
 	overflow: hidden;
 	background-color: #333;
@@ -315,6 +367,7 @@ table.normaltable thead tr:not(dark-mode) th {
 }
 
 /* table of contents design */
+
 .toc {
 	overflow: hidden;
 	background-color: white;
@@ -384,8 +437,8 @@ table.normaltable thead tr:not(dark-mode) th {
 	margin-top: 20px;
 }
 
-/* responsive layout - when the screen is less than 1450px wide, make the two columns stack on top of each other instead of next to each other */
-@media screen and (max-width: 1450px) {
+/* responsive layout - when the screen is less than 1400px wide, make the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 1400px) {
 	.leftcolumn, .rightcolumn {
 		width: 100%;
 		padding: 0;
