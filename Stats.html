@@ -55,7 +55,7 @@
 
 		<div style="text-align: right; font-size: 12px">
 			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
-			<span style="float: right;">バージョン３.７.０</span>
+			<span style="float: right;">バージョン３.７.１</span>
 		</div>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
@@ -99,9 +99,7 @@
 				<a id="LevelInfo"></a>
 				<h2 class="heading">Level Info</h2>
 				<div id="leveltimechart" class="chart"></div>
-				<span class="projections">
-
-				</span>
+				<!--<span class="projections"></span>-->
 				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
 					<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
 					<div style="padding-top: 5px">
@@ -136,8 +134,8 @@
 						<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
 						<div style="display: none">
 							<input type="checkbox" id="expand" class="project">
-							<!--<label for="speed">Show Details for Level:</label>-->
 							<input type="number" id="expanded" size="3" value="60"><br>
+							<input type="checkbox" id="showPast" class="project">
 						</div>
 						<input onchange="updateProjections();" type="checkbox" id="pastLevels" class="project" checked>
 						<label for="pastLevels">Show Past Levels</label><br>

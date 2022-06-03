@@ -30,7 +30,7 @@ var defaultSettings = {
     levelclamp: ['checked', false],
     levelcomb: ['checked', false],
     levelresets: ['checked', false],
-    showPast: ['checked', true], // projections
+    pastLevels: ['checked', true], // projections
     showBurn: ['checked', true],
     showCheck: ['checked', true],
     hypothetical: ['checked', false],
@@ -392,7 +392,6 @@ function levelReorder(lvl) {
 
 async function projections() {
     const annotationsArray = [[16, "N5 Kanji & Joyo 25%"], [27, "N4 Kanji"], [51, "N3 & N2 Kanji"], [7, "Joyo 10%"], [32, "Joyo 50%"], [48, "Joyo 75%"], [58, "Joyo 90%"]];
-    //document.getElementById("expanded").value = userData["level"];
     // create data array
     var [rawData, _] = P.api(userData, levelData, srsData, unalteredItemData); // raw projections data
     projectionsData = [["Level", { role: "tooltip", 'p': { 'html': true } }, { role: "annotation" }, "Fastest Finish", "Hypothetical Finish", "Reset Finish", "Predicted Finish"],
@@ -478,7 +477,10 @@ async function updateProjections() {
         if (level == 61 || level == 0) { specificDiv.style.display = 'none'; document.getElementById('expand').checked = false; return; }
         document.getElementById('expanded').value = String(level);
         document.getElementById('expand').checked = true;
+        var pastBox = document.getElementById('showPast'); // allow past levels to have an item breakdown
+        pastBox.checked = true;
         var [_, output] = P.api(userData, levelData, srsData, unalteredItemData);
+        pastBox.checked = false;
         var specificData = output.slice(output.indexOf('<table class="coverage">'));
         if (isMobile) {
             specificDiv.children[0].innerHTML = '<b>Specific Item Breakdown for Level ' + level + '</b>';

@@ -139,6 +139,10 @@ div.google-visualization-tooltip {
 	opacity: 0.2;
 }
 
+.dark-mode table.coverage tr.header {
+	color: black;
+}
+
 .dark-mode .radtable {
 	background-color: #102b38;
 }
@@ -200,7 +204,7 @@ button:not(.closebtn) {
 		border-color: lightgrey;
 	}
 
-button.closebtn.dark-mode {
+.dark-mode button.closebtn {
 	-webkit-filter: invert(100%);
 	filter: invert(100%);
 }
