@@ -14,8 +14,6 @@ var requestHeaders;
 var db;
 
 //// pre data-fetching ////
-// scroll to top
-window.location.hash = ''; window.location.hash = '#top';
 // mobile snapshot
 const mobileSnapshot = document.getElementById("showsnapshot");
 if (isMobile) mobileSnapshot.parentNode.display = '';
