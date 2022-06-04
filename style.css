@@ -7,26 +7,73 @@
 }
 
 body {
+	--card-color: white;
+
 	font-family: Helvetica, Arial, Sans-Serif;
 	padding: 10px;
 	background: #f1f1f1;
 }
-
-div.settings {
-	background-color: lightgrey;
+body.dark-mode {
+	--card-color: #1b1b1b;
 }
 
 h1, h2, h3, h4, h5, h6, label, p, pre {
 	font-family: Helvetica, Arial, Sans-Serif;
 	/*color: black;*/
 }
-
-.header {
-	color: black;
+h2 {
+	margin-top: 0;
 }
 
 div.google-visualization-tooltip {
 	white-space: nowrap;
+}
+
+/* Settings */
+.settingsbtn:not(.closebtn) {
+	background-color: transparent;
+	border: none;
+	margin: 2px 0 10px 8px;
+	float: left;
+	z-index: 1;
+	position: relative;
+}
+.settingsbtn img {
+	height: 1.5em;
+}
+.dark-mode .settingsbtn img {
+	filter: invert(100%);
+}
+
+.settingsbtn:hover {
+	background-color: transparent !important;
+}
+.settingsbtn:hover .settings {
+	visibility: visible;
+	opacity: 1;
+}
+
+div.settings {
+	background-color: lightgrey;
+	color: black;
+	padding: 5px;
+	border-radius: 6px;
+	border: 1px solid rgb(102, 102, 102);
+	position: absolute;
+	visibility: hidden;
+	top: -6px;
+	left: -6px;
+	z-index: 1;
+	opacity: 0;
+	width: max-content;
+	transition: opacity 200ms;
+}
+div.settings h4 {
+	margin: 4px 0 10px 25px;
+	text-align: start;
+}
+.dark-mode div.settings {
+	color: white;
 }
 
 /* tooltip */
@@ -49,13 +96,11 @@ div.google-visualization-tooltip {
 /* dark mode */
 
 .dark-mode .card {
-	background-color: #292929;
 	color: white;
 }
 
 .dark-mode .settings {
-	background-color: #1c1c1c;
-	color: white;
+	background-color: #131313;
 }
 
 .dark-mode .toc {
@@ -223,6 +268,7 @@ button.movebtn {
 	margin: 5px;
 	background-color: #dbdbdb; /*really light grey*/
 	color: white;
+	float: right;
 }
 
 .dark-mode button.movebtn {
@@ -298,7 +344,7 @@ table.normaltable {
 
 .charttablehoverdark {
 	color: white;
-	background-color: #292929;
+	background-color: var(--card-color);
 }
 
 .charttableheadermiddle {
@@ -330,9 +376,16 @@ table.normaltable {
 }
 
 .header {
-	padding: 30px;
+	padding: 20px 20px 30px 20px;
 	text-align: center;
 	background: white;
+	color: black;
+	background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('images/wanikani_bg_icon.jpg');
+	background-repeat: no-repeat;
+    background-attachment: inherit;
+	background-size: cover;
+	background-position: top;
+	border-radius: 8px 8px 0 0;
 }
 
 	.header h1 {
@@ -343,31 +396,22 @@ table.normaltable {
 	color: #be8fee;
 }
 
-.settings {
-	border-radius: 6px;
-}
-
 /* top navigation design */
 
-.topnav {
-	overflow: hidden;
-	background-color: #333;
+#linkrow {
+	height: 25px;
+	font-size: 15px;
 }
 
-.topnav a {
-	float: left;
-	display: block;
-	color: #f2f2f2;
-	text-align: center;
-	padding: 14px 8px;
-	margin: 5px;
-	text-decoration: none;
-}
-
-.topnav a:hover {
-	background-color: #ddd;
+#linkrow a {
+	line-height: 25px;
+	margin: 0 5px;
 	color: black;
-	border-radius: 5px;
+}
+
+#linkrow span {
+	line-height: 25px;
+	margin-right: 8px;
 }
 
 /* table of contents design */
@@ -420,10 +464,11 @@ table.normaltable {
 
 /* add a card effect for articles */
 .card {
-	background-color: white;
+	background-color: var(--card-color);
 	padding: 20px;
 	margin-top: 20px;
 	border-radius: 6px;
+	position: relative;
 }
 
 /* clear floats after the columns */
@@ -435,9 +480,9 @@ table.normaltable {
 
 /* footer */
 .footer {
-	padding: 20px;
+	padding: 35px 10px;
 	text-align: center;
-	background: #ddd;
+	background: var(--card-color);
 	margin-top: 20px;
 }
 
@@ -451,8 +496,9 @@ table.normaltable {
 
 /* responsive layout - when the screen is less than 400px wide, make the navigation links stack on top of each other instead of next to each other */
 @media screen and (max-width: 400px) {
-	.topnav a {
-		float: none;
-		width: 100%;
+	.toc a {
+		padding: 5px;
+		margin: 3px 0 3px 3px;
+		
 	}
 }

@@ -46,26 +46,17 @@
 		<div style="margin-top: 20px"></div>
 	</div>
 
-	<div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('images/wanikani_bg_icon.jpg');
-		background-repeat: no-repeat;
-        background-attachment: inherit;
-        background-size: cover;
-        background-position: top;
-		border-radius: 8px 8px 0 0;">
-
-		<div style="text-align: right; font-size: 12px">
-			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 10px; float: left; background-color: rgba(200,200,200,0.2); color: rgba(10,10,10,0.3); border-color: rgba(100,100,100,0.2)">Logout</button>
+	<div class="header">
+		<div id="linkrow">
+			<a href="https://www.wanikani.com/dashboard" style="float: left;">WaniKani</a>
+			<a href="https://github.com/saraqael-m/WaniKaniMiscStats" style="float: left;">Github Repo</a>
+			<a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652" style="float: left;">WaniKani Thread</a>
+			<a href="https://community.wanikani.com/u/koichi/summary" style="float: left;">Koichi</a>
+			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3);">Logout</button>
 			<span style="float: right;">バージョン３.７.１</span>
 		</div>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
-	</div>
-
-	<div class="topnav">
-		<a href="https://github.com/saraqael-m/WaniKaniMiscStats">Github Repo</a>
-		<a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">WaniKani Thread</a>
-		<a href="https://community.wanikani.com/u/koichi/summary">Koichi</a>
-		<a href="./OLD/index.html" style="float:right">Old Website</a>
 	</div>
 
 	<div class="allinfo" style="display: none">
@@ -87,7 +78,6 @@
 		</div>
 	</div>
 
-
 	<div class="row">
 
 		<div class="leftcolumn allinfo" style="display: none">
@@ -97,28 +87,36 @@
 				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
 				<a id="LevelInfo"></a>
-				<h2 class="heading">Level Info</h2>
+				<h2 class="heading" style="float: left;">Level Info</h2>
+
+				<div class="settingsbtn">
+					<div class="settings">
+						<img src="images/settings_icon.png" style="float: left;">
+						<h4>Settings</h4>
+						<div style="padding-top: 5px">
+							<input type="checkbox" id="showmedian" name="showmedian">
+							<label for="showmedian">Show Median Line</label>
+						</div>
+						<div style="padding-top: 5px">
+							<input type="checkbox" id="levelclamp" name="levelclamp">
+							<label for="levelclamp">Show Full y-Axis</label>
+						</div>
+						<div style="padding-top: 5px">
+							<input type="checkbox" id="levelcomb" name="levelcomb">
+							<label for="levelcomb">Combine Time Per Column</label>
+						</div>
+						<div style="padding-top: 5px">
+							<input type="checkbox" id="levelresets" name="levelresets">
+							<label for="levelresets">Hide Reset Levels</label>
+						</div>
+					</div>
+					<img src="images/settings_icon.png">
+				</div>
+				<div style="clear: both;"></div>
+				
 				<div id="leveltimechart" class="chart"></div>
 				<!--<span class="projections"></span>-->
-				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
-					<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
-					<div style="padding-top: 5px">
-						<input type="checkbox" id="showmedian" name="showmedian">
-						<label for="showmedian">Show Median Line</label>
-					</div>
-					<div style="padding-top: 5px">
-						<input type="checkbox" id="levelclamp" name="levelclamp">
-						<label for="levelclamp">Show Full y-Axis</label>
-					</div>
-					<div style="padding-top: 5px">
-						<input type="checkbox" id="levelcomb" name="levelcomb">
-						<label for="levelcomb">Combine Time Per Column</label>
-					</div>
-					<div style="padding-top: 5px">
-						<input type="checkbox" id="levelresets" name="levelresets">
-						<label for="levelresets">Hide Reset Levels</label>
-					</div>
-				</div>
+				
 			</div>
 
 			<div id="1" class="card">
@@ -126,12 +124,12 @@
 				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
 				<a id="Projections"></a>
-				<h2 class="heading">Projections</h2>
-				<p><b>Tip:</b> Click a level data point to see the specific item pass date breakdown.</p>
-				<div class="projectionchart">
-					<div id="projectionschart" class="chart"></div>
-					<div class="settings" style="padding: 10px; margin-top: 10px; display: inline-block">
-						<h4 style="margin-top: 0px; margin-bottom: 10px">Settings</h4>
+				<h2 class="heading" style="float: left;">Projections</h2>
+				
+				<div class="settingsbtn">
+					<div class="settings">
+						<img src="images/settings_icon.png" style="float: left;">
+						<h4>Settings</h4>
 						<div style="display: none">
 							<input type="checkbox" id="expand" class="project">
 							<input type="number" id="expanded" size="3" value="60"><br>
@@ -174,6 +172,14 @@
 						<br>
 						<button id="project" class="project" onclick="updateProjections();">Project</button><br>
 					</div>
+					<img src="images/settings_icon.png">
+				</div>
+				<div style="clear: both;"></div>
+
+				<p><b>Tip:</b> Click a level data point to see the specific item pass date breakdown.</p>
+				<div class="projectionchart">
+					<div id="projectionschart" class="chart"></div>
+
 					<div id="specifics" style="display: none; margin: 10px">
 						<div style="margin-bottom: 5px"><b>Specific Item Breakdown for Level </b></div>
 						<div></div>
@@ -189,7 +195,8 @@
 
 				<a id="TimeChartSettings"></a>
 				<h4>Set time frame for <i>SRS Item Info</i>, <i>Review Info</i>, <i>and Accuracy Info</i>:</h4>
-				<div class="settings" style="padding: 10px; padding-top: 0px; display: inline-block">
+
+				<div style="padding-top: 0px;">
 					<pre id="reviewinfodiv" style="padding-top: 0px"></pre>
 					<label for="startdate">Start date for time frame:</label>
 					<input type="date" id="startdate" name="trip-start" value="2022-05-26">
@@ -199,6 +206,7 @@
 						<label for="nullify">Start with 0</label>
 					</div>
 				</div>
+				
 				<p><b>Tip:</b> Click a date data point on one of these charts to see a "One Day Snapshot" of that date (on desktop).</p>
 				<div style="display: none; padding-top: 5px">
 					<input type="checkbox" id="showsnapshot" name="showsnapshot">
@@ -221,14 +229,23 @@
 				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
 				<a id="ReviewInfo"></a>
-				<h2 class="heading">Review Info</h2>
-				<div id="reviewchart" class="chart"></div>
-				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
-					<span>Average "Reviews Per Day" chart over </span>
-					<input type="number" onkeydown="if (event.key === 'Enter') updateReviewsPerDay();" style="width: 70px" id="smoothreview" min="0" max="9999" value="0">
-					<span> days.</span>
-					<button type="button" onclick="updateReviewsPerDay();">Generate Chart</button>
+				<h2 class="heading" style="float: left;">Review Info</h2>
+
+				<div class="settingsbtn">
+					<div class="settings">
+						<img src="images/settings_icon.png" style="float: left;">
+						<h4>Settings</h4>
+						<span>Average "Reviews Per Day" chart over </span>
+						<input type="number" onkeydown="if (event.key === 'Enter') updateReviewsPerDay();" style="width: 70px" id="smoothreview" min="0" max="9999" value="0">
+						<span> days.</span>
+						<br><br>
+						<button type="button" onclick="updateReviewsPerDay();">Generate Chart</button>
+					</div>
+					<img src="images/settings_icon.png">
 				</div>
+				<div style="clear: both;"></div>
+
+				<div id="reviewchart" class="chart"></div>
 				<div id="totalchart" class="chart"></div>
 			</div>
 
@@ -237,13 +254,21 @@
 				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
 				<a id="AccuracyInfo"></a>
-				<h2 class="heading">Accuracy Info</h2>
-				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
-					<span>Average all accuracy charts over </span>
-					<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="0" max="9999" value="10">
-					<span> days.</span>
-					<button type="button" onclick="updateReviewAccuracy();">Generate Charts</button>
+				<h2 class="heading" style="float: left;">Accuracy Info</h2>
+
+				<div class="settingsbtn">
+					<div class="settings">
+						<img src="images/settings_icon.png" style="float: left;">
+						<h4>Settings</h4>
+						<span>Average all accuracy charts over </span>
+						<input type="number" onkeydown="if (event.key === 'Enter') updateReviewAccuracy();" style="width: 70px" id="smoothacc" min="0" max="9999" value="10">
+						<span> days.</span>
+						<br><br>
+						<button type="button" onclick="updateReviewAccuracy();">Generate Charts</button>
+					</div>
+					<img src="images/settings_icon.png">
 				</div>
+				<div style="clear: both;"></div>
 
 				<div style="position: relative"><img src="images/both.png" class="centerimg" style="height: 40%" alt="" /><div id="accuracychart" class="chart"></div></div>
 				<div style="position: relative"><img src="images/meaning.png" class="centerimg" style="height: 40%" alt="" /><div id="meanaccchart" class="chart"></div></div>
@@ -257,9 +282,13 @@
 				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
 				<a id="InfoTable"></a>
-				<h2 class="heading">Info Table</h2>
-				<div class="settings" style="padding: 10px; margin-bottom: 30px; display: inline-block">
-					<span>Column time span of </span>
+				<h2 class="heading" style="float: left;">Info Table</h2>
+
+				<div class="settingsbtn">
+					<div class="settings">
+						<img src="images/settings_icon.png" style="float: left;">
+						<h4>Settings</h4>
+						<span>Column time span of </span>
 					<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tablemonth" min="0" max="9999" value="1">
 					<span> months and </span>
 					<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tableday" min="0" max="9999" value="0">
@@ -272,7 +301,11 @@
 						<button type="button" onclick="updateTables(-1);" style="border-width: 0px; margin: 5px">&gt;</button>
 						<button type="button" onclick="updateTables(100000);" style="border-width: 0px; margin: 5px">&gt;&gt;</button>
 					</div>
+					</div>
+					<img src="images/settings_icon.png">
 				</div>
+				<div style="clear: both;"></div>
+
 				<table class="normaltable thick" style="width: 100%; text-align: center">
 					<thead>
 						<tr id="tableheadinterval">
@@ -502,7 +535,7 @@
 
 	<div class="allinfo" style="display: none">
 		<div class="footer card">
-			<h2>You have reached the end. おめでとう！</h2>
+			<h2 style="margin: auto;">You have reached the end. おめでとう！</h2>
 		</div>
 	</div>
 
