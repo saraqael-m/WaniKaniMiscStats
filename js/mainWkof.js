@@ -450,7 +450,6 @@ async function updateProjections() {
     dateFormatter.format(chartData, 3);
     var options = {
         chartArea: { width: '80%', height: '85%' },
-        title: 'Projections',
         curveType: 'none',
         hAxis: { format: '0' },
         legend: { position: "none" },
@@ -1491,7 +1490,7 @@ async function levelInfo() {
 }
 
 function levelChartMedianToggle() {
-    document.getElementById('leveltimechart').firstChild.firstChild.firstChild.firstChild.children[2].children[1].children[3].style.display = levelMedianBox.checked ? '' : 'none';
+    document.getElementById('leveltimechart').firstChild.firstChild.firstChild.firstChild.children[1].children[1].children[3].style.display = levelMedianBox.checked ? '' : 'none';
 }
 
 function updateSimpleProjections() {
@@ -1544,7 +1543,6 @@ function updateLevelChart() {
     NumberFormat.format(newChartData, 3);
     let chartSeries = combBool ? { 1: { type: 'line', color: 'black' } } : { 1: { color: 'lightgrey' }, 2: { type: 'line', color: 'black' } };
     var options = {
-        title: 'Level Progression',
         bar: { groupWidth: "95%" },
         legend: { position: "none" },
         width: 1000,
