@@ -22,12 +22,7 @@
 </head>
 <body>
 
-	<div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('images/wanikani_bg_icon.jpg');
-		background-repeat: no-repeat;
-        background-attachment: inherit;
-        background-size: cover;
-        background-position: top">
-
+	<div class="header" style="border-radius: 8px">
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
 		<input type="text" onkeydown="if (event.key === 'Enter') getApiToken();" placeholder="Input API Token V2 Here" id="tokeninput" style="width: 300px; text-align: center; padding: 6px 8px; background-color: lightgrey; border-color: dimgray; border-width: 2px">
@@ -35,33 +30,20 @@
 		<div id="errordiv" style="margin-top: 20px; color: indianred; font-weight: bold; background-color: rgba(255, 255, 255, 0.7)"></div>
 	</div>
 
-	<div class="topnav">
-		<a href="https://github.com/saraqael-m/WaniKaniMiscStats">Github Repo</a>
-		<a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">WaniKani Thread</a>
-		<a href="https://community.wanikani.com/u/koichi/summary">Koichi</a>
-		<a href="./OLD/index.html" style="float:right">Old Website</a>
-	</div>
-
-
-	<div class="row">
-
-		<div class="rightcolumn">
-			<div class="card">
-				<h3>About</h3>
-				<p style="text-align: justify; text-justify: auto">This is a WaniKani statistics website similar to <a href="https://wkstats.com">WK stats</a>. Its goal is to provide the user with more information about their WaniKani achievements. It focuses primarily on showing the user their personal Japanese learning history with WaniKani but also displays some different statistics from all categories.</p>
-			</div>
-			<div class="card">
-				<h3>Contact</h3>
-				<p style="text-align: left">If you find some bugs or have an idea for some other stats just @ me in the WaniKani community (<a style="color:darkgray" href="https://community.wanikani.com/u/saraqael/summary">@saraqael</a>). Preferably, leave a comment on the <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">main thread</a> for this web app.</p>
-			</div>
-			<div class="card">
-				<h3>Credits</h3>
-				<p style="text-align: left"><a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a> for implementing Level Projections and being a great contributor to this project as a whole. <a style="color:#EEBC1D" href="https://community.wanikani.com/u/rfindley/summary">@rfindley</a> for creating the WaniKani Open Framework. And also everyone else who is always commenting in the main thread, thank you!</p>
-			</div>
+	<div style="float: left; display: flex">
+		<div class="card" style="flex: 1; margin: 10px; min-width: 250px">
+			<h3>About</h3>
+			<p style="text-align: justify; text-justify: auto">This is a WaniKani statistics website similar to <a href="https://wkstats.com">WK stats</a>. Its goal is to provide the user with more information about their WaniKani achievements. It focuses primarily on showing the user their personal Japanese learning history with WaniKani but also displays some different statistics from all categories.</p>
 		</div>
-
+		<div class="card" style="flex: 1; margin: 10px; min-width: 250px">
+			<h3>Contact</h3>
+			<p style="text-align: left">If you find some bugs or have an idea for some other stats just @ me in the WaniKani community (<a style="color:darkgray" href="https://community.wanikani.com/u/saraqael/summary">@saraqael</a>). Preferably, leave a comment on the <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652">main thread</a> for this web app.</p>
+		</div>
+		<div class="card" style="flex: 1; margin: 10px; min-width: 250px">
+			<h3>Credits</h3>
+			<p style="text-align: left"><a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a> for implementing Level Projections and being a great contributor to this project as a whole. <a style="color:#EEBC1D" href="https://community.wanikani.com/u/hubbit200/summary">@Hubbit200</a> for bestowing a nicer look upon this website. <a style="color:#EEBC1D" href="https://community.wanikani.com/u/rfindley/summary">@rfindley</a> for creating the WaniKani Open Framework. And also everyone else who is always commenting in the main thread, thank you!</p>
+		</div>
 	</div>
-
 
 	<!-- main script -->
 	<script src="js/apiLogin.js"></script>

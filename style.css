@@ -184,8 +184,9 @@ div.settings h4 {
 	opacity: 0.2;
 }
 
-.dark-mode table.coverage tr.header {
+.dark-mode table.coverage tr.tableheader {
 	color: black;
+	background-color: white;
 }
 
 .dark-mode .radtable {
@@ -501,4 +502,10 @@ table.normaltable {
 		margin: 3px 0 3px 3px;
 		
 	}
+}
+
+/* wkof visual bug workaround */
+
+[aria-labelledby="ui-id-2"] {
+	top: -1000px !important;
 }

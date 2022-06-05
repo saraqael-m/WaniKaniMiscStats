@@ -53,29 +53,27 @@
 			<a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652" style="float: left;">WaniKani Thread</a>
 			<a href="https://community.wanikani.com/u/koichi/summary" style="float: left;">Koichi</a>
 			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3);">Logout</button>
-			<span style="float: right;">バージョン３.７.１</span>
+			<span style="float: right;">バージョン３.７.２</span>
 		</div>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
 	</div>
 
-	<div class="allinfo" style="display: none">
-		<div class="toc">
-			<a onclick="window.location.hash = ''; window.location.hash = '#LevelInfo';">Level Info</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#Projections';">Projections</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#SrsInfo';">SRS Info</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#ReviewInfo';">Review Info</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#AccuracyInfo';">Accuracy Info</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#InfoTable';">Info Table</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#WordInfo';">Word Info</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#WallofShame';">Wall of Shame</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#WallofFame';">Wall of Fame</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#UserInfo';">User Info</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#Averages';">Averages</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#WordProgress';">Word Progress</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#Yojijukugo';">Yojijukugo</a>
-			<a onclick="window.location.hash = ''; window.location.hash = '#KanjiWall';">Kanji Wall</a>
-		</div>
+	<div class="toc">
+		<a onclick="window.location.hash = ''; window.location.hash = '#LevelInfo';">Level Info</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#Projections';">Projections</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#SrsInfo';">SRS Info</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#ReviewInfo';">Review Info</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#AccuracyInfo';">Accuracy Info</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#InfoTable';">Info Table</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#WordInfo';">Word Info</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#WallofShame';">Wall of Shame</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#WallofFame';">Wall of Fame</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#UserInfo';">User Info</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#Averages';">Averages</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#WordProgress';">Word Progress</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#Yojijukugo';">Yojijukugo</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#KanjiWall';">Kanji Wall</a>
 	</div>
 
 	<div class="row">
@@ -207,11 +205,11 @@
 					</div>
 				</div>
 				
-				<p><b>Tip:</b> Click a date data point on one of these charts to see a "One Day Snapshot" of that date (on desktop).</p>
-				<div style="display: none; padding-top: 5px">
+				<p><b>Tip:</b> Click a date data point on one of these charts and use arrow keys to move through single dates.</p>
+				<!--<div style="display: none; padding-top: 5px">
 					<input type="checkbox" id="showsnapshot" name="showsnapshot">
 					<label for="showsnapshot">Show Snapshot On Click (Mobile)</label>
-				</div>
+				</div>-->
 			</div>
 
 			<div id="3" class="card reviewall">
@@ -425,7 +423,7 @@
 
 				<a id="WallofShame"></a>
 				<h2>Wall of Shame</h2>
-				<div id="worstwords" class="chart"></div>
+				<div id="worstwords" class="chart" style="color: white"></div>
 				<div id="worstwordsradical" class="chart"></div>
 				<div id="worstwordskanji" class="chart"></div>
 				<div id="worstwordsvocab" class="chart"></div>
@@ -437,7 +435,7 @@
 
 				<a id="WallofFame"></a>
 				<h2>Wall of Fame</h2>
-				<div id="topwords" class="chart"></div>
+				<div id="topwords" class="chart" style="color: white"></div>
 				<div id="topwordsradical" class="chart"></div>
 				<div id="topwordskanji" class="chart"></div>
 				<div id="topwordsvocab" class="chart"></div>
@@ -527,7 +525,7 @@
 			</div>
 			<div class="card">
 				<h3>Credits</h3>
-				<p style="text-align: left"><a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a> for implementing Level Projections and being a great contributor to this project as a whole. <a style="color:#EEBC1D" href="https://community.wanikani.com/u/rfindley/summary">@rfindley</a> for creating the WaniKani Open Framework. And also everyone else who is always commenting in the main thread, thank you!</p>
+				<p style="text-align: left"><a style="color:#EEBC1D" href="https://community.wanikani.com/u/uint2048/summary">@UInt2048</a> for implementing Level Projections and being a great contributor to this project as a whole. <a style="color:#EEBC1D" href="https://community.wanikani.com/u/hubbit200/summary">@Hubbit200</a> for bestowing a nicer look upon this website. <a style="color:#EEBC1D" href="https://community.wanikani.com/u/rfindley/summary">@rfindley</a> for creating the WaniKani Open Framework. And also everyone else who is always commenting in the main thread, thank you!</p>
 			</div>
 		</div>
 
@@ -553,6 +551,7 @@
 	<!-- projections by UInt2048 -->
 	<script src="js/projections.js"></script>
 	<!-- main script -->
+	<script src="js/yojijukugoData.js"></script>
 	<script src="js/mainWkof.js"></script>
 
 </body>
