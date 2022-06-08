@@ -1581,10 +1581,10 @@ async function wordInfo() {
     var kanjiInterpolator = d3.interpolateRgb("#FFC3D4", "#A26174 ");
     var radicalInterpolator = d3.interpolateRgb("lightblue", "darkblue");
     var vocabInterpolator = d3.interpolateRgb("#D5BAFF", "#6733B4");
-    var bestWords = [[-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0]];
-    var worstWords = [[2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0]];
-    var bestWordsR = [[-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0]];
-    var worstWordsR = [[2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0]];
+    var bestWords = [[-1, 0, 1, 0, 0, 0, 0], [-1, 0, 1, 0, 0, 0, 0], [-1, 0, 1, 0, 0, 0, 0], [-1, 0, 1, 0, 0, 0, 0], [-1, 0, 1, 0, 0, 0, 0]];
+    var worstWords = [[2, 0, 1, 0, 0, 0, 0], [2, 0, 1, 0, 0, 0, 0], [2, 0, 1, 0, 0, 0, 0], [2, 0, 1, 0, 0, 0, 0], [2, 0, 1, 0, 0, 0, 0]];
+    var bestWordsR = [[-1, 0, 1, 0, 0, 0], [-1, 0, 1, 0, 0, 0], [-1, 0, 1, 0, 0, 0], [-1, 0, 1, 0, 0, 0], [-1, 0, 1, 0, 0, 0]];
+    var worstWordsR = [[2, 0, 1, 0, 0, 0], [2, 0, 1, 0, 0, 0], [2, 0, 1, 0, 0, 0], [2, 0, 1, 0, 0, 0], [2, 0, 1, 0, 0, 0]];
     var bestWordsK = [[-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0]];
     var worstWordsK = [[2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0], [2, 0, 1, 0, 0]];
     var bestWordsV = [[-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0], [-1, 0, 1, 0, 0]];
@@ -1642,20 +1642,20 @@ async function wordInfo() {
         let foundBestV = bestWordsV.findIndex(element => (element[0] < kdWeight));
         let foundWorstV = worstWordsV.findIndex(element => (element[0] > kdWeight));
         if (foundBest != -1) {
-            bestWords[foundBest] = [kdWeight, kd, name, cor, inc];
+            bestWords[foundBest] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"], (type == 'radical') ? 'radicals' : type];
         }
         if (type == "radical" && foundBestR != -1) {
-            bestWordsR[foundBestR] = [kdWeight, kd, name, cor, inc];
+            bestWordsR[foundBestR] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"]];
         } else if (type == "kanji" && foundBestK != -1) {
             bestWordsK[foundBestK] = [kdWeight, kd, name, cor, inc];
         } else if (type == "vocabulary" && foundBestV != -1) {
             bestWordsV[foundBestV] = [kdWeight, kd, name, cor, inc];
         }
         if (foundWorst != -1) {
-            worstWords[foundWorst] = [kdWeight, kd, name, cor, inc];
+            worstWords[foundWorst] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"], (type == 'radical') ? 'radicals' : type];
         }
         if (type == "radical" && foundWorstR != -1) {
-            worstWordsR[foundWorstR] = [kdWeight, kd, name, cor, inc];
+            worstWordsR[foundWorstR] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"]];
         } else if (type == "kanji" && foundWorstK != -1) {
             worstWordsK[foundWorstK] = [kdWeight, kd, name, cor, inc];
         } else if (type == "vocabulary" && foundWorstV != -1) {
@@ -1767,17 +1767,17 @@ async function wordInfo() {
     chart = new google.visualization.ScatterChart(chartDiv);
     chart.draw(chartData, options);
 
-    hallCreation(bestWords, "topwords", "Wall of Fame: All", "black");
-    hallCreation(worstWords, "worstwords", "Wall of Shame: All", "black");
-    hallCreation(bestWordsR, "topwordsradical", "Wall of Fame: Radicals", '#55abf2');
-    hallCreation(worstWordsR, "worstwordsradical", "Wall of Shame: Radicals", '#55abf2');
-    hallCreation(bestWordsK, "topwordskanji", "Wall of Fame: Kanji", '#f032b1');
-    hallCreation(worstWordsK, "worstwordskanji", "Wall of Shame: Kanji", '#f032b1');
-    hallCreation(bestWordsV, "topwordsvocab", "Wall of Fame: Vocabulary", '#bb31de');
-    hallCreation(worstWordsV, "worstwordsvocab", "Wall of Shame: Vocabulary", '#bb31de');
+    hallCreation(bestWords, "topwords", "Wall of Fame: All", "black", 'mix');
+    hallCreation(worstWords, "worstwords", "Wall of Shame: All", "black", 'mix');
+    hallCreation(bestWordsR, "topwordsradical", "Wall of Fame: Radicals", '#55abf2', 'radicals');
+    hallCreation(worstWordsR, "worstwordsradical", "Wall of Shame: Radicals", '#55abf2', 'radicals');
+    hallCreation(bestWordsK, "topwordskanji", "Wall of Fame: Kanji", '#f032b1', 'kanji');
+    hallCreation(worstWordsK, "worstwordskanji", "Wall of Shame: Kanji", '#f032b1', 'kanji');
+    hallCreation(bestWordsV, "topwordsvocab", "Wall of Fame: Vocabulary", '#bb31de', 'vocabulary');
+    hallCreation(worstWordsV, "worstwordsvocab", "Wall of Shame: Vocabulary", '#bb31de', 'vocabulary');
 }
 
-async function hallCreation(words, divid, titleChart, colorChart) {
+async function hallCreation(words, divid, titleChart, colorChart, type) {
     let chartDiv = document.getElementById(divid);
     var data = [["Radical", "Percentage", { role: 'annotation' }]];
     for (let i = 0; i < words.length; i++) data.push([words[i][2], words[i][1]*100, words[i][3]+"/"+words[i][4]]);
@@ -1803,6 +1803,15 @@ async function hallCreation(words, divid, titleChart, colorChart) {
     chartDiv = document.getElementById(divid);
     var chart = new google.visualization.ColumnChart(chartDiv);
     chart.draw(chartData, options);
+
+    google.visualization.events.addListener(chart, 'select', function() {
+        if (type == 'radicals' || (type == 'mix' && words[chart.getSelection()[0].row][6] == 'radicals')) window.open("https://www.wanikani.com/radicals/" + words[chart.getSelection()[0].row][5]);
+        else if (type == 'mix') {
+            window.open("https://www.wanikani.com/" + words[chart.getSelection()[0].row][6] + "/" + data[chart.getSelection()[0].row + 1][0]);
+        }
+        else window.open("https://www.wanikani.com/" + type + "/" + data[chart.getSelection()[0].row + 1][0]);
+        chart.setSelection(null);
+    });
 }
 
 fetchData();
