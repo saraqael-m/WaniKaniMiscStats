@@ -111,10 +111,6 @@ div.settings h4 {
 		color: white;
 	}
 
-.dark-mode tr {
-	color: white;
-}
-
 .dark-mode #whiteoverlay {
 	background-color: black;
 	color: white;
@@ -219,12 +215,8 @@ div.settings h4 {
 	background-color: white !important;
 }
 
-.dark-mode svg[aria-label="A chart."] [stroke="#000000"] {
+.dark-mode svg[aria-label="A chart."] path[stroke="#000000"] {
 	stroke: white;
-}
-
-.dark-mode svg[aria-label="A chart."] [fill="#000000"] {
-	fill: white;
 }
 
 /* progressbar design */
