@@ -53,10 +53,10 @@
 			<a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652" style="float: left;">WaniKani Thread</a>
 			<a href="https://community.wanikani.com/u/koichi/summary" style="float: left;">Koichi</a>
 			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3);">Logout</button>
-			<span style="float: right;">バージョン３.７.３</span>
+			<span style="float: right;">バージョン３.７.４</span>
 		</div>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
-		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">And Other Miscellaneous Stats</h2>
+		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">Miscellaneous Statistics</h2>
 	</div>
 
 	<div class="toc">
@@ -111,10 +111,10 @@
 					<img src="images/settings_icon.png">
 				</div>
 				<div style="clear: both;"></div>
-				
+
 				<div id="leveltimechart" class="chart"></div>
 				<!--<span class="projections"></span>-->
-				
+
 			</div>
 
 			<div id="1" class="card">
@@ -123,7 +123,7 @@
 
 				<a id="Projections"></a>
 				<h2 class="heading" style="float: left;">Projections</h2>
-				
+
 				<div class="settingsbtn">
 					<div class="settings">
 						<img src="images/settings_icon.png" style="float: left;">
@@ -204,7 +204,7 @@
 						<label for="nullify">Start with 0</label>
 					</div>
 				</div>
-				
+
 				<p><b>Tip:</b> Click a date data point on one of these charts and use arrow keys to move through single dates.</p>
 				<!--<div style="display: none; padding-top: 5px">
 					<input type="checkbox" id="showsnapshot" name="showsnapshot">
@@ -287,18 +287,18 @@
 						<img src="images/settings_icon.png" style="float: left;">
 						<h4>Settings</h4>
 						<span>Column time span of </span>
-					<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tablemonth" min="0" max="9999" value="1">
-					<span> months and </span>
-					<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tableday" min="0" max="9999" value="0">
-					<span> days.</span>
-					<button type="button" onclick="updateTables();">Generate Table</button>
-					<div style="margin-top: 10px"><i>Change time interval offset (shift table):</i></div>
-					<div style="margin-top: 6px"></div><div style="margin: 0">
-						<button type="button" onclick="updateTables(1);" style="border-width: 0px; margin: 5px">&lt;</button>
-						<span>Offset: </span><span id="tableoffset"></span>
-						<button type="button" onclick="updateTables(-1);" style="border-width: 0px; margin: 5px">&gt;</button>
-						<button type="button" onclick="updateTables(100000);" style="border-width: 0px; margin: 5px">&gt;&gt;</button>
-					</div>
+						<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tablemonth" min="0" max="9999" value="1">
+						<span> months and </span>
+						<input type="number" onkeydown="if (event.key === 'Enter') updateTables();" style="width: 70px" id="tableday" min="0" max="9999" value="0">
+						<span> days.</span>
+						<button type="button" onclick="updateTables();">Generate Table</button>
+						<div style="margin-top: 10px"><i>Change time interval offset (shift table):</i></div>
+						<div style="margin-top: 6px"></div><div style="margin: 0">
+							<button type="button" onclick="updateTables(1);" style="border-width: 0px; margin: 5px">&lt;</button>
+							<span>Offset: </span><span id="tableoffset"></span>
+							<button type="button" onclick="updateTables(-1);" style="border-width: 0px; margin: 5px">&gt;</button>
+							<button type="button" onclick="updateTables(100000);" style="border-width: 0px; margin: 5px">&gt;&gt;</button>
+						</div>
 					</div>
 					<img src="images/settings_icon.png">
 				</div>
@@ -423,10 +423,10 @@
 
 				<a id="WallofShame"></a>
 				<h2>Wall of Shame</h2>
-				<div id="worstwords" class="chart" style="color: white"></div>
-				<div id="worstwordsradical" class="chart"></div>
-				<div id="worstwordskanji" class="chart"></div>
-				<div id="worstwordsvocab" class="chart"></div>
+				<div id="worstwords" class="chart wall" style="color: white"></div>
+				<div id="worstwordsradical" class="chart wall"></div>
+				<div id="worstwordskanji" class="chart wall"></div>
+				<div id="worstwordsvocab" class="chart wall"></div>
 			</div>
 
 			<div id="9" class="card wordall">
@@ -435,10 +435,10 @@
 
 				<a id="WallofFame"></a>
 				<h2>Wall of Fame</h2>
-				<div id="topwords" class="chart" style="color: white"></div>
-				<div id="topwordsradical" class="chart"></div>
-				<div id="topwordskanji" class="chart"></div>
-				<div id="topwordsvocab" class="chart"></div>
+				<div id="topwords" class="chart wall" style="color: white"></div>
+				<div id="topwordsradical" class="chart wall"></div>
+				<div id="topwordskanji" class="chart wall"></div>
+				<div id="topwordsvocab" class="chart wall"></div>
 			</div>
 		</div>
 
@@ -551,6 +551,7 @@
 	<!-- projections by UInt2048 -->
 	<script src="js/projections.js"></script>
 	<!-- main script -->
+	<script src="js/basicFunc.js"></script>
 	<script src="js/yojijukugoData.js"></script>
 	<script src="js/mainWkof.js"></script>
 

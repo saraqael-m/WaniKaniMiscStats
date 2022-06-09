@@ -1,12 +1,5 @@
-const prevToken = localStorage.getItem('apiv2_key_override');
-if (prevToken === null) window.location.href = "index.html";
-
 // load packages
 google.charts.load('current', { 'packages': ['corechart', 'bar', 'table'] });
-
-// device
-var isMobile = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) // normal mobile
-    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 0); // ipad pro
 
 // API vars
 var apiToken;
@@ -61,8 +54,6 @@ const newdatebtn = document.getElementById("newdatebtn");
 const newdateche = document.getElementById("nullify");
 const smoothInp = document.getElementById("smoothreview");
 const smoothAccInp = document.getElementById("smoothacc");
-const blackOverlay = document.getElementById("blackoverlay");
-const whiteOverlay = document.getElementById("whiteoverlay");
 const detailWindow = document.getElementById('detailwindow');
 const reviewProgress = document.getElementById("reviewprogress");
 const reviewAll = document.getElementsByClassName("reviewall");
@@ -73,7 +64,6 @@ const levelClampBox = document.getElementById("levelclamp");
 const levelCombBox = document.getElementById("levelcomb");
 const levelMedianBox = document.getElementById("showmedian");
 const projSpeedBox = document.getElementById("projectionsspeed");
-const wkofDiv = document.getElementById("wkof_ds");
 
 // global vars
 var unalteredItemData = {};
@@ -142,10 +132,11 @@ window.onbeforeunload = function () {
 
 // main code
 
-function logout() {
-    deleteDatabase('wkof.file_cache');
-    localStorage.removeItem('apiv2_key_override');
-    window.location.href = "index.html";
+function chartSelectionMover(direction) {
+    if (currentSelection.length == 0) return;
+    currentSelection[1].row += direction;
+    try { currentSelection[0].setSelection([currentSelection[1]]); }
+    catch (e) { currentSelection[1].row -= direction; currentSelection[0].setSelection([currentSelection[1]]); }
 }
 
 function openDetailWindow(htmlInput) {
@@ -163,44 +154,6 @@ function closeDetailWindow() {
     detailWindow.style.visibility = 'hidden';
     blackOverlay.style.visibility = 'hidden';
     detailWindow.children[1].innerHTML = "";
-}
-
-function changeMode() {
-    if (lightMode) {
-        lightMode = false;
-        let modebtn = document.getElementById('modebtn')
-        modebtn.innerHTML = "㊐ Light Mode";
-        modebtn.style.color = "black";
-        modebtn.style.backgroundColor = "white";
-        //for (const div of modedivs) div.classList.add('dark-mode');
-        document.body.classList.add('dark-mode');
-        document.documentElement.style.setProperty('color-scheme', 'dark');
-        let header = document.getElementsByClassName('header')[0];
-        header.style["-webkit-filter"] = "invert(90%)";
-        header.style.filter = "invert(90%)";
-        let wkofdiv = document.getElementById('wkof_ds');
-        wkofdiv.style["-webkit-filter"] = "invert(100%)";
-        wkofdiv.style.filter = "invert(100%)";
-        document.body.style.background = "black";
-        localStorage["mode"] = "light";
-    } else {
-        lightMode = true;
-        let modebtn = document.getElementById('modebtn')
-        modebtn.innerHTML = "㊊ Dark Mode";
-        modebtn.style.color = "white";
-        modebtn.style.backgroundColor = "black";
-        //for (const div of modedivs) div.classList.remove('dark-mode');
-        document.body.classList.remove('dark-mode');
-        document.documentElement.style.setProperty('color-scheme', 'light');
-        let header = document.getElementsByClassName('header')[0];
-        header.style["-webkit-filter"] = "";
-        header.style.filter = "";
-        let wkofdiv = document.getElementById('wkof_ds');
-        wkofdiv.style["-webkit-filter"] = "";
-        wkofdiv.style.filter = "";
-        document.body.style.background = "#f1f1f1";
-        localStorage["mode"] = "dark";
-    }
 }
 
 function setCardOrder() {
@@ -251,21 +204,6 @@ function saveSettings() {
     localStorage["settings"] = JSON.stringify(settings);
 }
 
-async function deleteDatabase(dbName) {
-    return await new Promise((resolve, reject) => {
-        const request = indexedDB.deleteDatabase(dbName);
-
-        request.onerror = (event) => { // fails to open
-            console.error(`IndexedDatabase error: ${event.target.errorCode}`);
-            reject(`IndexedDatabase error: ${event.target.errorCode}`);
-        };
-
-        request.onsuccess = async (event) => { // deleted successfully
-            resolve(event.result);
-        };
-    });
-}
-
 async function fetchData() {
     assignmentData = []; resurrectedItems = []; userData = []; reviewData = []; reviewArray = []; totalArray = []; averageArray = []; srsArray = []; levelData = []; wordData = []; resetData = []; resets = []; subjectData = []; reviewAccuracy = [];
     //reviewPg.style.backgroundColor = "palegoldenrod";
@@ -284,9 +222,7 @@ async function fetchData() {
     for (let i = 0; i < subjectData.length; i++) if (subjectData[i]["object"] != "placeholder" && subjectData[i]["data"]["hidden_at"] != null) hiddenItems.push([subjectData[i]["data"]["hidden_at"], subjectData[i]["id"], subjectData[i]]);
     resurrectedItems.sort((a, b) => new Date(a[0]) - new Date(b[0]));
     hiddenItems.sort((a, b) => new Date(a[0]) - new Date(b[0]));
-    if (reviewData !== -1) await reviewInfo();
-    await new Promise(r => setTimeout(r, 50));
-    //db.close();
+    await reviewInfo();
     blackOverlay.style.visibility = "hidden";
     whiteOverlay.style.visibility = "hidden";
     for (const maindiv of maindivs) maindiv.style.display = "block";
@@ -357,27 +293,6 @@ async function loadGraphs() {
 
 function dateLongFormat(date) {
     return date.toDateString().split(' ').slice(1).join(' ');
-}
-
-function fixHtml(html) {
-    var div = document.createElement('div');
-    div.innerHTML = html;
-    return (div.innerHTML);
-}
-
-function chartSelectionSetter(chart) {
-    let selection = chart.getSelection();
-    if (selection.length == 0) { currentSelection = []; return; }
-    if (currentSelection.length != 0) currentSelection[0].setSelection();
-    currentSelection = [chart, { row: selection[0].row, column: null }];
-    chart.setSelection([currentSelection[1]]);
-}
-
-function chartSelectionMover(direction) {
-    if (currentSelection.length == 0) return;
-    currentSelection[1].row += direction;
-    try { currentSelection[0].setSelection([currentSelection[1]]); }
-    catch (e) { currentSelection[1].row -= direction; currentSelection[0].setSelection([currentSelection[1]]); }
 }
 
 async function userInfo() {
@@ -458,7 +373,7 @@ async function updateProjections() {
     let editedData = (document.getElementById('pastLevels').checked ? projectionsData.slice() : [projectionsData[0], ...projectionsData.slice(userData['level'] + 1)]).slice(...(document.getElementById('showBurn').checked ? [] : [0, -1]));
     if (!document.getElementById('showCheck').checked) editedData = editedData.map(x => [...x.slice(0, 2), ...x.slice(3)])
     let chartData = google.visualization.arrayToDataTable(editedData);
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
     dateFormatter.format(chartData, 1);
     dateFormatter.format(chartData, 2);
     dateFormatter.format(chartData, 3);
@@ -647,8 +562,6 @@ async function reviewInfo() {
     for (const div of reviewAll) div.style.display = "block";
     const dataLength = reviewData.length;
     if (dataLength == 0) { for (const div of reviewAll) div.style.display = "none"; return; }
-    //reviewPg.style.width = "0%";
-    //reviewPg.style.backgroundColor = "lightblue";
     var resetArray = [];
     reviewArray = [["Date", "Reviews", "Radical", "Kanji", "Vocab"]];
     srsArray = [["Date", "Apprentice", "Guru", "Master", "Enlightened", "Burned"], [0, 0, 0, 0, 0, 0]];
@@ -795,10 +708,6 @@ async function reviewInfo() {
                 else break;
             }
         }
-        /*if (i % 10000 == 0) {
-            reviewPg.style.width = 100 * i / dataLength + "%";
-            await new Promise(r => setTimeout(r, 50));
-        }*/
     }
     srsArray.splice(1, 1);
     reviewAccuracy.splice(1, 1);
@@ -874,7 +783,7 @@ async function updateReviewCharts() {
     loadingLbl.innerHTML = "Time frame starts at " + String(startDate).split(' ').slice(1, 4).join(' ') + ".";
     let nullifyBool = newdateche.checked;
     if (reviewArray.length == 0) return;
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
     // reviews per day
     updateReviewsPerDay();
     // total reviews
@@ -1197,7 +1106,7 @@ async function updateReviewAccuracy() {
     for (let i = 0; i < currentReadingArray.length; i++) currentReadingArray[i].splice(2, 1);
     // review accuracy
     var accChartData = google.visualization.arrayToDataTable(dataDateShorten(currentAccuracyArray, startDate));
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
     dateFormatter.format(accChartData, 0);
     var options = {
         chartArea: { width: '80%', height: '80%' },
@@ -1221,7 +1130,6 @@ async function updateReviewAccuracy() {
     google.visualization.events.addListener(accChart, 'select', function () { chartSelectionSetter(accChart); });
     // meaning accuracy
     var meanChartData = google.visualization.arrayToDataTable(dataDateShorten(currentMeaningArray, startDate));
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
     dateFormatter.format(meanChartData, 0);
     var options = {
         chartArea: { width: '80%', height: '80%' },
@@ -1245,7 +1153,6 @@ async function updateReviewAccuracy() {
     google.visualization.events.addListener(meanChart, 'select', function () { chartSelectionSetter(meanChart); });
     // reading accuracy
     var readChartData = google.visualization.arrayToDataTable(dataDateShorten(currentReadingArray, startDate));
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
     dateFormatter.format(readChartData, 0);
     var options = {
         chartArea: { width: '80%', height: '80%' },
@@ -1269,7 +1176,6 @@ async function updateReviewAccuracy() {
     google.visualization.events.addListener(readChart, 'select', function () { chartSelectionSetter(readChart); });
     // review "correctness"
     var chartData = google.visualization.arrayToDataTable(dataDateShorten(averageArray, startDate));
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
     dateFormatter.format(chartData, 0);
     var options = {
         chartArea: { width: '80%', height: '80%' },
@@ -1315,7 +1221,7 @@ async function updateReviewsPerDay() {
     let startDate = new Date(newdateinp.value);
     // reviews per day
     var chartData = google.visualization.arrayToDataTable(dataDateShorten(smoothBool ? averageArray : reviewArray, startDate));
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd, yyyy" });
+    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
     dateFormatter.format(chartData, 0);
     var options = {
         chartArea: { width: '90%', height: '85%' },
@@ -1512,7 +1418,7 @@ function daysToDurationString(x, includeHours = false, short = false) {
 function updateLevelChart() {
     const resetBool = levelResetsBox.checked; const clampBool = levelClampBox.checked; const combBool = levelCombBox.checked;
     let currentLevelChart = resetBool ? (combBool ? combPureLevelChart : pureLevelChart) : (combBool ? combLevelChart : levelChart);
-    if (levelMedianBox.checked) currentLevelChart = currentLevelChart.map(arr => arr.slice(0, -2));
+    if (!levelMedianBox.checked) currentLevelChart = currentLevelChart.map(arr => arr.slice(0, -2));
     const medianVal = levelChart[1][6];
     let maxLength = currentLevelChart.slice(1).reduce(function (p, v) { return (v[1] + (combBool ? 0 : v[4]) > p[1] + (combBool ? 0 : p[4]) ? v : p); });
     maxLength = maxLength[1] + (combBool ? 0 : maxLength[4]);
@@ -1596,7 +1502,6 @@ async function wordInfo() {
     var used = [];
     for (let i = 0; i < wordData.length; i++) {
         let currentData = wordData[i];
-        let updatedAt = currentData["data_updated_at"];
         currentData = currentData["data"];
         id = currentData["subject_id"];
         if (used.findIndex(element => (element == id)) != -1) continue;
@@ -1642,7 +1547,7 @@ async function wordInfo() {
         let foundBestV = bestWordsV.findIndex(element => (element[0] < kdWeight));
         let foundWorstV = worstWordsV.findIndex(element => (element[0] > kdWeight));
         if (foundBest != -1) {
-            bestWords[foundBest] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"], (type == 'radical') ? 'radicals' : type];
+            bestWords[foundBest] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"], type];
         }
         if (type == "radical" && foundBestR != -1) {
             bestWordsR[foundBestR] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"]];
@@ -1652,7 +1557,7 @@ async function wordInfo() {
             bestWordsV[foundBestV] = [kdWeight, kd, name, cor, inc];
         }
         if (foundWorst != -1) {
-            worstWords[foundWorst] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"], (type == 'radical') ? 'radicals' : type];
+            worstWords[foundWorst] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"], type];
         }
         if (type == "radical" && foundWorstR != -1) {
             worstWordsR[foundWorstR] = [kdWeight, kd, name, cor, inc, subjectData[id]["data"]["slug"]];
@@ -1769,8 +1674,8 @@ async function wordInfo() {
 
     hallCreation(bestWords, "topwords", "Wall of Fame: All", "black", 'mix');
     hallCreation(worstWords, "worstwords", "Wall of Shame: All", "black", 'mix');
-    hallCreation(bestWordsR, "topwordsradical", "Wall of Fame: Radicals", '#55abf2', 'radicals');
-    hallCreation(worstWordsR, "worstwordsradical", "Wall of Shame: Radicals", '#55abf2', 'radicals');
+    hallCreation(bestWordsR, "topwordsradical", "Wall of Fame: Radicals", '#55abf2', 'radical');
+    hallCreation(worstWordsR, "worstwordsradical", "Wall of Shame: Radicals", '#55abf2', 'radical');
     hallCreation(bestWordsK, "topwordskanji", "Wall of Fame: Kanji", '#f032b1', 'kanji');
     hallCreation(worstWordsK, "worstwordskanji", "Wall of Shame: Kanji", '#f032b1', 'kanji');
     hallCreation(bestWordsV, "topwordsvocab", "Wall of Fame: Vocabulary", '#bb31de', 'vocabulary');
@@ -1804,11 +1709,9 @@ async function hallCreation(words, divid, titleChart, colorChart, type) {
     var chart = new google.visualization.ColumnChart(chartDiv);
     chart.draw(chartData, options);
 
-    google.visualization.events.addListener(chart, 'select', function() {
-        if (type == 'radicals' || (type == 'mix' && words[chart.getSelection()[0].row][6] == 'radicals')) window.open("https://www.wanikani.com/radicals/" + words[chart.getSelection()[0].row][5]);
-        else if (type == 'mix') {
-            window.open("https://www.wanikani.com/" + words[chart.getSelection()[0].row][6] + "/" + data[chart.getSelection()[0].row + 1][0]);
-        }
+    google.visualization.events.addListener(chart, 'select', function () {
+        if (type == 'radical' || (type == 'mix' && words[chart.getSelection()[0].row][6] == 'radical')) window.open("https://www.wanikani.com/radicals/" + words[chart.getSelection()[0].row][5]);
+        else if (type == 'mix') window.open("https://www.wanikani.com/" + words[chart.getSelection()[0].row][6] + "/" + data[chart.getSelection()[0].row + 1][0]);
         else window.open("https://www.wanikani.com/" + type + "/" + data[chart.getSelection()[0].row + 1][0]);
         chart.setSelection(null);
     });

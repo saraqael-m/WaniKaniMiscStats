@@ -1,16 +1,31 @@
 ﻿const prevToken = localStorage.getItem('apiv2_key_override');
-if (prevToken !== null) window.location.href = "Stats.html";
+if (prevToken !== null) returnToPage();
 
 const tokenInput = document.getElementById('tokeninput');
 const errorDiv = document.getElementById('errordiv');
 
 var apiToken;
 
+function returnToPage() {
+    let pageOrigin = searchQueryVar('origin');
+    if (pageOrigin != undefined) window.location.href = pageOrigin;
+    else window.location.href = 'Stats.html';
+}
+
+function searchQueryVar(name) {
+    let rawSearchQuery = window.location.search;
+    if (rawSearchQuery == '') return;
+    let varIndex = rawSearchQuery.slice(1).indexOf(name);
+    if (varIndex === -1) return;
+    return rawSearchQuery.slice(varIndex + name.length + 2).split('&')[0];
+}
+
 async function getApiToken() {
     apiToken = tokenInput.value.replace(/[^A-Za-z0-9-]/g, '').toLowerCase();
     if (await fetchTestApi() == true) {
         localStorage.setItem('apiv2_key_override', apiToken);
-        window.location.href = "Stats.html";
+        console.log(window.location.hash)
+        returnToPage();
     }
 }
 

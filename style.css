@@ -131,7 +131,7 @@ div.settings h4 {
 	color: black;
 }
 
-.dark-mode .chart text {
+.dark-mode .chart text:not([fill="#ffffff"]) {
 	fill: white !important;
 }
 
@@ -221,6 +221,17 @@ div.settings h4 {
 
 .dark-mode svg[aria-label="A chart."] [fill="#000000"] {
 	fill: white;
+}
+
+:not(dark-mode) .wall svg[aria-label="A chart."] text[fill="#222222"] {
+	fill: white;
+}
+
+.dark-mode .wall svg[aria-label="A chart."] text[fill="#222222"] {
+	fill: black !important;
+}
+.dark-mode .wall svg[aria-label="A chart."] text[fill="#ffffff"] {
+	fill: black !important;
 }
 
 /* progressbar design */
@@ -513,8 +524,18 @@ table.normaltable {
 	}
 }
 
+/* timemachine */
+
+rect[fill-opacity="0"]:not([stroke="none"]) {
+	stroke: white;
+	fill: white;
+	fill-opacity: 0.5;
+	stroke-opacity: 0.5;
+	stroke-width: 3px;
+}
+
 /* wkof visual bug workaround */
 
-[aria-labelledby="ui-id-2"] {
+[aria-labelledby="ui-id-2"]:nth-child(2) {
 	top: -1000px !important;
 }
