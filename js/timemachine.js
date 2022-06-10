@@ -22,12 +22,13 @@ document.onkeydown = function (evt) {
 };
 
 async function chartSelectionMover(direction) {
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise(resolve => setTimeout(resolve, 100));
     if (currentSelection.length == 0) return;
     currentSelection[1].row += direction;
     try { currentSelection[0].setSelection([currentSelection[1]]); }
     catch (e) { currentSelection[1].row -= direction; currentSelection[0].setSelection([currentSelection[1]]); }
     populateKanjiDiv(currentSelection[1].row);
+    document.querySelectorAll('[aria-label="A chart."]');
 }
 
 //// data caching ////
@@ -359,7 +360,7 @@ function generateTimemachineChart() {
     // calculate needed data
     dateRange = parseInt(Math.abs(new Date(reviewData[0].data["created_at"]) - new Date(reviewData[reviewData.length - 1].data["created_at"])) / (86400000 * 200)); // around up to 200 days will be repesented one by one
     var currentSrsArray = [srsArray[0]];
-    for (let i = 1; i < srsArray.length; i += dateRange) currentSrsArray.push(srsArray[i]);
+    for (let i = 1; i < srsArray.length; i += dateRange + 1) currentSrsArray.push(srsArray[i]);
     // srs stacked
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
     srsChartData = google.visualization.arrayToDataTable(currentSrsArray);

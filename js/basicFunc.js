@@ -20,10 +20,10 @@ function returnToPage() {
     window.location.href = 'index.html?origin=' + window.location.pathname.split('/').slice(-1)[0];
 }
 
-function logout() {
+async function logout() {
     try {
-        wkof.Apiv2.clear_cache();
-        wkof.file_cache.clear();
+        await wkof.Apiv2.clear_cache();
+        await wkof.file_cache.clear();
     } catch (e) {
         deleteDatabase('wkof.file_cache');
     }
