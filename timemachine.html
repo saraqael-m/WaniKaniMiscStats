@@ -2,17 +2,17 @@
 <html>
 <head>
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-V3WGNFTLVD"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PTVHSY8QMD"></script>
     <script>
-		window.dataLayer = window.dataLayer || [];
-		function gtag() { dataLayer.push(arguments); }
-		gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-		gtag('config', 'G-V3WGNFTLVD');
+        gtag('config', 'G-PTVHSY8QMD');
     </script>
     <!-- rest -->
-    <title>WK History</title>
-    <link rel="icon" href="images/icon.png">
+    <title>WK History: Timemachine</title>
+    <link rel="icon" href="images/icon_tm.png">
     <link href="style.css" rel="stylesheet" type="text/css">
     <meta charset="UTF-8">
     <meta name="description" content="Look at your full WaniKani History!">
@@ -22,9 +22,14 @@
 </head>
 <body>
 
-    <div id="wkof_ds" style="display: none; z-index: 1003"></div>
-
     <a id="top"></a>
+
+    <div class="navbar" style="position: relative; z-index: 1004">
+        <a href="Stats.html">Statistics</a>
+        <a href="timemachine.html">Timemachine</a>
+    </div>
+
+    <div id="wkof_ds" style="display: none; z-index: 1003"></div>
 
     <div class="form-group" style="margin-top: 12%; float:right; position: relative; z-index: 1000">
         <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
@@ -33,27 +38,27 @@
     </div>
     <div class="form-group" style="margin-top: 12%; float:left; position: relative; z-index: 1000">
         <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-            <button class="btn btn-primary btn-md" id="modebtn" style="position: fixed; left: 10px; bottom: 10px; padding: 4px" onclick="changeMode();">㊊ Dark Mode</button>
+            <button class="btn btn-primary btn-md" id="modebtn" style="position: fixed; left: 10px; bottom: 10px; padding: 4px" onclick="changeMode([srsChart]);">㊊ Dark Mode</button>
         </div>
     </div>
 
     <div id="blackoverlay" style="visibility: hidden; position: fixed; top: 0%; left: 0%; width: 100%; height: 100%; background: black; z-index: 1001; opacity: 0.5;"></div>
-    <div id="whiteoverlay" class="w3-container" style="visibility: hidden; border-radius: 6px; position: absolute; top: 50%;left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
-        <h3 style="margin-top: 10px">Loading Data...</h3>
+    <div id="whiteoverlay" class="w3-container" style="visibility: hidden; border-radius: 6px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: hidden; padding: 20px">
+        <h3 style="margin-top: 10px; display: inline">Loading Data...  </h3>
+        <div class="loader" style="display: inline-block"></div>
     </div>
-    <div id="detailwindow" class="w3-container" style="visibility: hidden; max-width: 60%; max-height: 90%; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: auto; padding: 20px">
+    <div id="detailwindow" class="w3-container" style="visibility: hidden; max-width: 60%; max-height: 90%; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1002; overflow: auto; padding: 20px">
         <button class="closebtn" style="position: fixed; top: 8px; right: 8px; background: url(images/closebtn.png); background-size: cover; height: 15px; width: 15px; border: none" onclick="closeDetailWindow();"></button>
         <div style="margin-top: 20px"></div>
     </div>
 
     <div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('images/timemachine2_bg.webp') no-repeat center; background-size: 100%">
         <div id="linkrow">
-            <a href="https://www.wanikani.com/dashboard" style="float: left;">WaniKani</a>
             <a href="https://github.com/saraqael-m/WaniKaniMiscStats" style="float: left;">Github Repo</a>
             <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652" style="float: left;">WaniKani Thread</a>
             <a href="https://community.wanikani.com/u/koichi/summary" style="float: left;">Koichi</a>
-            <button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3);">Logout</button>
-            <span style="float: right;">タイムマシン０.１.１</span>
+            <button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3); position: relative; z-index: 1004">Logout</button>
+            <span style="float: right;">タイムマシン０.２.０</span> <!-- ０１２３４５６７８９ -->
         </div>
         <h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
         <h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">Timemachine</h2>
@@ -67,20 +72,32 @@
 
         <div class="card">
             <a class="Timemachine"></a>
-            <h1>Timemachine</h1>
+            <h2 style="float: left;">Timemachine</h2>
+
+            <div class="settingsbtn">
+                <div class="settings">
+                    <img src="images/settings_icon.png" style="float: left;">
+                    <h4>Settings</h4>
+                    <button type="button" onclick="reloadTimemachineData();">Reload Timemachine Data</button>
+                </div>
+                <img src="images/settings_icon.png">
+            </div>
+            <div style="clear: both;"></div>
+
             <div class="chart" id="srschart"></div>
+            <div style="width: 100%; padding-bottom: 10px">
+                <input type="range" min="0" max="1000" value="0" class="timemachineslider" id="timeslider">
+            </div>
             <div id="timemachinediv" style="font-size: 80%"></div>
+
+            <p><b>Note:</b> You can click and drag to zoom. With SHIFT + drag you can move in a zoomed view. The home button in the top right lets you get back to the normal view. If the numbers in the info box do not load just click the chart once.</p>
         </div>
 
     </div>
 
-    <div class="footer card">
-        <h2 style="margin: auto;">You have reached the end. おめでとう！</h2>
-    </div>
-
-
     <!-- Modules -->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script> <!-- google charts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> <!-- apex charts -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="js/jquery-3.6.0.min.js"></script>
     <!-- WaniKani Open Framework scripts -->

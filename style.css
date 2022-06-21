@@ -19,7 +19,6 @@ body.dark-mode {
 
 h1, h2, h3, h4, h5, h6, label, p, pre {
 	font-family: Helvetica, Arial, Sans-Serif;
-	/*color: black;*/
 }
 h2 {
 	margin-top: 0;
@@ -75,6 +74,46 @@ div.settings h4 {
 .dark-mode div.settings {
 	color: white;
 }
+
+/* navigation bar */
+
+.navbar {
+	overflow: hidden;
+	background-color: #aed0f5;
+	border-radius: 8px;
+	margin-bottom: 10px;
+}
+
+	.navbar a {
+		float: left;
+		display: block;
+		font-size: 120%;
+		color: black !important;
+		text-align: center;
+		margin: 5px 0 5px 5px;
+		padding: 8px;
+		text-decoration: none;
+	}
+
+		.navbar a:hover {
+			background-color: #2c598a;
+			color: white !important;
+			cursor: pointer;
+			border-radius: 5px;
+		}
+
+.dark-mode .navbar {
+	background-color: #2c598a;
+}
+
+	.dark-mode .navbar a {
+		color: white !important;
+	}
+
+		.dark-mode .navbar a:hover {
+			background-color: #aed0f5;
+			color: black !important;
+		}
 
 /* tooltip */
 
@@ -476,13 +515,6 @@ table.normaltable {
 	padding-left: 20px;
 }
 
-/* fake image */
-.fakeimg {
-	background-color: #aaa;
-	width: 100%;
-	padding: 20px;
-}
-
 /* add a card effect for articles */
 .card {
 	background-color: var(--card-color);
@@ -534,8 +566,106 @@ rect[fill-opacity="0"]:not([stroke="none"]) {
 	stroke-width: 3px;
 }
 
+.srs1 {
+	color: #f400a3;
+}
+
+.srs2 {
+	color: #f400a3;
+}
+
+.srs3 {
+	color: #f400a3;
+}
+
+.srs4 {
+	color: #f400a3;
+}
+
+.srs5 {
+	color: #9e34b8;
+}
+
+.srs6 {
+	color: #9e34b8;
+}
+
+.srs7 {
+	color: #3557dd;
+}
+
+.srs8 {
+	color: #ADD8E6; /* different from wanikani color for better differentiability */
+}
+
+.srs9 {
+	color: #f0ca00;
+}
+
+.timemachineslider {
+	-webkit-appearance: none; /* Override default CSS styles */
+	appearance: none;
+	width: 100%; 
+	height: 20px; 
+	background: #d3d3d3; 
+	outline: none; 
+	opacity: 0.7; 
+	-webkit-transition: .2s;
+	transition: opacity .2s;
+}
+
+	.timemachineslider:hover {
+		opacity: 1; /* Fully shown on mouse-over */
+	}
+
+	.timemachineslider::-webkit-slider-thumb {
+		-webkit-appearance: none; /* Override default look */
+		appearance: none;
+		width: 5px; 
+		height: 25px; 
+		background: #04AA6D; 
+		cursor: pointer; 
+	}
+
+	.timemachineslider::-moz-range-thumb {
+		width: 5px;
+		height: 25px; 
+		background: #04AA6D;
+		cursor: pointer;
+	}
+
+/* loading spinning wheel */
+
+.loader {
+	border: 8px solid #f3f3f3; /* Light grey */
+	border-top: 8px solid #3498db; /* Blue */
+	border-radius: 50%;
+	width: 18px;
+	height: 18px;
+	animation: spin 1s linear infinite;
+}
+
+.dark-mode .loader {
+	border: 8px solid #525252; /* dark grey */
+	border-top: 8px solid #3498db; /* Blue */
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
 /* wkof visual bug workaround */
 
-[aria-labelledby="ui-id-2"]:nth-child(2) {
+[aria-labelledby="ui-id-2"][aria-labelledby="ui-id-3"]:nth-child(2) {
 	top: -1000px !important;
+}
+
+.marked .apexcharts-tooltip {
+	opacity: 1 !important;
 }
