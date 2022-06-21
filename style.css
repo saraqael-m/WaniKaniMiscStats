@@ -460,6 +460,24 @@ table.normaltable {
 	border-radius: 5px;
 }
 
+/* Overview */
+#overview div h3 {
+	text-align: center;
+	background-color: rgb(241, 241, 241);
+	border-radius: 5px;
+	padding-top: 15px;
+	padding-bottom: 5px;
+	margin: 0;
+}
+.dark-mode #overview div h3 {
+	background-color: #525252;
+}
+#overview div {
+	display: grid;
+	gap: 20px;
+	grid-template-columns: 1fr 0.75fr 1fr;
+}
+
 /* create two unequal columns that floats next to each other */
 /* left column */
 .leftcolumn {
@@ -512,6 +530,19 @@ table.normaltable {
 	.leftcolumn, .rightcolumn {
 		width: 100%;
 		padding: 0;
+	}
+	#overview div {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		grid-template-rows: repeat(2, 1fr);
+		gap: 10px;
+		font-size: 75%;
+	}
+	#overview div > h3:first-child,h3:last-child {
+		grid-row: 2;
+	}
+	#overview div > h3:nth-child(2) {
+		grid-column: 1 / span 2;
 	}
 }
 
