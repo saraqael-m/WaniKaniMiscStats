@@ -297,6 +297,8 @@ async function userInfo() {
     userInfo += fixHtml("<b>Subscription Active: ") + userData["subscription"]["active"] + "\n";
     let userPre = document.getElementById("userinfo");
     userPre.innerHTML = userInfo;
+
+    document.getElementById("levelOv").innerHTML = userData["level"];
 }
 
 function levelReorder(lvl) {
@@ -349,6 +351,8 @@ async function projections() {
     }
     for (let i = 0; i < annotationsArray.length; i++) projectionsData.find(element => element[0] == annotationsArray[i][0])[2] = annotationsArray[i][1];
     updateProjections();
+
+    document.getElementById("levelUpTimeOv").innerHTML = "Predicted Level Up in " + Math.round((new Date(rawData[userData["level"] + 1]['given'] - new Date())) / 3.6e6) + "h";
 }
 
 async function updateProjections() {
@@ -1099,7 +1103,13 @@ async function updateReviewAccuracy() {
     var currentAccuracyArray = averageArrays[0][0], currentMeaningArray = averageArrays[1][0], currentReadingArray = averageArrays[2][0];
     for (let i = 0; i < currentReadingArray.length; i++) currentReadingArray[i].splice(2, 1);
     // review accuracy
-    var accChartData = google.visualization.arrayToDataTable(dataDateShorten(currentAccuracyArray, startDate));
+    var accData = dataDateShorten(currentAccuracyArray, startDate);
+    var accChartData = google.visualization.arrayToDataTable(accData);
+
+    document.getElementById("accuracyOv").innerHTML = (accData[accData.length - 1][5]).toFixed(1) + "%";
+    document.getElementById("accuracyOv").style.color = accData[accData.length - 1][5] > accData[accData.length - 2][5] ? "#55af55" : "#af5555";
+    document.getElementById("accuracyHistOv").innerHTML = "Yesterday: " + (accData[accData.length - 2][5]).toFixed(1) + "%";
+
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
     dateFormatter.format(accChartData, 0);
     var options = {
@@ -1412,6 +1422,10 @@ function daysToDurationString(x, includeHours = false, short = false) {
 function updateLevelChart() {
     const resetBool = levelResetsBox.checked; const clampBool = levelClampBox.checked; const combBool = levelCombBox.checked;
     let currentLevelChart = resetBool ? (combBool ? combPureLevelChart : pureLevelChart) : (combBool ? combLevelChart : levelChart);
+
+    document.getElementById("levelTimeOv").innerHTML = Math.round((resetBool ? combPureLevelChart : combLevelChart)[userData["level"]][1]) + " days";
+    document.getElementById("levelTimeOv").style.color = Math.round((resetBool ? combPureLevelChart : combLevelChart)[userData["level"]][1]) < levelChart[1][6] ? "#55af55" : "#af5555";
+
     if (!levelMedianBox.checked) currentLevelChart = currentLevelChart.map(arr => arr.slice(0, -2));
     const medianVal = levelChart[1][6];
     let maxLength = currentLevelChart.slice(1).reduce(function (p, v) { return (v[1] + (combBool ? 0 : v[4]) > p[1] + (combBool ? 0 : p[4]) ? v : p); });
