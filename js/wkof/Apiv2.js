@@ -465,7 +465,6 @@
 			if (!is_valid_apikey_format(apikey)) {
 				return Promise.reject('Invalid api2_key_override in localStorage!');
 			}
-			console.log('Using apiv2_key_override key ('+apikey+')');
 		} else {
 			// Use regular apikey (versus override apikey)
 			apikey = localStorage.getItem('apiv2_key');

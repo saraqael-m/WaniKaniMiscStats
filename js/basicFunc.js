@@ -1,5 +1,6 @@
 ﻿const prevToken = localStorage.getItem('apiv2_key_override');
 if (prevToken === null) returnToPage();
+checkApiToken(prevToken);
 
 //// definitions ////
 const blackOverlay = document.getElementById("blackoverlay");
@@ -8,7 +9,7 @@ const wkofDiv = document.getElementById("wkof_ds");
 
 //// pre data-fetching ////
 // dark/light mode
-var lightMode = localStorage["mode"] == "light" ? true : false;
+var lightMode = localStorage["mode"] == "light" ? false : true;
 changeMode();
 // device
 var isMobile = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) // normal mobile
@@ -31,6 +32,11 @@ async function logout() {
     returnToPage();
 }
 
+// simple formatting functions
+function dateLongFormat(date) {
+    return date.toDateString().split(' ').slice(1).join(' ');
+}
+
 // delete indexeddb database
 async function deleteDatabase(dbName) {
     return await new Promise((resolve, reject) => {
@@ -48,25 +54,9 @@ async function deleteDatabase(dbName) {
 }
 
 // change between dark and light mode
-function changeMode() {
+function changeMode(apexChartList) {
     if (lightMode) {
         lightMode = false;
-        let modebtn = document.getElementById('modebtn')
-        modebtn.innerHTML = "㊐ Light Mode";
-        modebtn.style.color = "black";
-        modebtn.style.backgroundColor = "white";
-        document.body.classList.add('dark-mode');
-        document.documentElement.style.setProperty('color-scheme', 'dark');
-        let header = document.getElementsByClassName('header')[0];
-        header.style["-webkit-filter"] = "invert(90%)";
-        header.style.filter = "invert(90%)";
-        let wkofdiv = document.getElementById('wkof_ds');
-        wkofdiv.style["-webkit-filter"] = "invert(100%)";
-        wkofdiv.style.filter = "invert(100%)";
-        document.body.style.background = "black";
-        localStorage["mode"] = "light";
-    } else {
-        lightMode = true;
         let modebtn = document.getElementById('modebtn')
         modebtn.innerHTML = "㊊ Dark Mode";
         modebtn.style.color = "white";
@@ -81,10 +71,28 @@ function changeMode() {
         wkofdiv.style.filter = "";
         document.body.style.background = "#f1f1f1";
         localStorage["mode"] = "dark";
+        if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'light' } });
+    } else {
+        lightMode = true;
+        let modebtn = document.getElementById('modebtn')
+        modebtn.innerHTML = "㊐ Light Mode";
+        modebtn.style.color = "black";
+        modebtn.style.backgroundColor = "white";
+        document.body.classList.add('dark-mode');
+        document.documentElement.style.setProperty('color-scheme', 'dark');
+        let header = document.getElementsByClassName('header')[0];
+        header.style["-webkit-filter"] = "invert(90%)";
+        header.style.filter = "invert(90%)";
+        let wkofdiv = document.getElementById('wkof_ds');
+        wkofdiv.style["-webkit-filter"] = "invert(100%)";
+        wkofdiv.style.filter = "invert(100%)";
+        document.body.style.background = "black";
+        localStorage["mode"] = "light";
+        if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'dark' } });
     }
 }
 
-// google chart arrow move functions
+// google chart arrow move function
 function chartSelectionSetter(chart) {
     let selection = chart.getSelection();
     if (selection.length == 0) { currentSelection = []; return; }
@@ -98,4 +106,16 @@ function fixHtml(html) {
     var div = document.createElement('div');
     div.innerHTML = html;
     return div.innerHTML;
+}
+
+// check api token (if invalid -> logout)
+async function checkApiToken(apiToken) {
+    let requestHeaders = new Headers({ 'Wanikani-Revision': '20170710', Authorization: 'Bearer ' + apiToken });
+    let promise = fetch(new Request("https://api.wanikani.com/v2/subjects/1", { method: 'GET', headers: requestHeaders }))
+        .then(response => response.json())
+        .then(responseBody => responseBody);
+    let data = await promise;
+    if (data["code"] !== undefined && data["code"] !== 429) {
+        logout();
+    }
 }

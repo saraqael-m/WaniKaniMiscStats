@@ -3,16 +3,27 @@ google.charts.load('current', { 'packages': ['corechart'] });
 
 // variables
 var userData = [], resetData = [], reviewData = [], assignmentData = [], subjectData = [], wordData = [], timemachineData = [], srsArray = [], hiddenItems = [], resurrectedItems = [], resets = [], srsChartData = [], usedIds = [];
-var currentSelection = [];
-var fullStr = '';
+var currentSelection = -1;
 var dateRange = 1;
+var srsChart;
+var startTime, totalTime;
 
 // constants
-const colors = ['initial', 'pink', '#bb57d4', '#6c4bc9', 'lightblue', '#f0ca00']
+const colors = ['#f400a3', '#9e34b8', '#3557dd', '#0096e2', '#f0ca00'];
 
 // elements
 const maindivs = document.getElementsByClassName("allinfo");
 const timemachinediv = document.getElementById('timemachinediv');
+const srsChartDiv = document.getElementById('srschart');
+const timeSlider = document.getElementById('timeslider');
+
+// time slider
+timeSlider.oninput = function () {
+    let time = timeSlider.value / timeSlider.max * totalTime + startTime
+    currentSelection = srsArray.findIndex(e => e[0].getTime() >= time);
+    if (currentSelection == -1) currentSelection = srsArray.length - 1;
+    chartSelectionMover(0);
+}
 
 // arrow moving chart
 document.onkeydown = function (evt) {
@@ -22,24 +33,62 @@ document.onkeydown = function (evt) {
 };
 
 async function chartSelectionMover(direction) {
-    await new Promise(resolve => setTimeout(resolve, 100));
-    if (currentSelection.length == 0) return;
-    currentSelection[1].row += direction;
-    try { currentSelection[0].setSelection([currentSelection[1]]); }
-    catch (e) { currentSelection[1].row -= direction; currentSelection[0].setSelection([currentSelection[1]]); }
-    populateKanjiDiv(currentSelection[1].row);
-    document.querySelectorAll('[aria-label="A chart."]');
+    if (currentSelection == -1) {
+        srsChartDiv.classList.remove('marked');
+        srsChart.clearAnnotations();
+        return;
+    }
+    srsChartDiv.classList.add('marked');
+    currentSelection += direction;
+    let xValue = srsArray[currentSelection];
+    if (xValue !== undefined) {
+        // new red annotation line
+        let time = xValue[0].getTime()
+        srsChart.clearAnnotations();
+        srsChart.addXaxisAnnotation({ 
+            x: time,
+            borderColor: 'red',
+            strokeDashArray: 0,
+            opacity: 1
+        });
+        // rewrite tooltip (new data)
+        let tooltip = srsChartDiv.getElementsByClassName('apexcharts-tooltip')[0];
+        tooltip.firstChild.innerHTML = dateLongFormat(xValue[0]);
+        let values = xValue.slice(1);
+        let children = tooltip.children;
+        for (let i = 0; i < values.length; i++) {
+            children[i + 1].getElementsByClassName('apexcharts-tooltip-text-y-value')[0].innerHTML = values[i];
+        }
+        // move tooltip
+        tooltip.classList.add('apexcharts-active');
+        let annotationPos = srsChartDiv.getElementsByClassName('apexcharts-xaxis-annotations')[0].firstChild['x2'].animVal.value,
+            chartWidth = srsChartDiv.getElementsByClassName('apexcharts-svg')[0].width.baseVal.value - 20,
+            annotationWidth = tooltip.clientWidth;
+        if (annotationPos < 0 || annotationPos > chartWidth) {
+            currentSelection -= direction;
+            if (direction != 0) chartSelectionMover(0);
+            return;
+        }
+        tooltip.style.left = (annotationPos < chartWidth / 2 ? annotationPos + 60 : annotationPos + 32 - annotationWidth) + 'px';
+        // move slider
+        timeSlider.value = (time - startTime) / totalTime * timeSlider.max;
+        // show kanji srs
+        populateKanjiDiv(timemachineData.findIndex(e => e[0].getTime() >= srsArray[currentSelection][0].getTime())); 
+    } else currentSelection -= direction; // undo moving
 }
 
 //// data caching ////
-function saveTimemachineData(cacheUsedIds, cacheTimemachineEntry) {
-    wkof.file_cache.save('srsArray', srsArray.slice(0, -2));
-    wkof.file_cache.save('timemachineData', [...timemachineData.slice(0, -3), cacheTimemachineEntry]);
-    wkof.file_cache.save('usedIds', cacheUsedIds);
+function saveTimemachineData() {
+    wkof.file_cache.save('timemachineData', timemachineData.slice(0, -2));
 }
 
 async function loadTimemachineData() {
-    [srsArray, timemachineData, usedIds] = await Promise.all([wkof.file_cache.load('srsArray'), wkof.file_cache.load('timemachineData'), wkof.file_cache.load('usedIds')]);
+    return await wkof.file_cache.load('timemachineData');
+}
+
+async function reloadTimemachineData() {
+    await wkof.file_cache.delete('timemachineData');
+    window.location.reload();
 }
 
 //// get items ////
@@ -93,7 +142,14 @@ async function dataPasser() {
         max: 4
     };
     wkof.Progress.update(progress);
-    await Promise.all([wkof.ItemData.get_items('assignments, subjects, review_statistics').then(data => { progress['value']++; wkof.Progress.update(progress); itemDataHandler(data); }),
+    var subjectConfig = {
+        wk_items: {
+            options: { subjects: true, assignments: true, review_statistics: true },
+            filters: { item_type: 'kan' }
+        }
+    };
+    
+    await Promise.all([wkof.ItemData.get_items(subjectConfig).then(data => { progress['value']++; wkof.Progress.update(progress); itemDataHandler(data); }),
         wkof.Apiv2.get_endpoint('user').then(data => { progress['value']++; wkof.Progress.update(progress); userData = data; }),
         wkof.Apiv2.get_endpoint('resets').then(data => { progress['value']++; wkof.Progress.update(progress); resetData = Object.values(data); }),
         //wkof.Apiv2.get_endpoint('level_progressions').then(data => { progress['value']++; wkof.Progress.update(progress); levelData = Object.values(data); }),
@@ -111,8 +167,14 @@ function itemDataHandler(items) {
 }
 
 function populateKanjiDiv(row) {
-    const date = srsChartData.getValue(row, 0);
-    timemachinediv.innerHTML = timemachineData.find(element => element[0].getTime() >= date.getTime())[1];
+    let data = timemachineData[row][1];
+    let charSpans = timemachinediv.children;
+    for (let i = 0; i < charSpans.length; i++) {
+        let srsClass = "srs" + data[i][1];
+        if (!charSpans[i].classList.contains(srsClass)) {
+            charSpans[i].className = srsClass;
+        }
+    }
 }
 
 function levelReorder(lvl) {
@@ -130,6 +192,18 @@ function levelReorder(lvl) {
 }
 
 async function calculateTimemachineData() {
+    // create kanji div
+    timemachineData = [[new Date(reviewData[0]['data']['created_at'].substring(0, 10)), []]];
+    timemachineData[0][0].setDate(timemachineData[0][0].getDate() - 1);
+    let fullStr = '';
+    var timemachineSubjectData = Object.values(subjectData);
+    for (let i = timemachineSubjectData.length - 1; i >= 0; i--) if (timemachineSubjectData[i].object != 'kanji') timemachineSubjectData.splice(i, 1);
+    timemachineSubjectData.sort((a, b) => a.data.level == b.data.level ? a.id - b.id : a.data.level - b.data.level);
+    for (let i = 0; i < timemachineSubjectData.length; i++) if (timemachineSubjectData[i].object == 'kanji') {
+        fullStr += '<span class="srs0">' + timemachineSubjectData[i].data.characters + '</span>';
+        timemachineData[0][1].push([timemachineSubjectData[i].id, 0]);
+    }
+    timemachinediv.innerHTML = fullStr;
     // wkof progress bar
     var progress = {
         name: 'timemachine',
@@ -140,33 +214,21 @@ async function calculateTimemachineData() {
     wkof.Progress.update(progress);
     // cached data
     try {
-        await loadTimemachineData();
+        timemachineData.push(...((await loadTimemachineData()).slice(1)));
+        if (typeof timemachineData[1][1] == "string") {
+            console.log("Timemachine data is deprecated; clearing file cache...");
+            reloadTimemachineData();
+        }
     } catch (e) {
-        srsArray = [];
-    }
-    var startIndex = 0, startDate;
-    var resetArray = [];
-    if (srsArray.length == 0) { startIndex = -1; timemachineData = [[0, []]], srsArray = [[0, 0, 0, 0, 0, 0]], usedIds = []; }
-    else {
-        startDate = timemachineData[timemachineData.length - 1][0];
-        startIndex = reviewData.findIndex(element => new Date(element.data['created_at'].substring(0, 10)) > startDate && !datesInRange(new Date(element.data['created_at'].substring(0, 10)), startDate, 0));
-        startIndex = startIndex == -1 ? reviewData.length : startIndex;
-        hiddenItems = hiddenItems.slice(hiddenItems.findIndex(element => new Date(element[0]) > startDate)).slice(1);
-        resurrectedItems = resurrectedItems.slice(resurrectedItems.findIndex(element => new Date(element[0]) > startDate)).slice(1);
-        for (let i = 0; i < resets.length; i++) if (resets[i][2] < startDate) resetArray.push(i);
+        console.log("Timemachine data not cached...");
     }
     // create array
-    var cacheUsedIds = [], endDate;
-    if (startDate !== undefined) {
-        endDate = new Date(reviewData[reviewData.length - 1].data['created_at'].substring(0, 10));
-        endDate.setDate(endDate.getDate() - 2);
-        console.log(endDate, startDate);
-    } else { endDate = startDate; }
-    var found;
-    for (let i = startIndex == -1 ? 0 : startIndex; i < reviewData.length; i++) {
+    var found, resetArray = [];
+    srsArray = [[timemachineData[0][0], 0, 0, 0, 0, 0]], usedIds = [];
+    for (let i = 0; i < reviewData.length; i++) {
         let currentReview = reviewData[i]["data"];
         let subId = currentReview["subject_id"];
-        if (subjectData[subId]["object"] != "kanji") continue;
+        if (subjectData[subId] === undefined || subjectData[subId]["object"] != "kanji") continue;
         let date = new Date(currentReview["created_at"].substring(0, 10));
         // srs review data
         let typeStart = levelReorder(currentReview["starting_srs_stage"]);
@@ -177,36 +239,24 @@ async function calculateTimemachineData() {
             newDate[0] = date;
             srsArray.push(newDate);
             foundSrs = srsArray.length - 1;
-            if (datesInRange(date, endDate, 0)) {
-                console.log(date)
-                for (let j = 0; j < usedIds.length; j++) cacheUsedIds.push(usedIds[j].slice());
-            }
         }
         srsArray[foundSrs][typeStart]--;
         // timemachine data
-        found = timemachineData.findIndex(element => (element[0].valueOf() == date.valueOf()));
-        if (found == -1) {
-            found = timemachineData.length - 1;
+        found = timemachineData.length - 1;
+        if (timemachineData[found][0].valueOf() !== date.valueOf()) {
             let clonedData = [];
             for (let j = 0; j < timemachineData[found][1].length; j++) clonedData.push(timemachineData[found][1][j].slice());
             timemachineData.push([date, clonedData]);
             found += 1;
         }
+        timemachineData[found][1].find(element => element[0] == subId)[1] = currentReview["ending_srs_stage"];
         // new item
         let foundId = usedIds.findIndex(element => element[0] == subId);
         if (foundId == -1) {
             usedIds.push([subId, typeEnd]);
             srsArray[foundSrs][typeEnd]++;
-            if (subjectData[subId].object == 'kanji') {
-                let foundTimemachine = timemachineData[found][1].findIndex(element => element[0] == subId);
-                if (foundTimemachine == -1) timemachineData[found][1].push([subId, typeEnd]);
-                else timemachineData[found][1][foundTimemachine][1] = typeEnd;
-            }
         } else {
             usedIds[foundId][1] = typeEnd;
-            if (subjectData[subId].object == 'kanji') {
-                timemachineData[found][1].find(element => element[0] == subId)[1] = typeEnd;
-            }
         }
         srsArray[foundSrs][typeEnd]++;
         // hidden items
@@ -216,7 +266,7 @@ async function calculateTimemachineData() {
             if (hiddenLevel == -1) { hiddenItems.splice(0, 1); continue; }
             srsArray[foundSrs][usedIds[hiddenLevel][1]]--; // delete from srs stage
             let id = hiddenItems[0][1];
-            if (subjectData[id].object == 'kanji') timemachineData[found][1].find(element => element[0] == id)[1] = 0;
+            timemachineData[found][1].find(element => element[0] == id)[1] = 0;
             hiddenItems.splice(0, 1);
         }
         // srs reset
@@ -237,7 +287,7 @@ async function calculateTimemachineData() {
                     srsArray[foundSrs][1]++; // add to apprentice
                     usedIds[resurrectedLevel][1] = 1;
                     let id = resurrectedItems[0][1];
-                    if (subjectData[id].object == 'kanji') timemachineData[found][1].find(element => element[0] == id)[1] = 1;
+                    timemachineData[found][1].find(element => element[0] == id)[1] = 1;
                     resurrectedItems.splice(0, 1);
                     if (resurrectedItems.length == 0) break;
                 }
@@ -248,7 +298,7 @@ async function calculateTimemachineData() {
                     deleteIds.push(k);
                     srsArray[foundSrs][usedIds[k][1]]--;
                     let id = usedIds[k][0];
-                    if (subjectData[id].object == 'kanji') timemachineData[found][1].find(element => element[0] == id)[1] = 0;
+                    timemachineData[found][1].find(element => element[0] == id)[1] = 0;
                 }
             }
             for (var j = deleteIds.length - 1; j >= 0; j--) {
@@ -271,7 +321,7 @@ async function calculateTimemachineData() {
                 srsArray[srsArray.length - 1][1]++; // add to apprentice
                 usedIds[resurrectedLevel][1] = 1;
                 let id = resurrectedItems[0][1];
-                if (subjectData[id].object == 'kanji') timemachineData[found][1].find(element => element[0] == id)[1] = 1;
+                timemachineData[found][1].find(element => element[0] == id)[1] = 1;
                 resurrectedItems.splice(0, 1);
                 if (resurrectedItems.length != 0) resurrectedDate = new Date(resurrectedItems[0][0].substring(0, 10));
                 else break;
@@ -286,14 +336,9 @@ async function calculateTimemachineData() {
     }
     progress.value = reviewData.length;
     wkof.Progress.update(progress);
-    if (startIndex == -1) {
-        timemachineData.splice(0, 1);
-        srsArray.splice(0, 1);
-    }
     srsArray.sort((a, b) => a[0].valueOf() - b[0].valueOf());
-    if (startIndex == -1) srsArray.unshift(['Date', 'Apprentice', 'Guru', 'Master', 'Enlightened', 'Burned']);
     // fill undefined dates with 0
-    let firstDate = srsArray[1][0];
+    let firstDate = srsArray[0][0];
     let lastDate = srsArray[srsArray.length - 1][0];
     let currentDate = new Date(firstDate.getTime());
     let prevIndex = 1;
@@ -305,89 +350,100 @@ async function calculateTimemachineData() {
         } else prevIndex = addIndex;
         currentDate.setDate(currentDate.getDate() + 1);
     }
+    startTime = timemachineData[0][0].getTime();
+    totalTime = timemachineData[timemachineData.length - 1][0].getTime() - startTime;
     // generate chart
-    var cacheTimemachineEntry = [timemachineData[timemachineData.length - 3][0], []];
-    for (let j = 0; j < timemachineData[timemachineData.length - 3][1].length; j++) cacheTimemachineEntry[1].push(timemachineData[timemachineData.length - 3][1][j].slice());
-    console.log(cacheTimemachineEntry)
-    await timemachineToString();
     generateTimemachineChart();
     // cache data
-    saveTimemachineData(cacheUsedIds, cacheTimemachineEntry);
+    saveTimemachineData();
 }
 
 function datesInRange(d1, d2, r) {
     return Math.abs(d1 - d2) < 86400000 * (r + 0.5); // 86400000 milliseconds in one day
 }
 
-async function timemachineToString() {
-    // wkof progress bar
-    var progress = {
-        name: 'timemachineformat',
-        label: 'Timemachine Format',
-        value: 0,
-        max: timemachineData.length
-    };
-    wkof.Progress.update(progress);
-    // main
-    fullStr = '';
-    var timemachineSubjectData = Object.values(subjectData);
-    for (let i = timemachineSubjectData.length - 1; i >= 0; i--) if (timemachineSubjectData[i].object != 'kanji') timemachineSubjectData.splice(i, 1);
-    timemachineSubjectData.sort((a, b) => a.data.level == b.data.level ? a.id - b.id : a.data.level - b.data.level);
-    for (let i = 0; i < timemachineSubjectData.length; i++) if (timemachineSubjectData[i].object == 'kanji') fullStr += '<a style="color: inherit">' + timemachineSubjectData[i].data.characters + '</a>';
-    for (let i = 0; i < timemachineData.length; i++) {
-        if (typeof timemachineData[i][1] !== "string") {
-            console.log()
-            let newData = fullStr;
-            for (let j = 0; j < timemachineData[i][1].length; j++) {
-                let char = subjectData[timemachineData[i][1][j][0]].data.characters;
-                let stage = timemachineData[i][1][j][1];
-                newData = newData.replace('<a style="color: inherit">' + char + '</a>', '<a style="color: ' + colors[stage] + '">' + char + '</a>');
+function generateTimemachineChart() {
+    var options = {
+        chart: {
+            type: 'area',
+            stacked: true,
+            height: '400px',
+            events: {
+                click: chartClick,
+                beforeZoom: function (_, info) {
+                    if (info.yaxis !== undefined) currentSelection = 1 - currentSelection;
+                },
+                mouseLeave: function (_, _) {
+                    chartSelectionMover(0);
+                }
             }
-            timemachineData[i][1] = newData;
-        }
-        // update progress bar
-        if (i % 30 == 0) {
-            progress.value = i;
-            wkof.Progress.update(progress);
-            await new Promise(resolve => setTimeout(resolve, 3));
+        },
+        title: {
+            text: 'Kanji Item Distribution'
+        },
+        stroke: {
+            curve: 'smooth',
+            width: 0
+        },
+        series: [{
+                name: 'Apprentice',
+                data: srsArray.map(x => [x[0].getTime(), x[1]])
+            }, {
+                name: 'Guru',
+                data: srsArray.map(x => [x[0].getTime(), x[2]])
+            }, {
+                name: 'Master',
+                data: srsArray.map(x => [x[0].getTime(), x[3]])
+            }, {
+                name: 'Enlightened',
+                data: srsArray.map(x => [x[0].getTime(), x[4]])
+            }, {
+                name: 'Burned',
+                data: srsArray.map(x => [x[0].getTime(), x[5]])
+            }],
+        xaxis: {
+            type: 'datetime'
+        }, 
+        colors: colors,
+        fill: {
+            type: ['solid', 'gradient', 'gradient', 'gradient', 'gradient'],
+            gradient: {
+                shade: 'light',
+                type: 'vertical',
+                shadeIntensity: 0.4,
+                opacityFrom: 1,
+                opacityTo: 1
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        tooltip: {
+            shared: true,
+            inverseOrder: true,
+            x: {
+                format: 'MMM dd yyyy'
+            }
+        },
+        legend: {
+            show: false
         }
     }
-    progress.value = timemachineData.length;
-    wkof.Progress.update(progress);
+    srsChart = new ApexCharts(srsChartDiv, options);
+    srsChart.render();
+    srsChart.updateOptions({ theme: { mode: lightMode ? 'dark' : 'light' } });
+    // populate kanji div to default
+    currentSelection = 0;
+    chartSelectionMover(0);
 }
 
-function generateTimemachineChart() {
-    // calculate needed data
-    dateRange = parseInt(Math.abs(new Date(reviewData[0].data["created_at"]) - new Date(reviewData[reviewData.length - 1].data["created_at"])) / (86400000 * 200)); // around up to 200 days will be repesented one by one
-    var currentSrsArray = [srsArray[0]];
-    for (let i = 1; i < srsArray.length; i += dateRange + 1) currentSrsArray.push(srsArray[i]);
-    // srs stacked
-    var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
-    srsChartData = google.visualization.arrayToDataTable(currentSrsArray);
-    dateFormatter.format(srsChartData, 0);
-    options = {
-        chartArea: { width: '90%', height: '80%' },
-        legend: { position: 'none' },
-        hAxis: { textPosition: 'bottom' }, vAxis: { textPosition: 'bottom' },
-        connectSteps: true,
-        colors: colors.slice(1), // burned is gold
-        isStacked: true,
-        width: '90%',
-        height: 333,
-        backgroundColor: { fill: 'transparent' },
-        tooltip: { isHtml: true, trigger: 'both' },
-        focusTarget: 'category'
-    };
-    var srsChart = new google.visualization.SteppedAreaChart(document.getElementById('srschart'));
-    srsChart.draw(srsChartData, options);
-    google.visualization.events.addListener(srsChart, 'select', function () { // date setter
-        const selected = srsChart.getSelection()[0];
-        if (selected === undefined) return;
-        populateKanjiDiv(selected.row);
-        chartSelectionSetter(srsChart);
-    });
-    // populate kanji div to default
-    currentSelection = [srsChart, { column: null, row: 0 }];
+function chartClick(_, _, config) {
+    if (currentSelection < -1) { currentSelection = 1 - currentSelection; return; }
+    let row = config.dataPointIndex;
+    if (row == -1) { return; }
+    if (currentSelection == row) row = -1;
+    srsChart.clearAnnotations();
+    currentSelection = row;
     chartSelectionMover(0);
 }
 

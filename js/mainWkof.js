@@ -7,12 +7,6 @@ var requestHeaders;
 var db;
 
 //// pre data-fetching ////
-// mobile snapshot
-/*const mobileSnapshot = document.getElementById("showsnapshot");
-if (isMobile) mobileSnapshot.parentNode.style.display = '';*/
-// dark/light mode
-var lightMode = localStorage["mode"] == "light" ? true : false;
-changeMode();
 // current date
 let currentDate = new Date();
 currentDate.setFullYear(currentDate.getFullYear() - 1);
@@ -124,7 +118,11 @@ document.onkeydown = function (evt) { // esc button closes detail window
 };
 
 // before refresh or close (caching)
-window.onbeforeunload = function () {
+window.onbeforeunload = cacheData;
+window.onunload = cacheData;
+window.addEventListener('pagehide', cacheData);
+
+function cacheData() {
     localStorage["scrollposition"] = document.documentElement.scrollTop || document.body.scrollTop;
     saveSettings();
     localStorage["cardorder"] = JSON.stringify([[].slice.call(leftCards[0].parentNode.children).map(element => element.id), [].slice.call(rightCards[0].parentNode.children).map(element => element.id.slice(0, -1))]);
@@ -291,10 +289,6 @@ async function loadGraphs() {
     updateTables();
 }
 
-function dateLongFormat(date) {
-    return date.toDateString().split(' ').slice(1).join(' ');
-}
-
 async function userInfo() {
     let userInfo = "";
     userInfo += fixHtml("<b>Username: ") + userData["username"] + "\n";
@@ -453,7 +447,7 @@ function calculateTotalAverages() {
 }
 
 function updateCombinedAverages() {
-    var chartArray = [["", "All", "部首", "漢字", "単語"], ["Accuracy"], ["↳ Meaning"], ["↳ Reading"], ["Avg Reviews"], ["Total Reviews"], ["Avg Lessons"], ["Total Words"]];
+    var chartArray = [["", "All", "部首", "漢字", "単語"], ["Accuracy"], ["↳ Meaning"], ["↳ Reading"], ["Avg Reviews"], ["Total Reviews"], ["Avg Lessons"], ["Total Items"]];
     var chartData = [totalAverages.slice(0, 4), totalAverages.slice(8, 12), totalAverages.slice(4, 8), totalAverages.slice(12, 16), totalArray[totalArray.length - 1].slice(1), totalAverages.slice(16, 20)];
     for (const i of [0, 1, 2]) chartData[i].unshift(chartData[i].pop());
     chartData[2][1] = "-";
@@ -1631,7 +1625,7 @@ async function wordInfo() {
         }
     }
     wordProgressData = [["Type", "Count", { role: "tooltip" }],
-        ["Radical Learned", doneCounts[0], doneCounts[0] / totalCounts[0] * 100], ["Kanji Learned", doneCounts[1], doneCounts[1] / totalCounts[1] * 100], ["Vocab Learned", doneCounts[2], doneCounts[1] / totalCounts[1] * 100],
+        ["Radical Learned", doneCounts[0], doneCounts[0] / totalCounts[0] * 100], ["Kanji Learned", doneCounts[1], doneCounts[1] / totalCounts[1] * 100], ["Vocab Learned", doneCounts[2], doneCounts[2] / totalCounts[2] * 100],
         ["Radical Unknown", totalCounts[0] - doneCounts[0], (1 - doneCounts[0] / totalCounts[0]) * 100], ["Kanji Unknown", totalCounts[1] - doneCounts[1], (1 - doneCounts[1] / totalCounts[1]) * 100], ["Vocab Unknown", totalCounts[2] - doneCounts[2], (1 - doneCounts[2] / totalCounts[2]) * 100]];
     for (let i = 1; i < wordProgressData.length; i++) wordProgressData[i][2] = "Percentage " + wordProgressData[i][0] + ": " + Math.round(wordProgressData[i][2] * 10) / 10 + " % (" + wordProgressData[i][1] + ")";
     var chartData = google.visualization.arrayToDataTable(wordProgressData);
