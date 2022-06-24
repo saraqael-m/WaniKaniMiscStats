@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 	<!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-V3WGNFTLVD"></script>
@@ -23,11 +23,6 @@
 <body onbeforeunload="cacheData();" onunload="cacheData();">
 
 	<a id="top"></a>
-
-	<div class="navbar" style="position: relative; z-index: 1004">
-		<a href="Stats.html">Statistics</a>
-		<a href="timemachine.html">Timemachine</a>
-	</div>
 
 	<div id="wkof_ds" style="display: none; z-index: 1003"></div>
 
@@ -65,6 +60,10 @@
 	</div>
 
 	<div class="toc">
+		<div class="navbar">
+			<a href="Stats.html" class="current-page">Statistics<div id="triangle"></div></a>
+			<a href="timemachine.html">Timemachine</a>
+		</div>
 		<a onclick="window.location.hash = ''; window.location.hash = '#LevelInfo';">Level Info</a>
 		<a onclick="window.location.hash = ''; window.location.hash = '#Projections';">Projections</a>
 		<a onclick="window.location.hash = ''; window.location.hash = '#SrsInfo';">SRS Info</a>

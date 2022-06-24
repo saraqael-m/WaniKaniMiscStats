@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-PTVHSY8QMD"></script>
@@ -24,11 +24,6 @@
 
     <a id="top"></a>
 
-    <div class="navbar" style="position: relative; z-index: 1004">
-        <a href="Stats.html">Statistics</a>
-        <a href="timemachine.html">Timemachine</a>
-    </div>
-
     <div id="wkof_ds" style="display: none; z-index: 1003"></div>
 
     <div class="form-group" style="margin-top: 12%; float:right; position: relative; z-index: 1000">
@@ -52,7 +47,7 @@
         <div style="margin-top: 20px"></div>
     </div>
 
-    <div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('images/timemachine2_bg.webp') no-repeat center; background-size: 100%">
+    <div class="header" style="background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), url('images/timemachine2_bg.webp') no-repeat center; background-size: 100%">
         <div id="linkrow">
             <a href="https://github.com/saraqael-m/WaniKaniMiscStats" style="float: left;">Github Repo</a>
             <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652" style="float: left;">WaniKani Thread</a>
@@ -60,11 +55,15 @@
             <button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3); position: relative; z-index: 1004">Logout</button>
             <span style="float: right;">タイムマシン０.２.０</span> <!-- ０１２３４５６７８９ -->
         </div>
-        <h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
-        <h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">Timemachine</h2>
+        <h1 style="background-color: rgba(255, 255, 255, 0.5); margin-bottom: 0px">WaniKani History</h1>
+        <h2 style="background-color: rgba(255, 255, 255, 0.5); margin-top: 0px; margin-bottom: 35px">Timemachine</h2>
     </div>
 
     <div class="toc">
+        <div class="navbar">
+			<a href="Stats.html">Statistics</a>
+			<a href="timemachine.html" class="current-page">Timemachine<div id="triangle"></div></a>
+		</div>
         <a onclick="window.location.hash = ''; window.location.hash = '#Timemachine';">Timemachine</a>
     </div>
 
