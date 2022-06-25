@@ -1106,10 +1106,10 @@ async function updateReviewAccuracy() {
     var accData = dataDateShorten(currentAccuracyArray, startDate);
     var accChartData = google.visualization.arrayToDataTable(accData);
 
-    oneDayAcc = [midreviewAccuracy[midreviewAccuracy.length - 1][4], midreviewAccuracy[midreviewAccuracy.length - 2][4]]
+    oneDayAcc = [midreviewAccuracy[midreviewAccuracy.length - 1][4], midreviewAccuracy[midreviewAccuracy.length - 2][4]];
     document.getElementById("accuracyOv").innerHTML = ((1 - oneDayAcc[0][0]/oneDayAcc[0][1]) * 100).toFixed(1) + "%";
     document.getElementById("accuracyOv").style.color = oneDayAcc[0][0]/oneDayAcc[0][1] > oneDayAcc[1][0]/oneDayAcc[1][1] ? "#af5555" : "#55af55";
-    document.getElementById("accuracyHistOv").innerHTML = "Yesterday: " + (accData[accData.length - 2][5]).toFixed(1) + "%";
+    document.getElementById("accuracyHistOv").innerHTML = "Yesterday: " + ((1 - oneDayAcc[1][0]/oneDayAcc[1][1]) * 100).toFixed(1) + "%";
 
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
     dateFormatter.format(accChartData, 0);
