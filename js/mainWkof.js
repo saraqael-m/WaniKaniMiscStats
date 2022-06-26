@@ -9,6 +9,7 @@ var db;
 //// pre data-fetching ////
 // current date
 let currentDate = new Date();
+let todayDate = currentDate.toISOString().split('T')[0];
 currentDate.setFullYear(currentDate.getFullYear() - 1);
 currentDate = currentDate.toISOString().split('T')[0];
 // settings
@@ -32,6 +33,8 @@ var defaultSettings = {
     smoothacc: ['value', 10], // accuracy
     tablemonth: ['value', 1], // info table
     tableday: ['value', 0],
+    timelimit: ['selectedIndex', 2], // time info
+    timestagetypeswitch: ['checked', false],
 };
 var settings = localStorage["settings"] === undefined || localStorage["settings"] == '[object Object]' ? undefined : JSON.parse(localStorage["settings"]);
 setSettings();
@@ -60,6 +63,7 @@ const levelMedianBox = document.getElementById("showmedian");
 const projSpeedBox = document.getElementById("projectionsspeed");
 
 // global vars
+var timeChart;
 var unalteredItemData = {};
 var srsData = [];
 var userData = [];
@@ -92,9 +96,11 @@ var levelDates = [];
 var kanjiWall = "";
 var possibleYojijukugo = [];
 var projectionsData = [];
+var timeData = [];
 var tableOffset = 0;
 var currentPage = 1;
 var shortLevels = [43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 1, 2];
+var levelStages = ['快', '苦', '死', '地獄', '天国', '現実']; 
 var totalAverages = [];
 var detailWindowOpen = false;
 var snapshotDate, snapshotData, currentSnapshot;
@@ -125,7 +131,7 @@ window.addEventListener('pagehide', cacheData);
 function cacheData() {
     localStorage["scrollposition"] = document.documentElement.scrollTop || document.body.scrollTop;
     saveSettings();
-    localStorage["cardorder"] = JSON.stringify([[].slice.call(leftCards[0].parentNode.children).map(element => element.id), [].slice.call(rightCards[0].parentNode.children).map(element => element.id.slice(0, -1))]);
+    saveCardOrder();
 }
 
 // main code
@@ -157,35 +163,41 @@ function closeDetailWindow() {
 function setCardOrder() {
     var cardOrder = localStorage['cardorder'];
     if (cardOrder === undefined) return;
-    cardOrder = JSON.parse(cardOrder);
+    cardOrder = JSON.parse(cardOrder); // '[["0","1","2","3","4","5","6","7","8","9"],["1","3","0","4","2"]]'
     var leftCardOrder = cardOrder[0],
         rightCardOrder = cardOrder[1];
-    leftCards = sortCards(leftCards, leftCardOrder);
-    rightCards = sortCards(rightCards, rightCardOrder, 'r');
-}
-
-function sortCards(cards, order, fragment = '') {
-    for (let i = 0; i < cards.length; i++) cards[i].id = String(order.findIndex(x => x === String(i))) + fragment;
-    var sortedCards = cards.sort((a, b) => parseInt(a.id.slice(-1) == fragment ? a.id.slice(0, -1) : a.id) - parseInt(b.id.slice(-1) == fragment ? b.id.slice(0, -1) : b.id));
-    sortedCards[0].parentElement.replaceChildren(...sortedCards);
-    for (let i = 0; i < sortedCards.length; i++) sortedCards[i].id = order[i] + fragment;
-    return sortedCards;
+    // add new cards
+    for (let i = leftCardOrder.length; i < leftCards.length; i++) leftCardOrder.push(String(i));
+    for (let i = rightCardOrder.length; i < rightCards.length; i++) rightCardOrder.push(String(i));
+    // subtract removed cards
+    for (let i = leftCardOrder.length; i > leftCards.length; i--) leftCardOrder.splice(leftCardOrder.indexOf(String(i)), 1);
+    for (let i = rightCardOrder.length; i > rightCards.length; i--) rightCardOrder.splice(rightCardOrder.indexOf(String(i)), 1);
+    // reorganize cards
+    for (let i = 0; i < leftCards.length; i++) leftCards[i].style.order = leftCardOrder[i];
+    for (let i = 0; i < rightCards.length; i++) rightCards[i].style.order = rightCardOrder[i];
 }
 
 function moveCard(card, direction, moveBool = true) {
-    var div = card.parentNode;
-    if (direction === -1 && card.previousElementSibling) {
-        div.insertBefore(card, card.previousElementSibling);
-    } else if (direction === 1 && card.nextElementSibling) {
-        div.insertBefore(card, card.nextElementSibling.nextElementSibling);
-    }
+    let orderPrev = card.style.order;
+    let changeCard = Array.from(card.parentNode.children).find(e => parseInt(e.style.order) === parseInt(orderPrev) + direction);
+    if (changeCard === undefined) return;
+    let orderNew = changeCard.style.order;
+    // change pos
+    card.style.order = orderNew,
+        changeCard.style.order = orderPrev;
+    // scroll
     if (moveBool) { window.location.hash = ''; window.location.hash = '#' + card.getElementsByTagName('a')[0].id; }
+    saveCardOrder() // save card order
+}
+
+function saveCardOrder() {
+    localStorage["cardorder"] = JSON.stringify([[].slice.call(leftCards[0].parentNode.children).map(element => element.style.order), [].slice.call(rightCards[0].parentNode.children).map(element => element.style.order)]);
 }
 
 function setSettings() {
     if (typeof settings !== "object" || settings === null) settings = defaultSettings;
     for (var key of Object.keys(defaultSettings)) {
-        let value = settings.hasOwnProperty(key) ? settings[key] : defaultSettings[key]; 
+        let value = settings.hasOwnProperty(key) ? settings[key] : defaultSettings[key];
         let element = document.getElementById(key);
         if (element) element[value[0]] = value[1];
         else console.log("Setting not found: ", key, settings[key]);
@@ -204,7 +216,6 @@ function saveSettings() {
 
 async function fetchData() {
     assignmentData = []; resurrectedItems = []; userData = []; reviewData = []; reviewArray = []; totalArray = []; averageArray = []; srsArray = []; levelData = []; wordData = []; resetData = []; resets = []; subjectData = []; reviewAccuracy = [];
-    //reviewPg.style.backgroundColor = "palegoldenrod";
     for (const maindiv of maindivs) maindiv.style.display = "none";
     blackOverlay.style.visibility = "visible";
     whiteOverlay.style.visibility = "visible";
@@ -216,6 +227,7 @@ async function fetchData() {
     repairSubjectArray();
     createResetArray();
     repairLevelArray();
+    reviewData.sort((a, b) => new Date(a.data.created_at) - new Date(b.data.created_at));
     for (let i = 0; i < assignmentData.length; i++) if (assignmentData[i]["data"]["resurrected_at"] != null) resurrectedItems.push([assignmentData[i]["data"]["resurrected_at"], assignmentData[i]["data"]["subject_id"]]);
     for (let i = 0; i < subjectData.length; i++) if (subjectData[i]["object"] != "placeholder" && subjectData[i]["data"]["hidden_at"] != null) hiddenItems.push([subjectData[i]["data"]["hidden_at"], subjectData[i]["id"], subjectData[i]]);
     resurrectedItems.sort((a, b) => new Date(a[0]) - new Date(b[0]));
@@ -223,7 +235,7 @@ async function fetchData() {
     await reviewInfo();
     blackOverlay.style.visibility = "hidden";
     whiteOverlay.style.visibility = "hidden";
-    for (const maindiv of maindivs) maindiv.style.display = "block";
+    for (const maindiv of maindivs) if (maindiv.classList.contains('leftcolumn') || maindiv.parentNode.classList.contains('rightcolumn')) maindiv.style.display = "flex"; else maindiv.style.display = "block";
     loadGraphs().then(() => { if (localStorage["scrollposition"]) document.documentElement.scrollTop = document.body.scrollTop = localStorage["scrollposition"] });
 }
 
@@ -237,11 +249,11 @@ async function dataPasser() {
     };
     wkof.Progress.update(progress);
     await Promise.all([wkof.ItemData.get_items('assignments, subjects, review_statistics').then(data => { progress['value']++; wkof.Progress.update(progress); itemDataHandler(data); }),
-        wkof.Apiv2.get_endpoint('user').then(data => { progress['value']++; wkof.Progress.update(progress); userData = data; }),
-        wkof.Apiv2.get_endpoint('resets').then(data => { progress['value']++; wkof.Progress.update(progress); resetData = Object.values(data); }),
-        wkof.Apiv2.get_endpoint('level_progressions').then(data => { progress['value']++; wkof.Progress.update(progress); levelData = Object.values(data); }),
-        wkof.Apiv2.get_endpoint('spaced_repetition_systems').then(data => { progress['value']++; wkof.Progress.update(progress); srsData = data; }),
-        wkof.Apiv2.get_endpoint('reviews').then(data => { progress['value']++; wkof.Progress.update(progress); reviewData = Object.values(data); })]);
+    wkof.Apiv2.get_endpoint('user').then(data => { progress['value']++; wkof.Progress.update(progress); userData = data; }),
+    wkof.Apiv2.get_endpoint('resets').then(data => { progress['value']++; wkof.Progress.update(progress); resetData = Object.values(data); }),
+    wkof.Apiv2.get_endpoint('level_progressions').then(data => { progress['value']++; wkof.Progress.update(progress); levelData = Object.values(data); }),
+    wkof.Apiv2.get_endpoint('spaced_repetition_systems').then(data => { progress['value']++; wkof.Progress.update(progress); srsData = data; }),
+    wkof.Apiv2.get_endpoint('reviews').then(data => { progress['value']++; wkof.Progress.update(progress); reviewData = Object.values(data); })]);
     wkofDiv.style.display = 'none';
 }
 
@@ -282,7 +294,7 @@ function repairLevelArray() {
 async function loadGraphs() {
     calculateTotalAverages();
     userInfo();
-    levelInfo().then(projections());
+    levelInfo().then(() => { projections(); overviewInfo(); });
     wordInfo().then(updateCombinedAverages());
     updateReviewCharts();
     updateReviewAccuracy();
@@ -297,8 +309,6 @@ async function userInfo() {
     userInfo += fixHtml("<b>Subscription Active: ") + userData["subscription"]["active"] + "\n";
     let userPre = document.getElementById("userinfo");
     userPre.innerHTML = userInfo;
-
-    document.getElementById("levelOv").innerHTML = userData["level"];
 }
 
 function levelReorder(lvl) {
@@ -320,7 +330,7 @@ async function projections() {
     // create data array
     var [rawData, _] = P.api(userData, levelData, srsData, unalteredItemData); // raw projections data
     projectionsData = [["Level", { role: "tooltip", 'p': { 'html': true } }, { role: "annotation" }, "Fastest Finish", "Hypothetical Finish", "Reset Finish", "Predicted Finish"],
-        [0, "<div style='margin: 5px'><div><b>Start</b></div><div style='white-space: nowrap'><i>Started Level 1:</i> " + dateLongFormat(new Date(levelData[0]["data"]["unlocked_at"])) + "</div></div>", null, null, null, null, new Date(levelData[0]["data"]["unlocked_at"])]];
+    [0, "<div style='margin: 5px'><div><b>Start</b></div><div style='white-space: nowrap'><i>Started Level 1:</i> " + dateLongFormat(new Date(levelData[0]["data"]["unlocked_at"])) + "</div></div>", null, null, null, null, new Date(levelData[0]["data"]["unlocked_at"])]];
     var text;
     var prevReset = false;
     for (let i = 1; i < 62; i++) {
@@ -335,7 +345,6 @@ async function projections() {
                 resetLevelDate = levelDates[i - 1][levelDates[i - 1].length - 2][2];
                 text += "<div style='white-space: nowrap'>" + fixHtml("<i style='color:indianred'>Reset Level: </i>") + dateLongFormat(resetLevelDate) + "</div></div>";
             } else {
-                //if (prevReset) resetLevelDate = levelDates[i - 1][2];
                 prevReset = false;
                 text += "</div>";
             }
@@ -351,8 +360,6 @@ async function projections() {
     }
     for (let i = 0; i < annotationsArray.length; i++) projectionsData.find(element => element[0] == annotationsArray[i][0])[2] = annotationsArray[i][1];
     updateProjections();
-
-    document.getElementById("levelUpTimeOv").innerHTML = "Predicted Level Up in " + Math.round((new Date(rawData[userData["level"] + 1]['given'] - new Date())) / 3.6e6) + "h";
 }
 
 async function updateProjections() {
@@ -386,7 +393,7 @@ async function updateProjections() {
         tooltip: { isHtml: true },
         annotations: {
             style: 'line',
-            domain: { stem: { color: '#7fbd7d' }} // darkgreen vertical lines
+            domain: { stem: { color: '#7fbd7d' } } // darkgreen vertical lines
         },
         backgroundColor: { fill: 'transparent' },
         focusTarget: 'category'
@@ -456,7 +463,7 @@ function updateCombinedAverages() {
     for (let i = 0; i < 3; i++) {
         wordProgressTotals[i] = wordProgressTotals[i][1];
         runningTotal += wordProgressTotals[i];
-    } 
+    }
     chartData.push([runningTotal, ...wordProgressTotals]);
     for (let i = 0; i < 7; i++) chartArray[i + 1].push(...chartData[i]);
     // generate table
@@ -465,7 +472,7 @@ function updateCombinedAverages() {
     let colors = ['dodgerblue', 'hotpink', 'mediumpurple'];
     for (let i = 0; i < chartArray[0].length; i++) {
         let thNew = document.createElement('th');
-        let text = i == 0 ? chartArray[0][i] : "<p style='" + (i == 1 ? "" : "color: " + colors[i-2] + "; ") +"font-size: 130%; margin: 0; padding: 0'>" + chartArray[0][i] + "</p>";
+        let text = i == 0 ? chartArray[0][i] : "<p style='" + (i == 1 ? "" : "color: " + colors[i - 2] + "; ") + "font-size: 130%; margin: 0; padding: 0'>" + chartArray[0][i] + "</p>";
         thNew.innerHTML = text;
         tableHeadTr.appendChild(thNew);
     }
@@ -496,7 +503,7 @@ function openSnapshot(date) {
     snapshotDate = new Date(date.getTime());
     let currentIndex = midreviewAccuracy.length - 1, currentOtherIndex = reviewArray.length - 1;
     currentSnapshot = [...midreviewAccuracy[currentIndex].slice(1), ...readingAccuracy[currentIndex].slice(1), ...meaningAccuracy[currentIndex].slice(1),
-        ...reviewArray[currentOtherIndex].slice(1), ...itemArray[currentIndex].slice(1), totalArray[currentOtherIndex][1]];
+    ...reviewArray[currentOtherIndex].slice(1), ...itemArray[currentIndex].slice(1), totalArray[currentOtherIndex][1]];
     for (let i = 0; i < 12; i++) currentSnapshot[i] = currentSnapshot[i][1] == 0 ? "-" : roundToDecimals((1 - currentSnapshot[i][0] / currentSnapshot[i][1]) * 100) + "%";
     openDetailWindow('<h2>One Day Snapshot</h2><div id="snapshottable"></div><p><b>Info:</b> Use arrow keys or a/d to change the currently viewed date.</p>'); // open window
     moveSnapshot(0);
@@ -514,7 +521,7 @@ function moveSnapshot(n) {
         ...reviewArray[otherIndex].slice(1), "-", "-", "-", "-", totalArray[otherIndex][1]];
     else { // there is data
         snapshotData = [...midreviewAccuracy[index].slice(1), ...readingAccuracy[index].slice(1), ...meaningAccuracy[index].slice(1),
-            ...reviewArray[otherIndex].slice(1), ...itemArray[index].slice(1), totalArray[otherIndex][1]];
+        ...reviewArray[otherIndex].slice(1), ...itemArray[index].slice(1), totalArray[otherIndex][1]];
         for (let i = 0; i < 12; i++) snapshotData[i] = snapshotData[i][1] == 0 ? "-" : roundToDecimals((1 - snapshotData[i][0] / snapshotData[i][1]) * 100) + "%";
     }
     generateSnapshotTable();
@@ -571,6 +578,15 @@ async function reviewInfo() {
     readingAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, [1, 1], [1, 1], [1, 1], [1, 1]]];
     meaningAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, [1, 1], [1, 1], [1, 1], [1, 1]]];
     reviewAccTotal = [[1, 1, 1, 1]];
+    timeData = [["Date", "Total Time", ["Radicals", "Kanji", "Vocab"], ["Apprentice", "Guru", "Master", "Enlightened", "Burned"]]];
+    var timeLimits = [0.5, 1, 2, 4]; // unit is minutes
+    let timelimitSelect = document.getElementById('timelimit');
+    for (let i = 0; i < timeLimits.length; i++) {
+        let option = document.createElement('option');
+        option.innerHTML = minsToDurationString(timeLimits[i], true, false);
+        option.value = timeLimits[i];
+        timelimitSelect.appendChild(option);
+    }
     var correct;
     for (let i = 0; i < dataLength; i++) {
         let currentReview = reviewData[i]["data"];
@@ -580,8 +596,10 @@ async function reviewInfo() {
         let date = new Date(currentReview["created_at"].substring(0, 10)), newDate;
         found = reviewArray.findIndex(element => (element[0].valueOf() == date.valueOf()));
         if (found == -1) {
-            newDate = [date, 0, 0, 0, 0];
-            reviewArray.push(newDate);
+            reviewArray.push([new Date(date.getTime()), 0, 0, 0, 0]);
+            let newTimeDataPoint = [new Date(date.getTime())];
+            for (let j = 0; j < timeLimits.length; j++) newTimeDataPoint.push([0, [0, 0, 0], [0, 0, 0, 0, 0]]);
+            timeData.push(newTimeDataPoint);
             found = reviewArray.length - 1;
         }
         reviewArray[found][1]++;
@@ -590,11 +608,26 @@ async function reviewInfo() {
             case "kanji": reviewArray[found][3]++; break;
             case "radical": reviewArray[found][2]++; break;
         }
-        // srs review data
-        correct = currentReview["incorrect_meaning_answers"] == 0 && currentReview["incorrect_reading_answers"] == 0 ? 1 : 0;
-        let [incRead, incMean] = [currentReview["incorrect_reading_answers"], currentReview["incorrect_meaning_answers"]]; 
+        // time data
         let typeStart = levelReorder(currentReview["starting_srs_stage"]);
         let typeEnd = levelReorder(currentReview["ending_srs_stage"]);
+        if (i != 0) {
+            let diff = (new Date(currentReview["created_at"]) - new Date(reviewData[i - 1]["data"]["created_at"])) / 60000; // difference in minutes
+            for (let j = 0; j < timeLimits.length; j++) {
+                if (diff <= timeLimits[j]) { // do not count afk reviews or spaces between session
+                    timeData[found][j + 1][0] += diff; // all
+                    switch (subjectData[subId]["object"]) { // type
+                        case "vocabulary": timeData[found][j + 1][1][2] += diff; break;
+                        case "kanji": timeData[found][j + 1][1][1] += diff; break;
+                        case "radical": timeData[found][j + 1][1][0] += diff; break;
+                    }
+                    timeData[found][j + 1][2][typeEnd - 1] += diff; // srs stage
+                }
+            }
+        }
+        // srs review data
+        correct = currentReview["incorrect_meaning_answers"] == 0 && currentReview["incorrect_reading_answers"] == 0 ? 1 : 0;
+        let [incRead, incMean] = [currentReview["incorrect_reading_answers"], currentReview["incorrect_meaning_answers"]];
         let foundSrs = srsArray.findIndex(element => (element[0].valueOf() == date.valueOf()));
         if (foundSrs == -1) {
             newDate = [...srsArray[srsArray.length - 1]];
@@ -805,11 +838,6 @@ async function updateReviewCharts() {
     totalChart.draw(totalChartData, options);
     google.visualization.events.addListener(totalChart, 'select', function () { // arrow mover
         chartSelectionSetter(totalChart);
-        /*let selection = totalChart.getSelection()[0];
-        if (selection === undefined || (isMobile && !mobileSnapshot.checked)) return;
-        let date = totalChartData.getValue(selection["row"], 0);
-        totalChart.setSelection([]);
-        openSnapshot(date);*/
     });
     // srs stacked
     srsStackChartData = google.visualization.arrayToDataTable(dataDateShorten(srsArray, startDate, nullifyBool));
@@ -831,7 +859,7 @@ async function updateReviewCharts() {
     chartDiv = document.getElementById('srschart');
     srsStackedChart = new google.visualization.SteppedAreaChart(chartDiv);
     srsStackedChart.draw(srsStackChartData, options);
-    google.visualization.events.addListener(srsStackedChart, 'select', function () { chartSelectionSetter(srsStackedChart);});
+    google.visualization.events.addListener(srsStackedChart, 'select', function () { chartSelectionSetter(srsStackedChart); });
     // srs
     options = {
         chartArea: { width: '100%', height: '80%' },
@@ -849,6 +877,101 @@ async function updateReviewCharts() {
     chart = new google.visualization.LineChart(chartDiv);
     chart.draw(srsStackChartData, options);
     google.visualization.events.addListener(chart, 'select', function () { chartSelectionSetter(chart); });
+    // time chart
+    var options = {
+        chart: {
+            type: 'line',
+            height: '400px',
+            /*events: {
+                click: chartClick,
+                beforeZoom: function (_, info) {
+                    if (info.yaxis !== undefined) currentSelection = 1 - currentSelection;
+                },
+                mouseLeave: function (_, _) {
+                    chartSelectionMover(0);
+                }
+            }*/
+        },
+        title: { text: 'Time Spent on Reviews Per Day' },
+        stroke: {
+            curve: 'smooth',
+            width: 2
+        },
+        series: [],
+        yaxis: {
+            labels: {
+                formatter: function (value, _, _) {
+                    return minsToDurationString(value, true, true);
+                }
+            }
+        },
+        xaxis: { type: 'datetime' },
+        dataLabels: { enabled: false },
+        tooltip: {
+            shared: true,
+            x: {
+                format: 'MMM dd yyyy'
+            },
+            y: {
+                formatter: function (value, _, _) {
+                    return minsToDurationString(value, false, false);
+                }
+            }
+        },
+        legend: { show: false }
+    }
+    timeChart = new ApexCharts(document.getElementById('timechart'), options);
+    timeChart.render();
+    timeChart.updateOptions({ theme: { mode: lightMode ? 'dark' : 'light' }, chart: { background: lightMode ? '#1b1b1b' : '#ffffff' } });
+    updateTimeChart();
+}
+
+function updateTimeChart() {
+    let timeLimitIndex = document.getElementById('timelimit').selectedIndex,
+        useSrsBool = document.getElementById('timestagetypeswitch').checked,
+        startDate = new Date(newdateinp.value);
+    var currentTimeData = dataDateShorten(timeData, startDate, false);
+    if (useSrsBool) {
+        timeChart.updateOptions({
+            series: [{
+                name: currentTimeData[0][1], // total
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]])
+            }, {
+                name: currentTimeData[0][3][0], // app
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][0]])
+            }, {
+                name: currentTimeData[0][3][1], // gur
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][1]])
+            }, {
+                name: currentTimeData[0][3][2], // mas
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][2]])
+            }, {
+                name: currentTimeData[0][3][3], // enl
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][3]])
+            }, {
+                name: currentTimeData[0][3][4], // bur
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][4]])
+            }],
+            colors: ['#000000', '#f400a3', '#9e34b8', '#3557dd', '#0096e2', '#f0ca00']
+        }, true, true);
+    } else {
+        timeChart.updateOptions({
+            series: [{
+                name: currentTimeData[0][1], // total
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]])
+            }, {
+                name: currentTimeData[0][2][0], // rad
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][1][0]])
+            }, {
+                name: currentTimeData[0][2][1], // kan
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][1][1]])
+            }, {
+                name: currentTimeData[0][2][2], // voc
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][1][2]])
+            }],
+            colors: ['#000000', '#55abf2', '#f032b1', '#bb31de']
+        }, true, true);
+    }
 }
 
 function roundToDecimals(num, n = 1, fill = false) {
@@ -869,7 +992,7 @@ function updateTables(changeOffset = 0) {
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     for (let i = dateAmount + tableOffset; i >= tableOffset; i--) {
         dates.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * i, today.getDate() - durationDays * i));
-        datesEnd.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * (i-1), today.getDate() - durationDays * (i-1) - 1));
+        datesEnd.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * (i - 1), today.getDate() - durationDays * (i - 1) - 1));
     }
     let dateElements = document.getElementById("tableheaddate").children;
     let dateEndElements = document.getElementById("tableheadenddate").children;
@@ -1039,6 +1162,51 @@ function updateTables(changeOffset = 0) {
     }
 }
 
+async function overviewInfo() {
+    let today = new Date(todayDate),
+        yesterday = new Date(todayDate);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // level
+    document.getElementById("levelOv").innerHTML = userData["level"];
+    if (userData["level"] == 60) document.getElementById("levelOv").style.color = "#f0ca00";
+    document.getElementById("levelStageOv").innerHTML = levelStages[Math.floor((userData["level"] - 1) / 10)];
+
+    // time on level
+    let timeOnLevel = combLevelChart[combLevelChart.length - 1][1],
+        medianLevelUp = combLevelChart[combLevelChart.length - 1][4];
+    document.getElementById("levelTimeOv").innerHTML = daysToDurationString(timeOnLevel, true, false);
+    document.getElementById("levelTimeOv").style.color = timeOnLevel <= levelChart[1][6] ? "#55af55" : "#af5555";
+    document.getElementById("levelUpTimeOv").innerHTML = "Predicted Level Up in " + daysToDurationString(Math.max(medianLevelUp - timeOnLevel, 0), true, true);
+
+    // accuracy
+    let accToday = midreviewAccuracy.slice(1).find(e => e[0].getTime() == today.getTime()),
+        accYesterday = midreviewAccuracy.slice(1).find(e => e[0].getTime() == yesterday.getTime());
+    accToday = accToday === undefined ? null : (1 - accToday[4][0] / accToday[4][1]) * 100;
+    accYesterday = accYesterday === undefined ? null : (1 - accYesterday[4][0] / accYesterday[4][1]) * 100;
+    document.getElementById("accuracyOv").innerHTML = (accToday === null ? "-" : accToday.toFixed(1) + "%");
+    document.getElementById("accuracyOv").style.color = accToday >= accYesterday ? "#55af55" : "#af5555";
+    document.getElementById("accuracyHistOv").innerHTML = "Yesterday: " + (accYesterday === null ? "-" : accYesterday.toFixed(1) + "%");
+
+    // time spent
+    let timeToday = timeData.slice(1).find(e => e[0].getTime() == today.getTime()),
+        timeYesterday = timeData.slice(1).find(e => e[0].getTime() == yesterday.getTime());
+    timeToday = timeToday === undefined ? 0 : timeToday[3][0];
+    timeYesterday = timeYesterday === undefined ? 0 : timeYesterday[3][0];
+    document.getElementById("timeOv").innerHTML = minsToDurationString(timeToday, false, false);
+    document.getElementById("timeOv").style.color = timeToday >= timeYesterday ? "#55af55" : "#af5555";
+    document.getElementById("timeHistOv").innerHTML = "Yesterday: " + minsToDurationString(timeYesterday, false, false);
+
+    // reviews
+    let reviewToday = reviewArray.slice(1).find(e => e[0].getTime() == today.getTime()),
+        reviewYesterday = reviewArray.slice(1).find(e => e[0].getTime() == yesterday.getTime());
+    reviewToday = reviewToday === undefined ? 0 : reviewToday[1];
+    reviewYesterday = reviewYesterday === undefined ? 0 : reviewYesterday[1];
+    document.getElementById("reviewOv").innerHTML = reviewToday;
+    document.getElementById("reviewOv").style.color = reviewToday >= reviewYesterday ? "#55af55" : "#af5555";
+    document.getElementById("reviewHistOv").innerHTML = "Yesterday: " + reviewYesterday;
+}
+
 async function updateReviewAccuracy() {
     var dayAverage = smoothAccInp.value;
     let smoothBool = (dayAverage != 0);
@@ -1062,17 +1230,17 @@ async function updateReviewAccuracy() {
         for (let j = 0; j < 4; j++) average[j] = runningAmount[j] == 0 ? prevAvg[j] : runningTotal[j] / runningAmount[j];
         prevAvg = average.slice();
         averageArray.push([currentArray[i][0],
-            '<div style="white-space: nowrap; margin: 8px"><div style="font-weight: bold; margin-bottom: 5px">' + dateLongFormat(currentArray[i][0]) + '</div>'
-            + '<div><b>Total:</b> ' + roundToDecimals(average[3], 2) + ' (' + runningAmount[3] + ')</div>'
-            + '<div style="color: dodgerblue"><b>Radical:</b> ' + roundToDecimals(average[0], 2) + ' (' + runningAmount[0] + ')</div>'
-            + '<div style="color: hotpink"><b>Kanji:</b> ' + roundToDecimals(average[1], 2) + ' (' + runningAmount[1] + ')</div>'
-            + '<div style="color: mediumpurple"><b>Vocab:</b> ' + roundToDecimals(average[2], 2) + ' (' + runningAmount[2] + ')</div>'
-            + '</div>',
-            ...average]);
+        '<div style="white-space: nowrap; margin: 8px"><div style="font-weight: bold; margin-bottom: 5px">' + dateLongFormat(currentArray[i][0]) + '</div>'
+        + '<div><b>Total:</b> ' + roundToDecimals(average[3], 2) + ' (' + runningAmount[3] + ')</div>'
+        + '<div style="color: dodgerblue"><b>Radical:</b> ' + roundToDecimals(average[0], 2) + ' (' + runningAmount[0] + ')</div>'
+        + '<div style="color: hotpink"><b>Kanji:</b> ' + roundToDecimals(average[1], 2) + ' (' + runningAmount[1] + ')</div>'
+        + '<div style="color: mediumpurple"><b>Vocab:</b> ' + roundToDecimals(average[2], 2) + ' (' + runningAmount[2] + ')</div>'
+        + '</div>',
+        ...average]);
     }
     var averageArrays = [[[["Date", "Avg Radical Acc", "Avg Kanji Acc", "Avg Vocab Acc", "Avg All Acc"]], midreviewAccuracy],
-        [[["Date", "Avg Radical Reading Acc", "Avg Kanji Reading Acc", "Avg Vocab Reading Acc", "Avg All Reading Acc"]], meaningAccuracy],
-        [[["Date", "Avg Radical Meaning Acc", "Avg Kanji Meaning Acc", "Avg Vocab Meaning Acc", "Avg All Meaning Acc"]], readingAccuracy]];
+    [[["Date", "Avg Radical Reading Acc", "Avg Kanji Reading Acc", "Avg Vocab Reading Acc", "Avg All Reading Acc"]], meaningAccuracy],
+    [[["Date", "Avg Radical Meaning Acc", "Avg Kanji Meaning Acc", "Avg Vocab Meaning Acc", "Avg All Meaning Acc"]], readingAccuracy]];
     for (let k = 0; k < 3; k++) {
         var currentArray = shortBool ? dataDateShorten(averageArrays[k][1], startDate) : averageArrays[k][1];
         var runningTotal = [0, 0, 0, 0];
@@ -1088,13 +1256,13 @@ async function updateReviewAccuracy() {
             for (let j = 0; j < 4; j++) average[j] = runningAmount[j] == 0 ? prevAvg[j] : (1 - runningTotal[j] / runningAmount[j]) * 100;
             prevAvg = average.slice();
             averageArrays[k][0].push([currentArray[i][0],
-                '<div style="white-space: nowrap; margin: 8px"><div style="font-weight: bold; margin-bottom: 5px">' + dateLongFormat(currentArray[i][0]) + '</div>'
-                + '<div><b>Total:</b> ' + roundToDecimals(average[3], 2) + ' (' + runningAmount[3] + ')</div>'
-                + (k == 2 ? '' : '<div style="color: dodgerblue"><b>Radical:</b> ' + roundToDecimals(average[0], 2) + ' (' + runningAmount[0] + ')</div>')
-                + '<div style="color: hotpink"><b>Kanji:</b> ' + roundToDecimals(average[1], 2) + ' (' + runningAmount[1] + ')</div>'
-                + '<div style="color: mediumpurple"><b>Vocab:</b> ' + roundToDecimals(average[2], 2) + ' (' + runningAmount[2] + ')</div>'
-                + '</div>',
-                ...average]);
+            '<div style="white-space: nowrap; margin: 8px"><div style="font-weight: bold; margin-bottom: 5px">' + dateLongFormat(currentArray[i][0]) + '</div>'
+            + '<div><b>Total:</b> ' + roundToDecimals(average[3], 2) + ' (' + runningAmount[3] + ')</div>'
+            + (k == 2 ? '' : '<div style="color: dodgerblue"><b>Radical:</b> ' + roundToDecimals(average[0], 2) + ' (' + runningAmount[0] + ')</div>')
+            + '<div style="color: hotpink"><b>Kanji:</b> ' + roundToDecimals(average[1], 2) + ' (' + runningAmount[1] + ')</div>'
+            + '<div style="color: mediumpurple"><b>Vocab:</b> ' + roundToDecimals(average[2], 2) + ' (' + runningAmount[2] + ')</div>'
+            + '</div>',
+            ...average]);
         }
     }
     // tooltip and no radical for reading
@@ -1105,12 +1273,6 @@ async function updateReviewAccuracy() {
     // review accuracy
     var accData = dataDateShorten(currentAccuracyArray, startDate);
     var accChartData = google.visualization.arrayToDataTable(accData);
-
-    oneDayAcc = [midreviewAccuracy[midreviewAccuracy.length - 1][4], midreviewAccuracy[midreviewAccuracy.length - 2][4]];
-    document.getElementById("accuracyOv").innerHTML = ((1 - oneDayAcc[0][0]/oneDayAcc[0][1]) * 100).toFixed(1) + "%";
-    document.getElementById("accuracyOv").style.color = oneDayAcc[0][0]/oneDayAcc[0][1] > oneDayAcc[1][0]/oneDayAcc[1][1] ? "#af5555" : "#55af55";
-    document.getElementById("accuracyHistOv").innerHTML = "Yesterday: " + ((1 - oneDayAcc[1][0]/oneDayAcc[1][1]) * 100).toFixed(1) + "%";
-
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
     dateFormatter.format(accChartData, 0);
     var options = {
@@ -1213,7 +1375,7 @@ async function updateReviewsPerDay() {
         averageArray = [["Date", "Average Reviews", "Average Radicals", "Average Kanji", "Average Vocab"]];
         var average = [0, 0, 0, 0];
         for (let i = 1; i < reviewArray.length; i++) {
-            for (let j = 0; j < 4; j++) runningTotal[j] += reviewArray[i][j+1];
+            for (let j = 0; j < 4; j++) runningTotal[j] += reviewArray[i][j + 1];
             if (i > dayAverage) {
                 for (let j = 0; j < 4; j++) runningTotal[j] -= reviewArray[i - dayAverage][j + 1];
                 for (let j = 0; j < 4; j++) average[j] = runningTotal[j] / dayAverage;
@@ -1234,7 +1396,7 @@ async function updateReviewsPerDay() {
         curveType: smoothBool ? 'function' : 'none',
         legend: { position: 'none' },
         vAxis: {
-            viewWindow: {min: 0}
+            viewWindow: { min: 0 }
         },
         colors: ['black', '#55abf2', '#f032b1', '#bb31de'],
         width: 1000,
@@ -1346,7 +1508,7 @@ async function levelInfo() {
 
     // pure vocab time
     extraTime.splice(0, 1);
-    for (let i = 0; i < extraTime.length; i++) levelChart[i+1][4] = extraTime[i];
+    for (let i = 0; i < extraTime.length; i++) levelChart[i + 1][4] = extraTime[i];
     // median
     let medianVal = median(levelLengths);
     for (let i = 1; i < levelChart.length; i++) { levelChart[i].push(medianVal); levelChart[i].push("<div style='margin: 5px; white-space: nowrap'>" + fixHtml("<b>Median: ") + daysToDurationString(medianVal, true) + "</div>"); }
@@ -1415,18 +1577,29 @@ function daysToDurationString(x, includeHours = false, short = false) {
     returnString += short ? (years != 0 ? years + "y" : "") + (months != 0 ? months + "m" : "") + days + "d" : (years != 0 ? years + (years == 1 ? " year, " : " years, ") : "") + (months != 0 ? months + (months == 1 ? " month, " : " months, ") : "") + days + (days == 1 ? " day" : " days");
     if (includeHours) {
         let hours = Math.floor(rest * 24);
-        returnString += short ? ", " + hours + "h" : ", " + hours + (hours == 1 ? " hour" : " hours");
+        returnString += short ? hours + "h" : ", " + hours + (hours == 1 ? " hour" : " hours");
     }
+    return returnString;
+}
+
+function minsToDurationString(x, includeSeconds = false, short = false) {
+    let mins = Math.floor(x);
+    let rest = x - mins;
+    let hours = Math.floor(mins / 60);
+    mins = mins - hours * 60;
+    let returnString = "";
+    returnString += short ? (hours != 0 ? hours + "h" : "") + (mins == 0 ? "" : mins + "m") : (hours != 0 ? hours + (hours == 1 ? " hour, " : " hours, ") : "") + (mins == 0 ? "" : mins + (mins == 1 ? " min" : " mins"));
+    if (includeSeconds) {
+        let secs = Math.floor(rest * 60);
+        returnString += secs == 0 ? "" : (short ? secs + "s" : (mins == 0 ? "" : ", ") + secs + (secs == 1 ? " sec" : " secs"));
+    }
+    if (returnString == "") return short ? "0m" : "0 mins";
     return returnString;
 }
 
 function updateLevelChart() {
     const resetBool = levelResetsBox.checked; const clampBool = levelClampBox.checked; const combBool = levelCombBox.checked;
-    let currentLevelChart = resetBool ? (combBool ? combPureLevelChart : pureLevelChart) : (combBool ? combLevelChart : levelChart);
-
-    document.getElementById("levelTimeOv").innerHTML = Math.round((resetBool ? combPureLevelChart : combLevelChart)[userData["level"]][1]) + " days";
-    document.getElementById("levelTimeOv").style.color = Math.round((resetBool ? combPureLevelChart : combLevelChart)[userData["level"]][1]) < levelChart[1][6] ? "#55af55" : "#af5555";
-
+    let currentLevelChart = resetBool && pureLevelChart.length > 1 ? (combBool ? combPureLevelChart : pureLevelChart) : (combBool ? combLevelChart : levelChart);
     if (!levelMedianBox.checked) currentLevelChart = currentLevelChart.map(arr => arr.slice(0, -2));
     const medianVal = levelChart[1][6];
     let maxLength = currentLevelChart.slice(1).reduce(function (p, v) { return (v[1] + (combBool ? 0 : v[4]) > p[1] + (combBool ? 0 : p[4]) ? v : p); });
@@ -1471,13 +1644,13 @@ function changeYojijukugo(page) {
         currentPage = 1;
         return;
     }
-    document.getElementById("yojijukugoword").innerHTML = possibleYojijukugo[currentPage-1][1] + document.getElementById("yojijukugoword").innerHTML.slice(4);
-    document.getElementById("yojijukugofurigana").innerHTML = possibleYojijukugo[currentPage-1][2];
+    document.getElementById("yojijukugoword").innerHTML = possibleYojijukugo[currentPage - 1][1] + document.getElementById("yojijukugoword").innerHTML.slice(4);
+    document.getElementById("yojijukugofurigana").innerHTML = possibleYojijukugo[currentPage - 1][2];
     var meanings = document.getElementById("yojijukugomeaning");
     meanings.textContent = "";
-    for (var i = 0; i < possibleYojijukugo[currentPage-1][4].length; i++) {
+    for (var i = 0; i < possibleYojijukugo[currentPage - 1][4].length; i++) {
         var item = document.createElement('li');
-        item.appendChild(document.createTextNode(possibleYojijukugo[currentPage-1][4][i]));
+        item.appendChild(document.createTextNode(possibleYojijukugo[currentPage - 1][4][i]));
         meanings.appendChild(item);
     }
     document.getElementById("yojijukugopage").innerHTML = currentPage + "/" + possibleYojijukugo.length + " ";
@@ -1582,7 +1755,7 @@ async function wordInfo() {
             case "kanji":
                 doneCounts[1]++;
                 kanjiWall += name;
-                specialKanjiWall += fixHtml("<span style='color: " + kanjiColors[levelReorder(assignmentData.find(element => element["data"]["subject_id"] == id)["data"]["srs_stage"])-1] + "'>" + name + "</span>");
+                specialKanjiWall += fixHtml("<span style='color: " + kanjiColors[levelReorder(assignmentData.find(element => element["data"]["subject_id"] == id)["data"]["srs_stage"]) - 1] + "'>" + name + "</span>");
                 break;
             case "radical":
                 doneCounts[0]++;
@@ -1626,8 +1799,8 @@ async function wordInfo() {
         }
     }
     wordProgressData = [["Type", "Count", { role: "tooltip" }],
-        ["Radical Learned", doneCounts[0], doneCounts[0] / totalCounts[0] * 100], ["Kanji Learned", doneCounts[1], doneCounts[1] / totalCounts[1] * 100], ["Vocab Learned", doneCounts[2], doneCounts[2] / totalCounts[2] * 100],
-        ["Radical Unknown", totalCounts[0] - doneCounts[0], (1 - doneCounts[0] / totalCounts[0]) * 100], ["Kanji Unknown", totalCounts[1] - doneCounts[1], (1 - doneCounts[1] / totalCounts[1]) * 100], ["Vocab Unknown", totalCounts[2] - doneCounts[2], (1 - doneCounts[2] / totalCounts[2]) * 100]];
+    ["Radical Learned", doneCounts[0], doneCounts[0] / totalCounts[0] * 100], ["Kanji Learned", doneCounts[1], doneCounts[1] / totalCounts[1] * 100], ["Vocab Learned", doneCounts[2], doneCounts[2] / totalCounts[2] * 100],
+    ["Radical Unknown", totalCounts[0] - doneCounts[0], (1 - doneCounts[0] / totalCounts[0]) * 100], ["Kanji Unknown", totalCounts[1] - doneCounts[1], (1 - doneCounts[1] / totalCounts[1]) * 100], ["Vocab Unknown", totalCounts[2] - doneCounts[2], (1 - doneCounts[2] / totalCounts[2]) * 100]];
     for (let i = 1; i < wordProgressData.length; i++) wordProgressData[i][2] = "Percentage " + wordProgressData[i][0] + ": " + Math.round(wordProgressData[i][2] * 10) / 10 + " % (" + wordProgressData[i][1] + ")";
     var chartData = google.visualization.arrayToDataTable(wordProgressData);
     var options = {
@@ -1669,7 +1842,7 @@ async function wordInfo() {
         chartArea: { width: '85%', height: '80%' },
         title: 'Radical Overview (Lightness: WK Level)',
         hAxis: { textPosition: 'in', title: 'Accuracy (%)' },
-        vAxis: { title: 'Amount Reviewed', format: '0'},
+        vAxis: { title: 'Amount Reviewed', format: '0' },
         legend: { position: 'none' },
         bubble: { textStyle: { fontSize: 11 } },
         tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
@@ -1694,7 +1867,7 @@ async function wordInfo() {
 async function hallCreation(words, divid, titleChart, colorChart, type) {
     let chartDiv = document.getElementById(divid);
     var data = [["Radical", "Percentage", { role: 'annotation' }]];
-    for (let i = 0; i < words.length; i++) data.push([words[i][2], words[i][1]*100, words[i][3]+"/"+words[i][4]]);
+    for (let i = 0; i < words.length; i++) data.push([words[i][2], words[i][1] * 100, words[i][3] + "/" + words[i][4]]);
     var chartData = google.visualization.arrayToDataTable(data);
     var options = {
         chartArea: { width: '100%', height: '80%' },

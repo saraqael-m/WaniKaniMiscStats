@@ -15,7 +15,7 @@
     <link rel="icon" href="images/icon_tm.png">
     <link href="style.css" rel="stylesheet" type="text/css">
     <meta charset="UTF-8">
-    <meta name="description" content="Look at your full WaniKani History!">
+    <meta name="description" content="WaniKani Time Machine.">
     <meta name="author" content="Sahaquiel">
     <meta name="keywords" content="wanikani api stats statistics">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -53,7 +53,7 @@
             <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652" style="float: left;">WaniKani Thread</a>
             <a href="https://community.wanikani.com/u/koichi/summary" style="float: left;">Koichi</a>
             <button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3); position: relative; z-index: 1004">Logout</button>
-            <span style="float: right;">タイムマシン０.２.０</span> <!-- ０１２３４５６７８９ -->
+            <span style="float: right;">タイムマシン０.２.１</span> <!-- ０１２３４５６７８９ -->
         </div>
         <h1 style="background-color: rgba(255, 255, 255, 0.5); margin-bottom: 0px">WaniKani History</h1>
         <h2 style="background-color: rgba(255, 255, 255, 0.5); margin-top: 0px; margin-bottom: 35px">Timemachine</h2>
@@ -61,9 +61,9 @@
 
     <div class="toc">
         <div class="navbar">
-			<a href="Stats.html">Statistics</a>
-			<a href="timemachine.html" class="current-page">Timemachine<div id="triangle"></div></a>
-		</div>
+            <a href="Stats.html">Statistics</a>
+            <a href="timemachine.html" class="current-page">Timemachine<div id="triangle"></div></a>
+        </div>
         <a onclick="window.location.hash = ''; window.location.hash = '#Timemachine';">Timemachine</a>
     </div>
 
@@ -83,19 +83,18 @@
             </div>
             <div style="clear: both;"></div>
 
-            <div class="chart" id="srschart"></div>
+            <div id="srschart"></div>
             <div style="width: 100%; padding-bottom: 10px">
                 <input type="range" min="0" max="1000" value="0" class="timemachineslider" id="timeslider">
             </div>
             <div id="timemachinediv" style="font-size: 80%"></div>
 
-            <p><b>Note:</b> You can click and drag to zoom. With SHIFT + drag you can move in a zoomed view. The home button in the top right lets you get back to the normal view. If the numbers in the info box do not load just click the chart once.</p>
+            <p><b>Note:</b> You can click and drag to zoom. With SHIFT + drag you can move in a zoomed view. The home button in the top right lets you get back to the normal view. Also, you can use your arrow keys (or A & D) to navigate. If the numbers in the info box do not load just click the chart once.</p>
         </div>
 
     </div>
 
     <!-- Modules -->
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script> <!-- google charts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script> <!-- apex charts -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="js/jquery-3.6.0.min.js"></script>

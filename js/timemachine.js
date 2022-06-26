@@ -1,7 +1,4 @@
-﻿// packages
-google.charts.load('current', { 'packages': ['corechart'] });
-
-// variables
+﻿// variables
 var userData = [], resetData = [], reviewData = [], assignmentData = [], subjectData = [], wordData = [], timemachineData = [], srsArray = [], hiddenItems = [], resurrectedItems = [], resets = [], srsChartData = [], usedIds = [];
 var currentSelection = -1;
 var dateRange = 1;
@@ -106,7 +103,7 @@ async function fetchData() {
     for (let i = 0; i < subjectData.length; i++) if (subjectData[i]["object"] != "placeholder" && subjectData[i]["data"]["hidden_at"] != null) hiddenItems.push([subjectData[i]["data"]["hidden_at"], subjectData[i]["id"], subjectData[i]]);
     resurrectedItems.sort((a, b) => new Date(a[0]) - new Date(b[0]));
     hiddenItems.sort((a, b) => new Date(a[0]) - new Date(b[0]));
-    reviewData.sort((a, b) => new Date(a[0]) - new Date(b[0]));
+    reviewData.sort((a, b) => new Date(a.data.created_at) - new Date(b.data.created_at));
     createResetArray();
     repairSubjectArray();
 
@@ -379,7 +376,7 @@ function generateTimemachineChart() {
             }
         },
         title: {
-            text: 'Kanji Item Distribution'
+            text: 'Kanji Items Learned by SRS Stage'
         },
         stroke: {
             curve: 'smooth',
@@ -431,7 +428,7 @@ function generateTimemachineChart() {
     }
     srsChart = new ApexCharts(srsChartDiv, options);
     srsChart.render();
-    srsChart.updateOptions({ theme: { mode: lightMode ? 'dark' : 'light' } });
+    srsChart.updateOptions({ theme: { mode: lightMode ? 'dark' : 'light' }, chart: { background: lightMode ? '#1b1b1b' : '#ffffff' } });
     // populate kanji div to default
     currentSelection = 0;
     chartSelectionMover(0);

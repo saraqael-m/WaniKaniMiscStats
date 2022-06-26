@@ -71,7 +71,7 @@ function changeMode(apexChartList) {
         wkofdiv.style.filter = "";
         document.body.style.background = "#f1f1f1";
         localStorage["mode"] = "dark";
-        if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'light' } });
+        if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'light' }, chart: { background: '#ffffff' } });
     } else {
         lightMode = true;
         let modebtn = document.getElementById('modebtn')
@@ -88,7 +88,7 @@ function changeMode(apexChartList) {
         wkofdiv.style.filter = "invert(100%)";
         document.body.style.background = "black";
         localStorage["mode"] = "light";
-        if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'dark' } });
+        if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'dark' }, chart: { background: '#1b1b1b' } });
     }
 }
 

@@ -13,6 +13,7 @@ body {
 	padding: 10px;
 	background: #f1f1f1;
 }
+
 body.dark-mode {
 	--card-color: #1b1b1b;
 }
@@ -20,6 +21,7 @@ body.dark-mode {
 h1, h2, h3, h4, h5, h6, label, p, pre {
 	font-family: Helvetica, Arial, Sans-Serif;
 }
+
 h2 {
 	margin-top: 0;
 }
@@ -82,35 +84,37 @@ div.settings h4 {
 	background-color: #fac5c7;
 }
 
-	.toc .navbar a {
-		float: left;
-		display: block;
-		font-size: 120%;
-		color: rgb(61, 61, 61) !important;
-		text-align: center;
-		margin: 5px 0 5px 5px;
-		padding: 8px;
-		position: relative;
-		text-decoration: none;
+.toc .navbar a {
+	float: left;
+	display: block;
+	font-size: 120%;
+	color: rgb(61, 61, 61) !important;
+	text-align: center;
+	margin: 5px 0 5px 5px;
+	padding: 8px;
+	position: relative;
+	text-decoration: none;
+}
+
+	.toc .navbar a:not(.current-page):hover {
+		background-color: #f78686;
+		cursor: pointer;
+		border-radius: 5px;
 	}
 
-		.toc .navbar a:not(.current-page):hover {
-			background-color: #f78686;
-			cursor: pointer;
-			border-radius: 5px;
-		}
-		#triangle {
-			transform: rotate(45deg);
-			width: 15px;
-			height: 15px;
-			background-color: #ffffff;
-			position: absolute;
-			bottom: -13px;
-			left: calc(50% - 8px);
-		}
-		.current-page {
-			pointer-events: none;
-		}
+#triangle {
+	transform: rotate(45deg);
+	width: 15px;
+	height: 15px;
+	background-color: #ffffff;
+	position: absolute;
+	bottom: -13px;
+	left: calc(50% - 8px);
+}
+
+.current-page {
+	pointer-events: none;
+}
 
 .dark-mode .navbar {
 	background-color: #1f4948;
@@ -124,9 +128,11 @@ div.settings h4 {
 			background-color: #93bbb1;
 			color: black !important;
 		}
-		.dark-mode #triangle {
-			background-color: #1b1b1b;
-		}
+
+.dark-mode #triangle {
+	background-color: #1b1b1b;
+}
+
 /* tooltip */
 
 .tooltip .tooltiptext {
@@ -512,6 +518,7 @@ table.normaltable {
 }
 
 /* Overview */
+
 #overview div h3 {
 	text-align: center;
 	background-color: rgb(241, 241, 241);
@@ -520,16 +527,42 @@ table.normaltable {
 	padding-bottom: 5px;
 	margin: 0;
 }
+
 .dark-mode #overview div h3 {
 	background-color: #525252;
 }
+
 #overview div {
 	display: grid;
 	gap: 20px;
-	grid-template-columns: 1fr 0.75fr 1fr;
+	grid-template-columns: 1fr 1fr 0.75fr 0.75fr 1fr 1fr;
 }
 
-/* create two unequal columns that floats next to each other */
+#ovLeft1 {
+	grid-column: 1 / span 2;
+	grid-row: 1;
+}
+
+#ovMiddle {
+	grid-column: 3 / span 2;
+	grid-row: 1;
+}
+
+#ovRight1 {
+	grid-column: 5 / span 2;
+	grid-row: 1;
+}
+
+#ovLeft2 {
+	grid-column: 1 / span 3;
+	grid-row: 2;
+}
+
+#ovRight2 {
+	grid-column: 4 / span 3;
+	grid-row: 2;
+}
+
 /* left column */
 .leftcolumn {
 	float: left;
@@ -541,11 +574,9 @@ table.normaltable {
 .rightcolumn {
 	float: left;
 	width: 25%;
-	/*background-color: #f1f1f1;*/
 	padding-left: 20px;
 }
 
-/* add a card effect for articles */
 .card {
 	background-color: var(--card-color);
 	padding: 20px;
@@ -575,19 +606,47 @@ table.normaltable {
 		width: 100%;
 		padding: 0;
 	}
-	#overview div {
+
+	#ovMiddle {
+		grid-column: 1 / span 6;
+		grid-row: 1;
+	}
+
+	#ovLeft1 {
+		grid-column: 1 / span 3;
+		grid-row: 2;
+	}
+
+	#ovRight1 {
+		grid-column: 4 / span 3;
+		grid-row: 2;
+	}
+
+	#ovLeft2 {
+		grid-column: 1 / span 3;
+		grid-row: 3;
+	}
+
+	#ovRight2 {
+		grid-column: 4 / span 3;
+		grid-row: 3;
+	}
+
+	/*#overview div {
 		display: grid;
 		grid-template-columns: repeat(2, 1fr);
 		grid-template-rows: repeat(2, 1fr);
 		gap: 10px;
 		font-size: 75%;
 	}
-	#overview div > h3:first-child,h3:last-child {
-		grid-row: 2;
-	}
-	#overview div > h3:nth-child(2) {
-		grid-column: 1 / span 2;
-	}
+
+		#overview div > h3:first-child, h3:last-child {
+			grid-row: 2;
+		}
+
+		#overview div > h3:nth-child(2) {
+			grid-column: 1 / span 2;
+		}*/
 }
 
 /* responsive layout - when the screen is less than 400px wide, make the navigation links stack on top of each other instead of next to each other */
@@ -597,6 +656,72 @@ table.normaltable {
 		margin: 3px 0 3px 3px;
 		
 	}
+}
+
+/* toggle switch */
+
+.switch {
+	position: relative;
+	display: inline-block;
+	width: 30px;
+	height: 16px;
+}
+
+	.switch input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+.slider {
+	position: absolute;
+	cursor: pointer;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: #ccc;
+	-webkit-transition: .4s;
+	transition: .4s;
+	border-radius: 16px;
+	background-color: grey;
+}
+
+	.slider:before {
+		position: absolute;
+		content: "";
+		height: 10px;
+		width: 10px;
+		left: 3px;
+		bottom: 3px;
+		background-color: white;
+		-webkit-transition: .4s;
+		transition: .4s;
+		border-radius: 50%;
+	}
+
+input:checked + .slider {
+	background-color: #2196F3;
+}
+
+input:focus + .slider {
+	box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+	-webkit-transform: translateX(14px);
+	-ms-transform: translateX(14px);
+	transform: translateX(14px);
+}
+
+/* apex charts */
+
+.dark-mode .apexchart .apexcharts-line-series [rel="1"] path {
+	stroke: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .apexchart .apexcharts-tooltip :nth-child(2) .apexcharts-tooltip-marker {
+	background-color: white !important;
 }
 
 /* timemachine */
@@ -609,28 +734,32 @@ rect[fill-opacity="0"]:not([stroke="none"]) {
 	stroke-width: 3px;
 }
 
+.srs0 {
+	color: #808080;
+}
+
 .srs1 {
-	color: #f400a3;
+	color: #e38dc6;
 }
 
 .srs2 {
-	color: #f400a3;
+	color: #e677c1;
 }
 
 .srs3 {
-	color: #f400a3;
+	color: #e843b1;
 }
 
 .srs4 {
-	color: #f400a3;
+	color: #f400a3; /* original apprentice color */
 }
 
 .srs5 {
-	color: #9e34b8;
+	color: #ab62bd;
 }
 
 .srs6 {
-	color: #9e34b8;
+	color: #9e34b8; /* original guru color */
 }
 
 .srs7 {
@@ -649,7 +778,7 @@ rect[fill-opacity="0"]:not([stroke="none"]) {
 	-webkit-appearance: none; /* Override default CSS styles */
 	appearance: none;
 	width: 100%; 
-	height: 20px; 
+	height: 10px; 
 	background: #d3d3d3; 
 	outline: none; 
 	opacity: 0.7; 
@@ -664,16 +793,16 @@ rect[fill-opacity="0"]:not([stroke="none"]) {
 	.timemachineslider::-webkit-slider-thumb {
 		-webkit-appearance: none; /* Override default look */
 		appearance: none;
-		width: 5px; 
-		height: 25px; 
-		background: #04AA6D; 
-		cursor: pointer; 
+		width: 5px;
+		height: 25px;
+		background: #1ad691;
+		cursor: pointer;
 	}
 
 	.timemachineslider::-moz-range-thumb {
 		width: 5px;
-		height: 25px; 
-		background: #04AA6D;
+		height: 25px;
+		background: #1ad691;
 		cursor: pointer;
 	}
 
@@ -705,7 +834,11 @@ rect[fill-opacity="0"]:not([stroke="none"]) {
 
 /* wkof visual bug workaround */
 
-[aria-labelledby="ui-id-2"][aria-labelledby="ui-id-3"]:nth-child(2) {
+[aria-labelledby="ui-id-2"]:nth-child(2) {
+	top: -1000px !important;
+}
+
+[aria-labelledby="ui-id-3"]:nth-child(2) {
 	top: -1000px !important;
 }
 
