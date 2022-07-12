@@ -64,7 +64,7 @@ const levelMedianBox = document.getElementById("showmedian");
 const projSpeedBox = document.getElementById("projectionsspeed");
 
 // global vars
-var timeChart, timeTotalChart, timeHeatmap;
+var timeChart, timeTotalChart;
 var unalteredItemData = {};
 var srsData = [];
 var userData = [];
