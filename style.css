@@ -376,6 +376,53 @@ rt:not(.nohidden) {
 
 /* table design */
 
+table.coveragetable {
+	border-collapse: collapse;
+	font-size: 0.9em;
+	font-family: sans-serif;
+	min-width: 400px;
+	text-align: center;
+	width: 100%;
+}
+
+	table.coveragetable thead tr {
+		background-color: #009879;
+		color: #ffffff;
+		text-align: center;
+		position: sticky;
+		top: 0;
+	}
+
+	table.coveragetable th,
+	table.coveragetable td {
+		padding: 12px 15px;
+	}
+
+	table.coveragetable th {
+		position: sticky;
+		top: 0;
+	}
+
+	table.coveragetable tbody tr {
+		border-bottom: thin solid #dddddd;
+	}
+
+		table.coveragetable tbody tr:last-of-type {
+			border-bottom: 2px solid #009879;
+		}
+
+		table.coveragetable tbody tr:nth-of-type(even) {
+			background-color: #f3f3f3;
+		}
+
+.dark-mode table.coveragetable tbody tr:nth-of-type(even) {
+	background-color: #1b1b1b;
+}
+
+.dark-mode table.coveragetable tbody tr:nth-of-type(odd) {
+	background-color: black;
+}
+
 table.normaltable {
 	border-collapse: collapse;
 }
@@ -470,7 +517,7 @@ table.normaltable {
 		font-size: 50px;
 	}
 
-.dark-mode a {
+.dark-mode a[href^="h"] {
 	color: #be8fee;
 }
 
@@ -716,12 +763,34 @@ input:checked + .slider:before {
 
 /* apex charts */
 
-.dark-mode .apexchart .apexcharts-line-series [rel="1"] path {
+/*.dark-mode .apexchart:not(.noblack) .apexcharts-line-series [rel="1"] path {
+	stroke: rgba(255, 255, 255, 0.85);
+}*/
+
+.dark-mode .apexchart:not(.noblack) .apexcharts-line-series [seriesName="Total"] path {
 	stroke: rgba(255, 255, 255, 0.85);
 }
 
-.dark-mode .apexchart .apexcharts-tooltip :nth-child(2) .apexcharts-tooltip-marker {
+.dark-mode .apexchart:not(.noblack) .apexcharts-line-series [seriesName="TotalxTime"] path {
+	stroke: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .apexchart:not(.noblack) .apexcharts-line-series [seriesName="All"] path {
+	stroke: rgba(255, 255, 255, 0.85);
+}
+
+.dark-mode .apexchart:not(.noblack) .apexcharts-area-series [rel="1"] path {
+	stroke: rgba(255, 255, 255, 1);
+	fill: rgba(255,255,255,0.85);
+}
+
+.dark-mode .apexchart:not(.noblack) .apexcharts-tooltip [style*="order: 1"] .apexcharts-tooltip-marker {
 	background-color: white !important;
+}
+
+.apexchart {
+	margin-top: 50px;
+	margin-bottom: 0px;
 }
 
 /* timemachine */

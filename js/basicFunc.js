@@ -9,8 +9,8 @@ const wkofDiv = document.getElementById("wkof_ds");
 
 //// pre data-fetching ////
 // dark/light mode
-var lightMode = localStorage["mode"] == "light" ? false : true;
-changeMode();
+var lightMode = localStorage["mode"] == "light" ? true : false;
+changeMode([], false);
 // device
 var isMobile = /Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) // normal mobile
     || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 0); // ipad pro
@@ -54,9 +54,10 @@ async function deleteDatabase(dbName) {
 }
 
 // change between dark and light mode
-function changeMode(apexChartList) {
-    if (lightMode) {
-        lightMode = false;
+function changeMode(apexChartList, change = true) {
+    if (!change) lightMode = !lightMode;
+    if (!lightMode) {
+        lightMode = true;
         let modebtn = document.getElementById('modebtn')
         modebtn.innerHTML = "㊊ Dark Mode";
         modebtn.style.color = "white";
@@ -70,10 +71,10 @@ function changeMode(apexChartList) {
         wkofdiv.style["-webkit-filter"] = "";
         wkofdiv.style.filter = "";
         document.body.style.background = "#f1f1f1";
-        localStorage["mode"] = "dark";
+        localStorage["mode"] = "light";
         if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'light' }, chart: { background: '#ffffff' } });
     } else {
-        lightMode = true;
+        lightMode = false;
         let modebtn = document.getElementById('modebtn')
         modebtn.innerHTML = "㊐ Light Mode";
         modebtn.style.color = "black";
@@ -87,7 +88,7 @@ function changeMode(apexChartList) {
         wkofdiv.style["-webkit-filter"] = "invert(100%)";
         wkofdiv.style.filter = "invert(100%)";
         document.body.style.background = "black";
-        localStorage["mode"] = "light";
+        localStorage["mode"] = "dark";
         if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'dark' }, chart: { background: '#1b1b1b' } });
     }
 }

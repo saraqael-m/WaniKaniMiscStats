@@ -48,12 +48,12 @@
 	</div>
 
 	<div class="header">
-		<div id="linkrow">
+		<div id="linkrow" style="z-index: 1004; position: relative">
 			<a href="https://github.com/saraqael-m/WaniKaniMiscStats" style="float: left;">Github Repo</a>
 			<a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652" style="float: left;">WaniKani Thread</a>
 			<a href="https://community.wanikani.com/u/koichi/summary" style="float: left;">Koichi</a>
-			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3); position: relative; z-index: 1004">Logout</button>
-			<span style="float: right;">バージョン３.８.０</span> <!-- ０１２３４５６７８９ -->
+			<button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3);">Logout</button>
+			<span style="float: right;">バージョン３.８.１</span> <!-- ０１２３４５６７８９ -->
 		</div>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
 		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">Miscellaneous Statistics</h2>
@@ -63,6 +63,7 @@
 		<div class="navbar">
 			<a href="Stats.html" class="current-page">Statistics<div id="triangle"></div></a>
 			<a href="timemachine.html">Timemachine</a>
+			<a href="coverage.html">Coverage</a>
 		</div>
 		<a onclick="window.location.hash = ''; window.location.hash = '#LevelInfo';">Level Info</a>
 		<a onclick="window.location.hash = ''; window.location.hash = '#Projections';">Projections</a>
@@ -83,14 +84,14 @@
 
 	<div class="row">
 
-		<div id="overview" class="card allinfo">
+		<div id="overview" class="card allinfo" style="display: none">
 			<h2 class="heading">Overview</h2>
 			<div>
 				<h3 id="ovLeft1">Reviews Today<br><span id="reviewOv" style="font-size: 200%;"></span><br><span style="font-size: 90%;" id="reviewHistOv"></span></h3>
 				<h3 id="ovMiddle">Level (<span id="levelStageOv"></span>)<br><span id="levelOv" style="font-size: 350%;"></span></h3>
 				<h3 id="ovRight1">Accuracy Today<br><span id="accuracyOv" style="font-size: 200%;"></span><br><span style="font-size: 90%;" id="accuracyHistOv"></span></h3>
 				<h3 id="ovLeft2">Time On Level<br><span id="levelTimeOv" style="font-size: 200%;"></span><br><span style="font-size: 90%;" id="levelUpTimeOv"></span></h3>
-				<h3 id="ovRight2">Time Spent Reviewing Today<br><span id="timeOv" style="font-size: 200%;"></span><br><span style="font-size: 90%;" id="timeHistOv"></span></h3>
+				<h3 id="ovRight2">Review Time Today<br><span id="timeOv" style="font-size: 200%;"></span><br><span style="font-size: 90%;" id="timeHistOv"></span></h3>
 			</div>
 		</div>
 
@@ -308,18 +309,24 @@
 						</div>
 						<div style="padding-top: 5px">
 							<label for="timelimit">Review Time Limit</label>
-							<select name="timelimit" id="timelimit" onchange="updateTimeChart();"></select>
+							<select name="timelimit" id="timelimit" onchange="updateTimeChart(); saveSettings();"></select>
 						</div>
-						<!--<span>Average time chart over </span>
-						<input type="number" onkeydown="if (event.key === 'Enter') updateTimeChart();" style="width: 70px" id="smoothacc" min="0" max="9999" value="10">
+						<div style="padding-top: 5px">
+							<label for="timeonlytotal">Show Only Total Time</label>
+							<input type="checkbox" name="timeonlytotal" id="timeonlytotal" onchange="updateTimeChart();">
+						</div>
+						<span>Average time chart over </span>
+						<input type="number" onkeydown="if (event.key === 'Enter') updateTimeChart();" style="width: 70px" id="avgtime" min="0" max="9999" value="10">
 						<span> days.</span>
 						<br><br>
-						<button type="button" onclick="updateTimeChart();">Generate Chart</button>-->
+						<button type="button" onclick="updateTimeChart();">Generate Chart</button>
 					</div>
 					<img src="images/settings_icon.png">
 				</div>
 
-				<div id="timechart" class="chart apexchart" style="margin-top: 50px; margin-bottom: 0px"></div>
+				<div id="timechart" class="chart apexchart"></div>
+				<div id="timeheatmap" class="chart apexchart"></div>
+				<div id="timetotalchart" class="chart apexchart"></div>
 			</div>
 
 			<div class="card wordall">

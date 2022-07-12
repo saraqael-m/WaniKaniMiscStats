@@ -1,4 +1,6 @@
-﻿// variables
+﻿if (lightMode) document.getElementById('loadingtip').innerHTML = '<b>Tip:</b> Activate dark mode!';
+
+// variables
 var userData = [], resetData = [], reviewData = [], assignmentData = [], subjectData = [], wordData = [], timemachineData = [], srsArray = [], hiddenItems = [], resurrectedItems = [], resets = [], srsChartData = [], usedIds = [];
 var currentSelection = -1;
 var dateRange = 1;
@@ -107,7 +109,9 @@ async function fetchData() {
     createResetArray();
     repairSubjectArray();
 
+    console.time('calculateTimemachineData')
     await calculateTimemachineData();
+    console.timeEnd('calculateTimemachineData')
     wkofDiv.style.display = 'none';
 
     if (localStorage["scrollposition"]) document.documentElement.scrollTop = document.body.scrollTop = localStorage["scrollposition"];
@@ -217,6 +221,7 @@ async function calculateTimemachineData() {
             reloadTimemachineData();
         }
     } catch (e) {
+        console.log(e);
         console.log("Timemachine data not cached...");
     }
     // create array
@@ -230,7 +235,8 @@ async function calculateTimemachineData() {
         // srs review data
         let typeStart = levelReorder(currentReview["starting_srs_stage"]);
         let typeEnd = levelReorder(currentReview["ending_srs_stage"]);
-        let foundSrs = srsArray.findIndex(element => (element[0].valueOf() == date.valueOf()));
+        let foundSrs = srsArray.length - 1; //srsArray.findIndex(element => (element[0].valueOf() == date.valueOf()));
+        foundSrs = srsArray[foundSrs][0].valueOf() != date.valueOf() ? -1 : foundSrs;
         if (foundSrs == -1) {
             let newDate = [...srsArray[srsArray.length - 1]];
             newDate[0] = date;
@@ -428,7 +434,7 @@ function generateTimemachineChart() {
     }
     srsChart = new ApexCharts(srsChartDiv, options);
     srsChart.render();
-    srsChart.updateOptions({ theme: { mode: lightMode ? 'dark' : 'light' }, chart: { background: lightMode ? '#1b1b1b' : '#ffffff' } });
+    srsChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
     // populate kanji div to default
     currentSelection = 0;
     chartSelectionMover(0);

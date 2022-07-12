@@ -33,11 +33,12 @@ var defaultSettings = {
     smoothacc: ['value', 10], // accuracy
     tablemonth: ['value', 1], // info table
     tableday: ['value', 0],
-    timelimit: ['selectedIndex', 2], // time info
+    timelimit: ['selectedIndex', 1], // time info
     timestagetypeswitch: ['checked', false],
+    avgtime: ['value', 3],
+    timeonlytotal: ['checked', false],
 };
 var settings = localStorage["settings"] === undefined || localStorage["settings"] == '[object Object]' ? undefined : JSON.parse(localStorage["settings"]);
-setSettings();
 // card order
 var leftCards = [].slice.call(document.getElementsByClassName('leftcolumn')[0].children);
 var rightCards = [].slice.call(document.getElementsByClassName('rightcolumn')[0].children[0].children);
@@ -63,7 +64,7 @@ const levelMedianBox = document.getElementById("showmedian");
 const projSpeedBox = document.getElementById("projectionsspeed");
 
 // global vars
-var timeChart;
+var timeChart, timeTotalChart, timeHeatmap;
 var unalteredItemData = {};
 var srsData = [];
 var userData = [];
@@ -97,6 +98,7 @@ var kanjiWall = "";
 var possibleYojijukugo = [];
 var projectionsData = [];
 var timeData = [];
+var timeTotalData = [];
 var tableOffset = 0;
 var currentPage = 1;
 var shortLevels = [43, 44, 46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 1, 2];
@@ -197,7 +199,11 @@ function saveCardOrder() {
 function setSettings() {
     if (typeof settings !== "object" || settings === null) settings = defaultSettings;
     for (var key of Object.keys(defaultSettings)) {
-        let value = settings.hasOwnProperty(key) ? settings[key] : defaultSettings[key];
+        let value;
+        if (settings.hasOwnProperty(key)) {
+            value = settings[key];
+            if (value[0] !== defaultSettings[key][0]) { console.log('false'); delete settings[key]; value = defaultSettings[key]; }
+        } else value = defaultSettings[key];
         let element = document.getElementById(key);
         if (element) element[value[0]] = value[1];
         else console.log("Setting not found: ", key, settings[key]);
@@ -208,7 +214,9 @@ function setSettings() {
 function saveSettings() {
     for (var key of Object.keys(defaultSettings)) {
         let element = document.getElementById(key);
-        if (element) settings[key] = [defaultSettings[key][0], element[defaultSettings[key][0]]];
+        let value = element[defaultSettings[key][0]];
+        value = value === -1 ? settings[key][1] : value;
+        if (element) settings[key] = [defaultSettings[key][0], value];
         else console.log("Element for setting not found: ", key);
     }
     localStorage["settings"] = JSON.stringify(settings);
@@ -233,6 +241,7 @@ async function fetchData() {
     resurrectedItems.sort((a, b) => new Date(a[0]) - new Date(b[0]));
     hiddenItems.sort((a, b) => new Date(a[0]) - new Date(b[0]));
     await reviewInfo();
+    setSettings(); // set all settings to previous value
     blackOverlay.style.visibility = "hidden";
     whiteOverlay.style.visibility = "hidden";
     for (const maindiv of maindivs) if (maindiv.classList.contains('leftcolumn') || maindiv.parentNode.classList.contains('rightcolumn')) maindiv.style.display = "flex"; else maindiv.style.display = "block";
@@ -446,10 +455,10 @@ function calculateTotalAverages() {
         totalAverages.push(...tempAcc);
     }
     let tempArr = reviewArray.slice(1).reduce((p, c) => { s = [undefined]; for (let i = 1; i < 5; i++) s.push(p[i] + c[i]); return s; }).slice(1);
-    for (let i = 0; i < 4; i++) tempArr[i] = roundToDecimals(tempArr[i] / reviewArray.length - 1, 1);
+    for (let i = 0; i < 4; i++) tempArr[i] = roundToDecimals(tempArr[i] / (reviewArray.length - 1), 1);
     totalAverages.push(...tempArr);
     tempArr = itemArray.slice(1).reduce((p, c) => { s = [undefined]; for (let i = 1; i < 5; i++) s.push(p[i] + c[i]); return s; }).slice(1);
-    for (let i = 0; i < 4; i++) tempArr[i] = roundToDecimals(tempArr[i] / itemArray.length - 1, 2);
+    for (let i = 0; i < 4; i++) tempArr[i] = roundToDecimals(tempArr[i] / (itemArray.length - 1), 2);
     totalAverages.push(...tempArr);
 }
 
@@ -579,6 +588,7 @@ async function reviewInfo() {
     meaningAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, [1, 1], [1, 1], [1, 1], [1, 1]]];
     reviewAccTotal = [[1, 1, 1, 1]];
     timeData = [["Date", "Total Time", ["Radicals", "Kanji", "Vocab"], ["Apprentice", "Guru", "Master", "Enlightened", "Burned"]]];
+    timeTotalData = [["Date", "Total Time", ["Radicals", "Kanji", "Vocab"], ["Apprentice", "Guru", "Master", "Enlightened", "Burned"]]];
     var timeLimits = [0.5, 1, 2, 4]; // unit is minutes
     let timelimitSelect = document.getElementById('timelimit');
     for (let i = 0; i < timeLimits.length; i++) {
@@ -614,15 +624,16 @@ async function reviewInfo() {
         if (i != 0) {
             let diff = (new Date(currentReview["created_at"]) - new Date(reviewData[i - 1]["data"]["created_at"])) / 60000; // difference in minutes
             for (let j = 0; j < timeLimits.length; j++) {
-                if (diff <= timeLimits[j]) { // do not count afk reviews or spaces between session
-                    timeData[found][j + 1][0] += diff; // all
-                    switch (subjectData[subId]["object"]) { // type
-                        case "vocabulary": timeData[found][j + 1][1][2] += diff; break;
-                        case "kanji": timeData[found][j + 1][1][1] += diff; break;
-                        case "radical": timeData[found][j + 1][1][0] += diff; break;
-                    }
-                    timeData[found][j + 1][2][typeEnd - 1] += diff; // srs stage
+                let timeAdded = diff;
+                if (diff > timeLimits[j]) { timeAdded = timeLimits[j] / 5; } // do not count afk reviews or spaces between session
+                timeData[found][j + 1][0] += timeAdded; // all
+                switch (subjectData[subId]["object"]) { // type
+                    case "vocabulary": timeData[found][j + 1][1][2] += timeAdded; break;
+                    case "kanji": timeData[found][j + 1][1][1] += timeAdded; break;
+                    case "radical": timeData[found][j + 1][1][0] += timeAdded; break;
                 }
+                timeData[found][j + 1][2][typeEnd - 1] += timeAdded; // srs stage
+                
             }
         }
         // srs review data
@@ -767,6 +778,7 @@ async function reviewInfo() {
         let addIndex = reviewArray.findIndex(element => Math.abs(element[0] - currentDate) < 43200000); // time in milliseconds for 12 hours
         if (addIndex == -1) {
             reviewArray.splice(prevIndex + 1, 0, [new Date(currentDate.getTime()), 0, 0, 0, 0]);
+            timeData.splice(prevIndex + 1, 0, [new Date(currentDate.getTime()), [0, [0, 0, 0], [0, 0, 0, 0, 0]], [0, [0, 0, 0], [0, 0, 0, 0, 0]], [0, [0, 0, 0], [0, 0, 0, 0, 0]], [0, [0, 0, 0], [0, 0, 0, 0, 0]]]);
             prevIndex++;
         } else prevIndex = addIndex;
         currentDate.setDate(currentDate.getDate() + 1);
@@ -778,6 +790,22 @@ async function reviewInfo() {
     for (let i = 1; i < reviewArray.length; i++) {
         for (let j = 0; j < 4; j++) runningTotal[j] += reviewArray[i][j + 1];
         totalArray.push([reviewArray[i][0], ...runningTotal]);
+    }
+
+    // total time
+    runningTotal = [];
+    for (let j = 0; j < timeLimits.length; j++) runningTotal.push([0, [0, 0, 0], [0, 0, 0, 0, 0]]);
+    for (let i = 1; i < timeData.length; i++) {
+        for (let j = 0; j < runningTotal.length; j++) {
+            runningTotal[j][0] += timeData[i][j + 1][0];
+            for (let k = 0; k < 3; k++) runningTotal[j][1][k] += timeData[i][j + 1][1][k];
+            for (let k = 0; k < 5; k++) runningTotal[j][2][k] += timeData[i][j + 1][2][k];
+        }
+        let newData = [];
+        for (let j = 0; j < runningTotal.length; j++) {
+            newData.push([runningTotal[j][0], [...runningTotal[j][1]], [...runningTotal[j][2]]])
+        }
+        timeTotalData.push([timeData[i][0], ...newData]);
     }
 }
 
@@ -793,18 +821,27 @@ function totalArrayToAcc(data) {
     return newArray;
 }
 
+function subtractLists(a, b) {
+    let c = [];
+    for (let i = 0; i < a.length; i++) {
+        let na = a[i], nb = b[i];
+        c.push(Array.isArray(na) ? subtractLists(na, nb) : na - nb);
+    }
+    return c;
+}
+
 function dataDateShorten(dataPrev, date, nullify = false) {
     let data = [];
     for (let i = 1; i < dataPrev.length; i++) {
         data.push([...dataPrev[i]]);
     }
-    if (data[0][0] > date) { return dataPrev; }
+    if (data[0][0] > date) return dataPrev;
     let spliceIndex = data.findIndex(element => element[0] > date);
-    if (spliceIndex == -1) { return dataPrev; }
+    if (spliceIndex == -1) return dataPrev;
     let prevData = data[spliceIndex - 1];
     let newData = data.slice(spliceIndex);
-    if (nullify) { newData = newData.map(function (e) { for (let i = 1; i < prevData.length; i++) { e[i] -= prevData[i]; } return e; }); }
-    newData = [dataPrev[0]].concat(newData);
+    if (nullify) newData = newData.map(e => [e[0], ...subtractLists(e.slice(1), prevData.slice(1))]);
+    newData = [dataPrev[0], ...newData];
     return newData;
 }
 
@@ -878,62 +915,143 @@ async function updateReviewCharts() {
     chart.draw(srsStackChartData, options);
     google.visualization.events.addListener(chart, 'select', function () { chartSelectionSetter(chart); });
     // time chart
-    var options = {
-        chart: {
-            type: 'line',
-            height: '400px',
-            /*events: {
-                click: chartClick,
-                beforeZoom: function (_, info) {
-                    if (info.yaxis !== undefined) currentSelection = 1 - currentSelection;
-                },
-                mouseLeave: function (_, _) {
-                    chartSelectionMover(0);
-                }
-            }*/
-        },
-        title: { text: 'Time Spent on Reviews Per Day' },
-        stroke: {
-            curve: 'smooth',
-            width: 2
-        },
-        series: [],
-        yaxis: {
-            labels: {
-                formatter: function (value, _, _) {
-                    return minsToDurationString(value, true, true);
-                }
-            }
-        },
-        xaxis: { type: 'datetime' },
-        dataLabels: { enabled: false },
-        tooltip: {
-            shared: true,
-            x: {
-                format: 'MMM dd yyyy'
+    if (timeChart === undefined) {
+        var options = {
+            chart: {
+                type: 'line',
+                height: '400px',
+                /*events: {
+                    click: chartClick,
+                    beforeZoom: function (_, info) {
+                        if (info.yaxis !== undefined) currentSelection = 1 - currentSelection;
+                    },
+                    mouseLeave: function (_, _) {
+                        chartSelectionMover(0);
+                    }
+                }*/
             },
-            y: {
-                formatter: function (value, _, _) {
-                    return minsToDurationString(value, false, false);
+            title: { text: 'Time Spent on Reviews Per Day' },
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            series: [],
+            yaxis: {
+                labels: {
+                    formatter: function (value, _, _) {
+                        return minsToDurationString(value, true, true);
+                    }
                 }
-            }
-        },
-        legend: { show: false }
+            },
+            xaxis: { type: 'datetime' },
+            dataLabels: { enabled: false },
+            tooltip: {
+                shared: true,
+                x: {
+                    format: 'MMM dd yyyy'
+                },
+                y: {
+                    formatter: function (value, _, _) {
+                        return minsToDurationString(value, false, false);
+                    }
+                }
+            },
+            legend: { show: false }
+        }
+        timeChart = new ApexCharts(document.getElementById('timechart'), options);
+        timeChart.render();
+        timeChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
     }
-    timeChart = new ApexCharts(document.getElementById('timechart'), options);
-    timeChart.render();
-    timeChart.updateOptions({ theme: { mode: lightMode ? 'dark' : 'light' }, chart: { background: lightMode ? '#1b1b1b' : '#ffffff' } });
+    if (timeTotalChart === undefined) {
+        var options = {
+            chart: {
+                type: 'line',
+                height: '400px',
+                /*events: {
+                    click: chartClick,
+                    beforeZoom: function (_, info) {
+                        if (info.yaxis !== undefined) currentSelection = 1 - currentSelection;
+                    },
+                    mouseLeave: function (_, _) {
+                        chartSelectionMover(0);
+                    }
+                }*/
+            },
+            title: { text: 'Total Time Spent Reviewing' },
+            stroke: {
+                curve: 'smooth',
+                width: 2
+            },
+            series: [],
+            yaxis: {
+                labels: {
+                    formatter: function (value, _, _) {
+                        return minsToDurationString(value, true, true);
+                    }
+                }
+            },
+            xaxis: { type: 'datetime' },
+            dataLabels: { enabled: false },
+            tooltip: {
+                shared: true,
+                x: {
+                    format: 'MMM dd yyyy'
+                },
+                y: {
+                    formatter: function (value, _, _) {
+                        return minsToDurationString(value, false, false);
+                    }
+                }
+            },
+            legend: { show: false }
+        }
+        timeTotalChart = new ApexCharts(document.getElementById('timetotalchart'), options);
+        timeTotalChart.render();
+        timeTotalChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
+    }
     updateTimeChart();
 }
 
 function updateTimeChart() {
     let timeLimitIndex = document.getElementById('timelimit').selectedIndex,
         useSrsBool = document.getElementById('timestagetypeswitch').checked,
+        totalBool = document.getElementById('timeonlytotal').checked,
+        avgVal = document.getElementById('avgtime').value,
+        nullifyBool = newdateche.checked,
         startDate = new Date(newdateinp.value);
     var currentTimeData = dataDateShorten(timeData, startDate, false);
     if (useSrsBool) {
         timeChart.updateOptions({
-            series: [{
+            series: totalBool ? [{
+                name: currentTimeData[0][1], // total
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]]), avgVal)
+            }] : [{
+                name: currentTimeData[0][1], // total
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]]), avgVal)
+            }, {
+                name: currentTimeData[0][3][0], // app
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][0]]), avgVal)
+            }, {
+                name: currentTimeData[0][3][1], // gur
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][1]]), avgVal)
+            }, {
+                name: currentTimeData[0][3][2], // mas
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][2]]), avgVal)
+            }, {
+                name: currentTimeData[0][3][3], // enl
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][3]]), avgVal)
+            }, {
+                name: currentTimeData[0][3][4], // bur
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][2][4]]), avgVal)
+            }],
+            colors: ['#000000', '#f400a3', '#9e34b8', '#3557dd', '#0096e2', '#f0ca00']
+        }, true, true);
+        currentTimeData = dataDateShorten(timeTotalData, startDate, nullifyBool);
+        timeTotalChart.updateOptions({
+            series: totalBool ? [{
+                name: currentTimeData[0][1], // total
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]])
+            }] : [{
                 name: currentTimeData[0][1], // total
                 data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]])
             }, {
@@ -956,7 +1074,30 @@ function updateTimeChart() {
         }, true, true);
     } else {
         timeChart.updateOptions({
-            series: [{
+            series: totalBool ? [{
+                name: currentTimeData[0][1], // total
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]]), avgVal)
+            }] : [{
+                name: currentTimeData[0][1], // total
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]]), avgVal)
+            }, {
+                name: currentTimeData[0][2][0], // rad
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][1][0]]), avgVal)
+            }, {
+                name: currentTimeData[0][2][1], // kan
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][1][1]]), avgVal)
+            }, {
+                name: currentTimeData[0][2][2], // voc
+                data: movingAverage(currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][1][2]]), avgVal)
+            }],
+            colors: ['#000000', '#55abf2', '#f032b1', '#bb31de']
+        }, true, true);
+        currentTimeData = dataDateShorten(timeTotalData, startDate, nullifyBool);
+        timeTotalChart.updateOptions({
+            series: totalBool ? [{
+                name: currentTimeData[0][1], // total
+                data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]])
+            }] : [{
                 name: currentTimeData[0][1], // total
                 data: currentTimeData.slice(1).map(x => [x[0].getTime(), x[timeLimitIndex + 1][0]])
             }, {
@@ -990,6 +1131,7 @@ function updateTables(changeOffset = 0) {
     var datesEnd = [];
     let today = new Date();
     today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    today.setDate(today.getDate() + 1);
     for (let i = dateAmount + tableOffset; i >= tableOffset; i--) {
         dates.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * i, today.getDate() - durationDays * i));
         datesEnd.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * (i - 1), today.getDate() - durationDays * (i - 1) - 1));
@@ -1174,10 +1316,10 @@ async function overviewInfo() {
 
     // time on level
     let timeOnLevel = combLevelChart[combLevelChart.length - 1][1],
-        medianLevelUp = combLevelChart[combLevelChart.length - 1][4];
+        timeLevelUp = (projectionsData[userData['level'] < 60 ? userData['level'] + 1 : 62][6] - new Date()) / (1000 * 60 * 60 * 24);
     document.getElementById("levelTimeOv").innerHTML = daysToDurationString(timeOnLevel, true, false);
     document.getElementById("levelTimeOv").style.color = timeOnLevel <= levelChart[1][6] ? "#55af55" : "#af5555";
-    document.getElementById("levelUpTimeOv").innerHTML = "Predicted Level Up in " + daysToDurationString(Math.max(medianLevelUp - timeOnLevel, 0), true, true);
+    document.getElementById("levelUpTimeOv").innerHTML = userData['level'] >= 60 ? "Predicted 全火 in " + daysToDurationString(timeLevelUp, true, true) : "Predicted Level Up " + (timeLevelUp > 0 ? "in " + daysToDurationString(timeLevelUp, true, true) : daysToDurationString(-timeLevelUp, true, true) + " ago");
 
     // accuracy
     let accToday = midreviewAccuracy.slice(1).find(e => e[0].getTime() == today.getTime()),
@@ -1424,6 +1566,19 @@ function median(values) {
         return values[half];
 
     return (values[half - 1] + values[half]) / 2.0;
+}
+
+function movingAverage(arr, mvgRange) {
+    var avgArr = [];
+    let mvgAvg = 0, n = Math.max(mvgRange, 1);
+    for (let i = 0; i < arr.length; i++) {
+        mvgAvg += arr[i][1];
+        if (i >= n) {
+            mvgAvg -= arr[i - n][1];
+            avgArr.push([arr[i][0], Math.abs(mvgAvg / n)]);
+        } else avgArr.push([arr[i][0], Math.abs(mvgAvg / (i + 1))]);
+    }
+    return avgArr;
 }
 
 async function levelInfo() {
