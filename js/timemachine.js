@@ -194,7 +194,7 @@ function levelReorder(lvl) {
 
 async function calculateTimemachineData() {
     // create kanji div
-    timemachineData = [[new Date(reviewData[0]['data']['created_at'].substring(0, 10)), []]];
+    timemachineData = [[dateNoTime(new Date(reviewData[0]['data']['created_at'])), []]];
     timemachineData[0][0].setDate(timemachineData[0][0].getDate() - 1);
     let fullStr = '';
     var timemachineSubjectData = Object.values(subjectData);
@@ -231,7 +231,7 @@ async function calculateTimemachineData() {
         let currentReview = reviewData[i]["data"];
         let subId = currentReview["subject_id"];
         if (subjectData[subId] === undefined || subjectData[subId]["object"] != "kanji") continue;
-        let date = new Date(currentReview["created_at"].substring(0, 10));
+        let date = dateNoTime(new Date(currentReview["created_at"]));
         // srs review data
         let typeStart = levelReorder(currentReview["starting_srs_stage"]);
         let typeEnd = levelReorder(currentReview["ending_srs_stage"]);
@@ -264,7 +264,7 @@ async function calculateTimemachineData() {
         srsArray[foundSrs][typeEnd]++;
         // hidden items
         let exactDate = new Date(currentReview["created_at"]);
-        while (hiddenItems.length != 0 && new Date(hiddenItems[0][0].substring(0, 10)) <= date) {
+        while (hiddenItems.length != 0 && dateNoTime(new Date(hiddenItems[0][0])) <= date) {
             let hiddenLevel = usedIds.findIndex(element => element[0] == hiddenItems[0][1]);
             if (hiddenLevel == -1) { hiddenItems.splice(0, 1); continue; }
             srsArray[foundSrs][usedIds[hiddenLevel][1]]--; // delete from srs stage
@@ -311,12 +311,12 @@ async function calculateTimemachineData() {
         }
         // resurrect items after reset
         if (resurrectedItems.length != 0) {
-            let resurrectedDate = new Date(resurrectedItems[0][0].substring(0, 10));
+            let resurrectedDate = dateNoTime(new Date(resurrectedItems[0][0]));
             while (resurrectedDate <= date) {
                 let resurrectedLevel = usedIds.findIndex(element => element[0] == resurrectedItems[0][1]);
                 if (resurrectedLevel == -1) {
                     resurrectedItems.splice(0, 1);
-                    if (resurrectedItems.length != 0) resurrectedDate = new Date(resurrectedItems[0][0].substring(0, 10))
+                    if (resurrectedItems.length != 0) resurrectedDate = dateNoTime(new Date(resurrectedItems[0][0]))
                     else break;
                     continue;
                 }
@@ -326,7 +326,7 @@ async function calculateTimemachineData() {
                 let id = resurrectedItems[0][1];
                 timemachineData[found][1].find(element => element[0] == id)[1] = 1;
                 resurrectedItems.splice(0, 1);
-                if (resurrectedItems.length != 0) resurrectedDate = new Date(resurrectedItems[0][0].substring(0, 10));
+                if (resurrectedItems.length != 0) resurrectedDate = dateNoTime(new Date(resurrectedItems[0][0]));
                 else break;
             }
         }

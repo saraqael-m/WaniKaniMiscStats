@@ -37,6 +37,10 @@ function dateLongFormat(date) {
     return date.toDateString().split(' ').slice(1).join(' ');
 }
 
+function dateNoTime(date) {
+    return new Date(date.toDateString());
+}
+
 // delete indexeddb database
 async function deleteDatabase(dbName) {
     return await new Promise((resolve, reject) => {

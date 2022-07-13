@@ -7,11 +7,10 @@ var requestHeaders;
 var db;
 
 //// pre data-fetching ////
-// current date
-let currentDate = new Date();
-let todayDate = currentDate.toISOString().split('T')[0];
-currentDate.setFullYear(currentDate.getFullYear() - 1);
-currentDate = currentDate.toISOString().split('T')[0];
+// date one year ago
+let yearAgoDate = new Date();
+yearAgoDate.setFullYear(yearAgoDate.getFullYear() - 1);
+yearAgoDate = yearAgoDate.toISOString().split('T')[0];
 // settings
 var defaultSettings = {
     showmedian: ['checked', true], // level chart
@@ -27,7 +26,7 @@ var defaultSettings = {
     'speed-590400': ['value', 240],
     'speed-295200': ['value', 240],
     projectionsspeed: ['checked', false], // simple projections
-    startdate: ['value', currentDate], // time settings
+    startdate: ['value', yearAgoDate], // time settings
     nullify: ['checked', false],
     smoothreview: ['value', 0], // review
     smoothacc: ['value', 10], // accuracy
@@ -603,7 +602,7 @@ async function reviewInfo() {
         let subId = currentReview["subject_id"];
         if (subjectData[subId]["object"] == "placeholder") continue;
         // bare review data
-        let date = new Date(currentReview["created_at"].substring(0, 10)), newDate;
+        let date = dateNoTime(new Date(currentReview["created_at"])), newDate;
         found = reviewArray.findIndex(element => (element[0].valueOf() == date.valueOf()));
         if (found == -1) {
             reviewArray.push([new Date(date.getTime()), 0, 0, 0, 0]);
@@ -699,7 +698,7 @@ async function reviewInfo() {
         }
         let exactDate = new Date(currentReview["created_at"]);
         // hidden items
-        while (hiddenItems.length != 0 && new Date(hiddenItems[0][0].substring(0, 10)) <= date) {
+        while (hiddenItems.length != 0 && dateNoTime(new Date(hiddenItems[0][0])) <= date) {
             let hiddenLevel = usedIds.findIndex(element => element[0] == hiddenItems[0][1]);
             if (hiddenLevel == -1) { hiddenItems.splice(0, 1); continue; }
             srsArray[foundSrs][usedIds[hiddenLevel][1]]--; // delete from srs stage
@@ -738,7 +737,7 @@ async function reviewInfo() {
         }
         // resurrect items after reset
         if (resurrectedItems.length != 0) {
-            let resurrectedDate = new Date(resurrectedItems[0][0].substring(0, 10));
+            let resurrectedDate = dateNoTime(new Date(resurrectedItems[0][0]));
             while (resurrectedDate <= date) {
                 let resurrectedLevel = usedIds.findIndex(element => element[0] == resurrectedItems[0][1]);
                 if (resurrectedLevel == -1) continue;
@@ -746,7 +745,7 @@ async function reviewInfo() {
                 srsArray[srsArray.length - 1][1]++; // add to apprentice
                 usedIds[resurrectedLevel][1] = 1;
                 resurrectedItems.splice(0, 1);
-                if (resurrectedItems.length != 0) resurrectedDate = new Date(resurrectedItems[0][0].substring(0, 10));
+                if (resurrectedItems.length != 0) resurrectedDate = dateNoTime(new Date(resurrectedItems[0][0]));
                 else break;
             }
         }
@@ -1305,8 +1304,8 @@ function updateTables(changeOffset = 0) {
 }
 
 async function overviewInfo() {
-    let today = new Date(todayDate),
-        yesterday = new Date(todayDate);
+    let today = dateNoTime(new Date()),
+        yesterday = dateNoTime(new Date());
     yesterday.setDate(yesterday.getDate() - 1);
 
     // level
