@@ -10,7 +10,7 @@ var db;
 // date one year ago
 let yearAgoDate = new Date();
 yearAgoDate.setFullYear(yearAgoDate.getFullYear() - 1);
-yearAgoDate = yearAgoDate.toISOString().split('T')[0];
+yearAgoDate = yearAgoDate.toLocaleDateString("sv");
 // settings
 var defaultSettings = {
     showmedian: ['checked', true], // level chart
@@ -847,7 +847,7 @@ function dataDateShorten(dataPrev, date, nullify = false) {
 async function updateReviewCharts() {
     let startDate = new Date(newdateinp.value);
     const loadingLbl = document.getElementById("reviewinfodiv");
-    loadingLbl.innerHTML = "Time frame starts at " + String(startDate).split(' ').slice(1, 4).join(' ') + ".";
+    loadingLbl.innerHTML = "Time frame starts at " + startDate.toUTCString().split(' ').slice(1, 4).join(' ') + ".";
     let nullifyBool = newdateche.checked;
     if (reviewArray.length == 0) return;
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
