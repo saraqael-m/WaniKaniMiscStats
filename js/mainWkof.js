@@ -1128,12 +1128,11 @@ function updateTables(changeOffset = 0) {
     let durationMonths = document.getElementById("tablemonth").value;
     var dates = [];
     var datesEnd = [];
-    let today = new Date();
-    today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    today.setDate(today.getDate() + 1);
+    let tomorrow = dateNoTime(new Date());
+    tomorrow.setDate(tomorrow.getDate() + 1);
     for (let i = dateAmount + tableOffset; i >= tableOffset; i--) {
-        dates.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * i, today.getDate() - durationDays * i));
-        datesEnd.push(new Date(today.getFullYear(), today.getMonth() - durationMonths * (i - 1), today.getDate() - durationDays * (i - 1) - 1));
+        dates.push(new Date(tomorrow.getFullYear(), tomorrow.getMonth() - durationMonths * i, tomorrow.getDate() - durationDays * i));
+        datesEnd.push(new Date(tomorrow.getFullYear(), tomorrow.getMonth() - durationMonths * (i - 1), tomorrow.getDate() - durationDays * (i - 1) - 1));
     }
     let dateElements = document.getElementById("tableheaddate").children;
     let dateEndElements = document.getElementById("tableheadenddate").children;
