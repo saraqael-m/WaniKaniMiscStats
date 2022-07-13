@@ -389,19 +389,19 @@ function generateTimemachineChart() {
             width: 0
         },
         series: [{
-                name: 'Apprentice',
+                name: 'Apprentice Kanji',
                 data: srsArray.map(x => [x[0].getTime(), x[1]])
             }, {
-                name: 'Guru',
+                name: 'Guru Kanji',
                 data: srsArray.map(x => [x[0].getTime(), x[2]])
             }, {
-                name: 'Master',
+                name: 'Master Kanji',
                 data: srsArray.map(x => [x[0].getTime(), x[3]])
             }, {
-                name: 'Enlightened',
+                name: 'Enlightened Kanji',
                 data: srsArray.map(x => [x[0].getTime(), x[4]])
             }, {
-                name: 'Burned',
+                name: 'Burned Kanji',
                 data: srsArray.map(x => [x[0].getTime(), x[5]])
             }],
         xaxis: {

@@ -409,24 +409,29 @@ async function loadTableData() {
             if (j == 1) td.style.fontSize = "150%";
             tr.appendChild(td);
         }
-        // fill in data
-        let currentRow = tr.children,
-            char = tableData[i][0],
-            amount = tableData[i][1],
-            meaning = "-";
-        try { meaning = (await fetch('https://kanjiapi.dev/v1/kanji/' + char).then(response => response.json())); meaning = meaning.meanings[0]; }
-        catch (e) { console.log(e); } 
-        currentRow[0].innerHTML = i + 1;
-        currentRow[1].innerHTML = char; 
-        currentRow[2].innerHTML = meaning;
-        currentRow[3].innerHTML = (amount / totalKanji * 100).toFixed(2) + "% (" + amount + ")";
-        currentRow[4].innerHTML = Object.values(kanjiLevelData).findIndex(e => e.includes(char)) + 1 || "-";
-        currentRow[5].innerHTML = srsStageString(((Object.values(itemData).find(e => e.data.characters == char) || { assignments: { srs_stage: -1 } }).assignments || { srs_stage: 0 }).srs_stage);
         // append to table
         tableBody.appendChild(tr);
     }
+    let els = littab.getElementsByTagName('tbody')[0].children,
+        meaningPromises = [];
+    for (let i = tablePos; i < tableEndPos; i++) {
+        // fill in data
+        let currentRow = els[i].children,
+            char = tableData[i][0],
+            amount = tableData[i][1],
+            meaning = "-";
+        try { meaning = fetch('https://kanjiapi.dev/v1/kanji/' + char).then(response => response.json()).then(e => e.meanings[0]); }
+        catch (e) { console.log(e); meaning = "-"; }
+        currentRow[0].innerHTML = i + 1;
+        currentRow[1].innerHTML = char; 
+        meaningPromises.push(new Promise(async () => currentRow[2].innerHTML = await meaning));
+        currentRow[3].innerHTML = (amount / totalKanji * 100).toFixed(2) + "% (" + amount + ")";
+        currentRow[4].innerHTML = Object.values(kanjiLevelData).findIndex(e => e.includes(char)) + 1 || "-";
+        currentRow[5].innerHTML = srsStageString(((Object.values(itemData).find(e => e.data.characters == char) || { assignments: { srs_stage: -1 } }).assignments || { srs_stage: 0 }).srs_stage);
+    }
     tablePos = tableEndPos;
     if (tablePos >= tableData.length) { document.getElementById('loadtablebtn').style.display = 'none'; }
+    await Promise.all(meaningPromises);
 }
 
 function shortenFrequencyArray(data, n) {
