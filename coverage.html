@@ -55,7 +55,7 @@
             <a href="https://community.wanikani.com/t/web-app-more-wanikani-stats/56652" style="float: left;">WaniKani Thread</a>
             <a href="https://community.wanikani.com/u/koichi/summary" style="float: left;">Koichi</a>
             <button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3); position: relative; z-index: 1004">Logout</button>
-            <span style="float: right;">バージョン３.９.３</span> <!-- ０１２３４５６７８９ -->
+            <span style="float: right;">バージョン３.９.４</span> <!-- ０１２３４５６７８９ -->
         </div>
         <h1 style="background-color: rgba(255, 255, 255, 0.5); margin-bottom: 0px">WaniKani History</h1>
         <h2 style="background-color: rgba(255, 255, 255, 0.5); margin-top: 0px; margin-bottom: 35px">Coverage</h2>
@@ -132,13 +132,17 @@
                         <option value="genjiMonogatari">Genji Monogatari</option>
                         <option value="coteV1">Classroom of the Elite Vol. 1</option>
                         <option value="wikipedia">Wikipedia</option>
+                        <option value="aozora">Aozora Books</option>
+                        <option value="twitter">Twitter</option>
+                        <option value="news">General News</option>
                         <option value="novels">General Novels</option>
                     </select>
                 </div>
 
-                <div>
-                    <label for="coverageminocc">Minimum Occurences Per Kanji (to count to the dataset):</label>
-                    <input type="number" id="coverageminocc" name="coverageminocc" onchange="updateLiteratureChart();" value="2" />
+                <div style="padding-top: 10px">
+                    <label for="coverageminocc">Minimum Frequency Of Kanji:</label>
+                    <input type="number" id="coverageminocc" name="coverageminocc" onchange="updateLiteratureChart();" value="0.01" style="width: 80px" />
+                    <span>%</span>
                 </div>
 
                 <div style="padding-top: 20px">
@@ -176,6 +180,7 @@
         <ul style="font-size: 70%; margin: 5px">
             <li><a href="https://pypi.org/project/kanji-lists/">Kanji Lists</a></li>
             <li><a href="https://foosoft.net/posts/kanji-frequency/">Novel Data</a></li>
+            <li><a href="https://github.com/scriptin/topokanji/tree/master/data/kanji-frequency">Aozora, Twitter, News Data</a></li>
             <li><a href="https://kanjiapi.dev/">Kanji Dictionary API</a></li>
         </ul>
     </div>

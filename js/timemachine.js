@@ -224,6 +224,11 @@ async function calculateTimemachineData() {
         console.log(e);
         console.log("Timemachine data not cached...");
     }
+    // check for timezone change -> reload if changed
+    if (timemachineData.length > 1 && timemachineData[0][0].getHours() != timemachineData[1][0].getHours()) {
+        console.log("Timemachine data has different time zone than user; clearing file cache...");
+        reloadTimemachineData();
+    }
     // create array
     var found, resetArray = [];
     srsArray = [[timemachineData[0][0], 0, 0, 0, 0, 0]], usedIds = [];

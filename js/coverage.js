@@ -14,7 +14,10 @@ const literatureRef = {
     coteV1: ["coteV1.webp", coteVol1Data, ["#84caf0", "#911c43"]],
     genjiMonogatari: ["genjiMonogatari.jpg", genjiMonogatariData, ["#e8c199", "#63411e"]],
     wikipedia: ["wikipedia.png", wikipediaData, ["#ebebeb", "#525252"]],
-    novels: [undefined, novelData, ["#e0da5c", "#6e6910"]]
+    novels: ["novels.jpg", novelData, ["#e0da5c", "#6e6910"]],
+    twitter: ["twitter.png", twitterData, ["#69c0f5", "#1a6b9c"]],
+    aozora: ["aozora.png", aozoraData, ["#8585ff", "#09097d"]],
+    news: ["news.jpg", newsData, ["#ff8a90", "#75080e"]],
 }
 const literatureIntervals = [0, 50, 200, 500, 1000, 2000];
 
@@ -238,7 +241,7 @@ async function kanjiListCharts() {
             inverseOrder: true,
             x: {
                 formatter: function (value, data, w) {
-                    if (w == undefined) { let seriesLength = data.series.reduce((p, c) => [p.slice(-1)[0] + c.slice(-1)[0]])[0], currentLength = data.series.reduce((p, c, i) => [(i == 1 ? p[data.dataPointIndex] : p[0]) + c[data.dataPointIndex]])[0]; return (value != 61 ? "Level " + value : "Completion") + (data.w.config.chart.type == "area" ? " - " + currentLength + "/" + seriesLength + " (" + (currentLength / seriesLength * 100).toFixed(2) + "%)" : ""); }
+                    if (w == undefined) { let seriesLength = data.series.length == 1 ? data.series[0].slice(-1)[0] : data.series.reduce((p, c) => [p.slice(-1)[0] + c.slice(-1)[0]])[0], currentLength = data.series.length == 1 ? data.series[0][data.dataPointIndex] : data.series.reduce((p, c, i) => [(i == 1 ? p[data.dataPointIndex] : p[0]) + c[data.dataPointIndex]])[0]; return (value != 61 ? "Level " + value : "Completion") + (data.w.config.chart.type == "area" ? " - " + currentLength + "/" + seriesLength + " (" + (currentLength / seriesLength * 100).toFixed(2) + "%)" : ""); }
                 }
             },
             y: {
@@ -337,7 +340,8 @@ function updateSchoolChart() {
 
 function updateLiteratureChart() {
     let data = literatureRef[sourceselect.value];
-    let litRawData = shortenFrequencyArray(data[1], document.getElementById('coverageminocc').value),
+    let minOcc = Math.min(Math.round(document.getElementById('coverageminocc').value / 100 * data[1].reduce((p, c, i) => (i == 1 ? p[1] : p) + c[1])), data[1][10][1]);
+    let litRawData = shortenFrequencyArray(data[1], minOcc),
         colorInter = d3.interpolateRgb(data[2][0], data[2][1]);
     litSeriesData = [];
     for (let i = 0; i < literatureIntervals.length; i++) {
@@ -371,7 +375,7 @@ function updateLiteratureChart() {
             { y: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length, y2: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length + schoolData.grade5.length, borderColor: "#347deb", fillColor: "#347deb", opacity: 0.15, strokeDashArray: 0 },
             { y: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length + schoolData.grade5.length, y2: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length + schoolData.grade5.length + schoolData.grade6.length, borderColor: "#345eeb", fillColor: "#345eeb", opacity: 0.15, strokeDashArray: 0 }]) : []
         },*/
-        title: { text: '"' + sourceselect[sourceselect.selectedIndex].text + '" Kanji Level Completion' }
+        title: { text: '"' + sourceselect[sourceselect.selectedIndex].text + '" Kanji Level Completion by Frequency' }
     });
 }
 
@@ -379,7 +383,6 @@ function updateLiterature() {
     // get data
     let image;
     [image, tableData] = literatureRef[sourceselect.value];
-    tableData = shortenFrequencyArray(tableData, 10);
 
     // update chart
     updateLiteratureChart();
