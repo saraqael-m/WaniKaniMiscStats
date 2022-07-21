@@ -959,7 +959,7 @@ async function updateReviewCharts() {
         }
         timeChart = new ApexCharts(document.getElementById('timechart'), options);
         timeChart.render();
-        timeChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
+        timeChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#232629' } });
     }
     if (timeTotalChart === undefined) {
         var options = {
@@ -1006,7 +1006,7 @@ async function updateReviewCharts() {
         }
         timeTotalChart = new ApexCharts(document.getElementById('timetotalchart'), options);
         timeTotalChart.render();
-        timeTotalChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
+        timeTotalChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#232629' } });
     }
     updateTimeChart();
 }

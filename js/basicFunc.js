@@ -74,7 +74,6 @@ function changeMode(apexChartList, change = true) {
         let wkofdiv = document.getElementById('wkof_ds');
         wkofdiv.style["-webkit-filter"] = "";
         wkofdiv.style.filter = "";
-        document.body.style.background = "#f1f1f1";
         localStorage["mode"] = "light";
         if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'light' }, chart: { background: '#ffffff' } });
     } else {
@@ -91,9 +90,8 @@ function changeMode(apexChartList, change = true) {
         let wkofdiv = document.getElementById('wkof_ds');
         wkofdiv.style["-webkit-filter"] = "invert(100%)";
         wkofdiv.style.filter = "invert(100%)";
-        document.body.style.background = "black";
         localStorage["mode"] = "dark";
-        if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'dark' }, chart: { background: '#1b1b1b' } });
+        if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: 'dark' }, chart: { background: '#232629' } });
     }
 }
 

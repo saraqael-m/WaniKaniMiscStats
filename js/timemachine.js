@@ -439,7 +439,7 @@ function generateTimemachineChart() {
     }
     srsChart = new ApexCharts(srsChartDiv, options);
     srsChart.render();
-    srsChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
+    srsChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#232629' } });
     // populate kanji div to default
     currentSelection = 0;
     chartSelectionMover(0);

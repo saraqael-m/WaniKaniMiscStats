@@ -12,10 +12,14 @@ body {
 	font-family: Helvetica, Arial, Sans-Serif;
 	padding: 10px;
 	background: #f1f1f1;
+	max-width: 1900px;
+	margin: 0 auto;
 }
 
 body.dark-mode {
-	--card-color: #1b1b1b;
+	--card-color: #232629;
+
+	background: #31363b;
 }
 
 h1, h2, h3, h4, h5, h6, label, p, pre {
@@ -130,7 +134,7 @@ div.settings h4 {
 		}
 
 .dark-mode #triangle {
-	background-color: #1b1b1b;
+	background-color: var(--card-color);
 }
 
 /* tooltip */
@@ -154,6 +158,8 @@ div.settings h4 {
 
 .dark-mode .card {
 	color: white;
+	-webkit-box-shadow: 1px 1px 1px rgb(0 0 0 / 70%), 2px 2px 2px rgb(0 0 0 / 70%);
+	box-shadow: 1px 1px 1px rgb(0 0 0 / 70%), 2px 2px 2px rgb(0 0 0 / 70%);
 }
 
 .dark-mode .settings {
@@ -161,7 +167,9 @@ div.settings h4 {
 }
 
 .dark-mode .toc {
-	background-color: #1b1b1b;
+	background-color: var(--card-color);
+	-webkit-box-shadow: 1px 1px 1px rgb(0 0 0 / 70%), 2px 2px 2px rgb(0 0 0 / 70%);
+	box-shadow: 1px 1px 1px rgb(0 0 0 / 70%), 2px 2px 2px rgb(0 0 0 / 70%);
 }
 
 	.dark-mode .toc a {
@@ -291,6 +299,10 @@ div.settings h4 {
 	fill: black !important;
 }
 
+.dark-mode .apexcharts-gridlines-horizontal > line:not(:last-child) {
+	stroke: #525252;
+}
+
 /* progressbar design */
 #progressbar {
 	background-color: grey;
@@ -350,12 +362,13 @@ button.movebtn {
 }
 
 .dark-mode button.movebtn {
-	background-color: #555555;
-	color: black;
+	background-color: #31363b;
+	color: #1e2123;
 }
 
 	.dark-mode button.movebtn:hover {
 		color: white;
+		background-color: #5f656d;
 	}
 
 	.dark-mode button.movebtn:active {
@@ -516,6 +529,10 @@ table.normaltable {
 	.header h1 {
 		font-size: 50px;
 	}
+	.dark-mode .header {
+		-webkit-box-shadow: 1px 0 1px rgba(255, 255, 255, 0.7), 2px 0 2px rgba(255, 255, 255, 0.7);
+		box-shadow: 2px 1px 1px -1px rgba(255, 255, 255, 0.7), 3px 1px 2px -1px rgba(255, 255, 255, 0.7);
+	}
 
 .dark-mode a[href^="h"] {
 	color: #be8fee;
@@ -576,7 +593,7 @@ table.normaltable {
 }
 
 .dark-mode #overview div h3 {
-	background-color: #525252;
+	background-color: #31363b;
 }
 
 #overview div {
