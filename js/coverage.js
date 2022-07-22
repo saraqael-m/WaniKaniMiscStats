@@ -131,7 +131,7 @@ async function kanjiListCharts() {
     }
     jlptChart = new ApexCharts(document.getElementById('jlptchart'), options);
     jlptChart.render();
-    jlptChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
+    jlptChart.updateOptions({ theme: { mode: isDarkMode() ? 'dark' : 'light' }, chart: { background: colorSchemes[currentScheme].cardColor } });
 
     // Joyo //
     joyoCoverage = [];
@@ -166,7 +166,7 @@ async function kanjiListCharts() {
     }
     joyoChart = new ApexCharts(document.getElementById('joyochart'), options);
     joyoChart.render();
-    joyoChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
+    joyoChart.updateOptions({ theme: { mode: isDarkMode() ? 'dark' : 'light' }, chart: { background: colorSchemes[currentScheme].cardColor } });
 
     // School //
     schoolCoverage = [[]];
@@ -207,7 +207,7 @@ async function kanjiListCharts() {
     }
     schoolChart = new ApexCharts(document.getElementById('schoolchart'), options);
     schoolChart.render();
-    schoolChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
+    schoolChart.updateOptions({ theme: { mode: isDarkMode() ? 'dark' : 'light' }, chart: { background: colorSchemes[currentScheme].cardColor } });
 
     // Literature //
     options = {
@@ -256,7 +256,7 @@ async function kanjiListCharts() {
     }
     litChart = new ApexCharts(document.getElementById('litchart'), options);
     litChart.render();
-    litChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#1b1b1b' } });
+    litChart.updateOptions({ theme: { mode: isDarkMode() ? 'dark' : 'light' }, chart: { background: colorSchemes[currentScheme].cardColor } });
 
     // update charts
     updateJlptChart();
