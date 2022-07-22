@@ -8,18 +8,14 @@
 
 body {
 	--card-color: white;
+	--background: #f1f1f1;
+	--nav-color: #fac5c7;
 
 	font-family: Helvetica, Arial, Sans-Serif;
 	padding: 10px;
-	background: #f1f1f1;
+	background: var(--background);
 	max-width: 1900px;
 	margin: 0 auto;
-}
-
-body.dark-mode {
-	--card-color: #232629;
-
-	background: #31363b;
 }
 
 h1, h2, h3, h4, h5, h6, label, p, pre {
@@ -85,7 +81,7 @@ div.settings h4 {
 
 .navbar {
 	overflow: hidden;
-	background-color: #fac5c7;
+	background-color: var(--nav-color);
 }
 
 .toc .navbar a {
@@ -120,18 +116,14 @@ div.settings h4 {
 	pointer-events: none;
 }
 
-.dark-mode .navbar {
-	background-color: #1f4948;
+.dark-mode .navbar a {
+	color: white !important;
 }
 
-	.dark-mode .navbar a {
-		color: white !important;
+	.dark-mode .navbar a:not(.current-page):hover {
+		background-color: #93bbb1;
+		color: black !important;
 	}
-
-		.dark-mode .navbar a:not(.current-page):hover {
-			background-color: #93bbb1;
-			color: black !important;
-		}
 
 .dark-mode #triangle {
 	background-color: var(--card-color);
@@ -362,7 +354,7 @@ button.movebtn {
 }
 
 .dark-mode button.movebtn {
-	background-color: #31363b;
+	background-color: var(--background);
 	color: #1e2123;
 }
 
@@ -373,6 +365,21 @@ button.movebtn {
 
 	.dark-mode button.movebtn:active {
 		background-color: #292929;
+		color: white;
+	}
+
+#color-scheme-div {
+	float: left;
+	font-size: 15px;
+	margin: 5px;
+}
+#color-scheme-select {
+	background-color: #fafafa;
+	color: black;
+	outline: none;
+}
+	.dark-mode #color-scheme-select option {
+		background-color: #1d1d1d;
 		color: white;
 	}
 
@@ -585,15 +592,11 @@ table.normaltable {
 
 #overview div h3 {
 	text-align: center;
-	background-color: rgb(241, 241, 241);
+	background-color: var(--background);
 	border-radius: 5px;
 	padding-top: 15px;
 	padding-bottom: 5px;
 	margin: 0;
-}
-
-.dark-mode #overview div h3 {
-	background-color: #31363b;
 }
 
 #overview div {

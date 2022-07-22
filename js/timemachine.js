@@ -1,4 +1,4 @@
-﻿if (lightMode) document.getElementById('loadingtip').innerHTML = '<b>Tip:</b> Activate dark mode!';
+﻿if (!isDarkMode()) document.getElementById('loadingtip').innerHTML = '<b>Tip:</b> Activate dark mode!';
 
 // variables
 var userData = [], resetData = [], reviewData = [], assignmentData = [], subjectData = [], wordData = [], timemachineData = [], srsArray = [], hiddenItems = [], resurrectedItems = [], resets = [], srsChartData = [], usedIds = [];
@@ -439,7 +439,7 @@ function generateTimemachineChart() {
     }
     srsChart = new ApexCharts(srsChartDiv, options);
     srsChart.render();
-    srsChart.updateOptions({ theme: { mode: lightMode ? 'light' : 'dark' }, chart: { background: lightMode ? '#ffffff' : '#232629' } });
+    srsChart.updateOptions({ theme: { mode: isDarkMode() ? 'dark' : 'light' }, chart: { background: colorSchemes[currentScheme].cardColor } });
     // populate kanji div to default
     currentSelection = 0;
     chartSelectionMover(0);

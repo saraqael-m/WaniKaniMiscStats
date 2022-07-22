@@ -31,11 +31,6 @@
             <button class="btn btn-primary btn-md" style="position: fixed; right: 10px; bottom: 10px; padding: 4px" onclick="window.location.hash = ''; window.location.hash = '#top';">↑ Go Back Up</button>
         </div>
     </div>
-    <div class="form-group" style="margin-top: 12%; float:left; position: relative; z-index: 1000">
-        <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-            <button class="btn btn-primary btn-md" id="modebtn" style="position: fixed; left: 10px; bottom: 10px; padding: 4px" onclick="changeMode([jlptChart, joyoChart, schoolChart, litChart]);">㊊ Dark Mode</button>
-        </div>
-    </div>
 
     <div id="blackoverlay" style="visibility: hidden; position: fixed; top: 0%; left: 0%; width: 100%; height: 100%; background: black; z-index: 1001; opacity: 0.5;"></div>
     <div id="whiteoverlay" class="w3-container" style="visibility: hidden; border-radius: 6px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) ; z-index: 1002; overflow: hidden; padding: 20px">
@@ -57,6 +52,10 @@
             <button type="button" onclick="logout();" style="padding: 3px 4px; font-size: 12px; float: right; background-color: rgba(216, 216, 216, 0.3); color: rgba(12, 12, 12, 0.8); border-color: rgba(75, 75, 75, 0.3); position: relative; z-index: 1004">Logout</button>
             <span style="float: right;">バージョン３.９.４</span> <!-- ０１２３４５６７８９ -->
         </div>
+        <div id="color-scheme-div">
+			<label for="color-scheme">Color Scheme </label>
+			<select name="color-scheme" title="Select Color Scheme" id="color-scheme-select" onchange="changeMode([jlptChart, joyoChart, schoolChart, litChart], this.value)"></select>
+		</div>
         <h1 style="background-color: rgba(255, 255, 255, 0.5); margin-bottom: 0px">WaniKani History</h1>
         <h2 style="background-color: rgba(255, 255, 255, 0.5); margin-top: 0px; margin-bottom: 35px">Coverage</h2>
     </div>
