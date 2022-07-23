@@ -847,7 +847,7 @@ function dataDateShorten(dataPrev, date, nullify = false) {
 async function updateReviewCharts() {
     let startDate = new Date(newdateinp.value);
     const loadingLbl = document.getElementById("reviewinfodiv");
-    loadingLbl.innerHTML = "Time frame starts at " + startDate.toUTCString().split(' ').slice(1, 4).join(' ') + ".";
+    loadingLbl.innerHTML = "Time frame starts at " + startDate.toLocaleDateString(void 0, { timeZone: 'UTC' }) + ".";
     let nullifyBool = newdateche.checked;
     if (reviewArray.length == 0) return;
     var dateFormatter = new google.visualization.DateFormat({ pattern: "MMM dd yyyy" });
@@ -1247,7 +1247,7 @@ function updateTables(changeOffset = 0) {
             for (let k = 0; k < 4; k++) runningTotal[k] += midreviewAccuracy[j][k + 1][1];
             for (let k = 0; k < 4; k++) runningAmount[k] += midreviewAccuracy[j][k + 1][0];
         }
-        for (let k = 0; k < 4; k++) runningTotal[k] = runningAmount[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
+        for (let k = 0; k < 4; k++) runningTotal[k] = runningTotal[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
         accTable.push([...runningTotal]);
     }
     for (let i = 1; i < accElements.length; i++) {
@@ -1269,7 +1269,7 @@ function updateTables(changeOffset = 0) {
             for (let k = 0; k < 4; k++) runningTotal[k] += readingAccuracy[j][k + 1][1];
             for (let k = 0; k < 4; k++) runningAmount[k] += readingAccuracy[j][k + 1][0];
         }
-        for (let k = 0; k < 4; k++) runningTotal[k] = runningAmount[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
+        for (let k = 0; k < 4; k++) runningTotal[k] = runningTotal[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
         readaccTable.push([...runningTotal]);
     }
     for (let i = 1; i < readaccElements.length; i++) {
@@ -1291,7 +1291,7 @@ function updateTables(changeOffset = 0) {
             for (let k = 0; k < 4; k++) runningTotal[k] += meaningAccuracy[j][k + 1][1];
             for (let k = 0; k < 4; k++) runningAmount[k] += meaningAccuracy[j][k + 1][0];
         }
-        for (let k = 0; k < 4; k++) runningTotal[k] = runningAmount[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
+        for (let k = 0; k < 4; k++) runningTotal[k] = runningTotal[k] == 0 ? "-" : roundToDecimals((1 - runningAmount[k] / runningTotal[k]) * 100, 2, true);
         meanaccTable.push([...runningTotal]);
     }
     for (let i = 1; i < meanaccElements.length; i++) {

@@ -1,6 +1,13 @@
-﻿const prevToken = localStorage.getItem('apiv2_key_override');
+﻿// check if api token is cached
+const prevToken = localStorage.getItem('apiv2_key_override');
 if (prevToken === null) returnToPage();
-checkApiToken(prevToken);
+var username = checkApiToken(prevToken);
+
+// show user name in link row
+async function setUserName() {
+    document.getElementById('usernamespan').innerHTML = "Logged In: <b>" + (await username) + "</b>";
+}
+setUserName();
 
 //// definitions ////
 const blackOverlay = document.getElementById("blackoverlay");
@@ -93,12 +100,12 @@ function loadColourSchemes() {
         if (currentScheme == key) schemeSelectDropdown.selectedIndex = index;
     });
 }
+
 // switch color scheme
 function changeMode(apexChartList, newScheme) {
     if (newScheme != currentScheme) {
         let header = document.getElementsByClassName('header')[0];
         let wkofdiv = document.getElementById('wkof_ds');
-    
         if (colorSchemes[newScheme].darkScheme) {
             document.body.classList.add('dark-mode');
             header.style["-webkit-filter"] = "invert(90%)";
@@ -112,17 +119,18 @@ function changeMode(apexChartList, newScheme) {
             wkofdiv.style["-webkit-filter"] = "";
             wkofdiv.style.filter = "";
         }
-    
+
         document.documentElement.style.setProperty('color-scheme', colorSchemes[newScheme].darkScheme ? 'dark' : 'light');
         if (apexChartList !== undefined) for (let chart of apexChartList) chart.updateOptions({ theme: { mode: colorSchemes[newScheme].darkScheme ? 'dark' : 'light' }, chart: { background: colorSchemes[newScheme].cardColor } });
         document.body.style.setProperty("--card-color", colorSchemes[newScheme].cardColor);
         document.body.style.setProperty("--background", colorSchemes[newScheme].background);
         document.body.style.setProperty("--nav-color", colorSchemes[newScheme].navColor);
-        
+
         localStorage["colorScheme"] = newScheme;
         currentScheme = newScheme;
     }
 }
+
 // return bool for is current scheme a dark scheme
 function isDarkMode() {
     return colorSchemes[currentScheme].darkScheme;
@@ -147,11 +155,12 @@ function fixHtml(html) {
 // check api token (if invalid -> logout)
 async function checkApiToken(apiToken) {
     let requestHeaders = new Headers({ 'Wanikani-Revision': '20170710', Authorization: 'Bearer ' + apiToken });
-    let promise = fetch(new Request("https://api.wanikani.com/v2/subjects/1", { method: 'GET', headers: requestHeaders }))
-        .then(response => response.json())
-        .then(responseBody => responseBody);
+    let promise = fetch(new Request("https://api.wanikani.com/v2/user", { method: 'GET', headers: requestHeaders }))
+        .then(response => response.json());
     let data = await promise;
     if (data["code"] !== undefined && data["code"] !== 429) {
         logout();
+        return null;
     }
+    return data.data.username;
 }

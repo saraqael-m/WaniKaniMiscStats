@@ -10,7 +10,6 @@ body {
 	--card-color: white;
 	--background: #f1f1f1;
 	--nav-color: #fac5c7;
-
 	font-family: Helvetica, Arial, Sans-Serif;
 	padding: 10px;
 	background: var(--background);
@@ -39,9 +38,11 @@ div.google-visualization-tooltip {
 	z-index: 1;
 	position: relative;
 }
+
 .settingsbtn img {
 	height: 1.5em;
 }
+
 .dark-mode .settingsbtn img {
 	filter: invert(100%);
 }
@@ -49,10 +50,11 @@ div.google-visualization-tooltip {
 .settingsbtn:hover {
 	background-color: transparent !important;
 }
-.settingsbtn:hover .settings {
-	visibility: visible;
-	opacity: 1;
-}
+
+	.settingsbtn:hover .settings {
+		visibility: visible;
+		opacity: 1;
+	}
 
 div.settings {
 	background-color: lightgrey;
@@ -69,10 +71,12 @@ div.settings {
 	width: max-content;
 	transition: opacity 200ms;
 }
-div.settings h4 {
-	margin: 4px 0 10px 25px;
-	text-align: start;
-}
+
+	div.settings h4 {
+		margin: 4px 0 10px 25px;
+		text-align: start;
+	}
+
 .dark-mode div.settings {
 	color: white;
 }
@@ -287,6 +291,7 @@ div.settings h4 {
 .dark-mode .wall svg[aria-label="A chart."] text[fill="#222222"] {
 	fill: black !important;
 }
+
 .dark-mode .wall svg[aria-label="A chart."] text[fill="#ffffff"] {
 	fill: black !important;
 }
@@ -373,15 +378,17 @@ button.movebtn {
 	font-size: 15px;
 	margin: 5px;
 }
+
 #color-scheme-select {
 	background-color: #fafafa;
 	color: black;
 	outline: none;
 }
-	.dark-mode #color-scheme-select option {
-		background-color: #1d1d1d;
-		color: white;
-	}
+
+.dark-mode #color-scheme-select option {
+	background-color: #1d1d1d;
+	color: white;
+}
 
 /* furigana design */
 rt:not(.nohidden) {
@@ -431,16 +438,12 @@ table.coveragetable {
 			border-bottom: 2px solid #009879;
 		}
 
-		table.coveragetable tbody tr:nth-of-type(even) {
-			background-color: #f3f3f3;
-		}
-
-.dark-mode table.coveragetable tbody tr:nth-of-type(even) {
-	background-color: #1b1b1b;
+table.coveragetable tbody tr:nth-of-type(even) {
+	background-color: var(--card-color);
 }
 
-.dark-mode table.coveragetable tbody tr:nth-of-type(odd) {
-	background-color: black;
+table.coveragetable tbody tr:nth-of-type(odd) {
+	background-color: var(--background);
 }
 
 table.normaltable {
@@ -527,7 +530,7 @@ table.normaltable {
 	color: black;
 	background: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url('images/wanikani_bg_icon.jpg');
 	background-repeat: no-repeat;
-    background-attachment: inherit;
+	background-attachment: inherit;
 	background-size: cover;
 	background-position: top;
 	border-radius: 8px 8px 0 0;
@@ -536,10 +539,11 @@ table.normaltable {
 	.header h1 {
 		font-size: 50px;
 	}
-	.dark-mode .header {
-		-webkit-box-shadow: 1px 0 1px rgba(255, 255, 255, 0.7), 2px 0 2px rgba(255, 255, 255, 0.7);
-		box-shadow: 2px 1px 1px -1px rgba(255, 255, 255, 0.7), 3px 1px 2px -1px rgba(255, 255, 255, 0.7);
-	}
+
+.dark-mode .header {
+	-webkit-box-shadow: 1px 0 1px rgba(255, 255, 255, 0.7), 2px 0 2px rgba(255, 255, 255, 0.7);
+	box-shadow: 2px 1px 1px -1px rgba(255, 255, 255, 0.7), 3px 1px 2px -1px rgba(255, 255, 255, 0.7);
+}
 
 .dark-mode a[href^="h"] {
 	color: #be8fee;
@@ -552,16 +556,16 @@ table.normaltable {
 	font-size: 15px;
 }
 
-#linkrow a {
-	line-height: 25px;
-	margin: 0 5px;
-	color: black;
-}
+	#linkrow a {
+		line-height: 25px;
+		margin: 0 5px;
+		color: black;
+	}
 
-#linkrow span {
-	line-height: 25px;
-	margin-right: 8px;
-}
+	#linkrow span {
+		line-height: 25px;
+		margin-right: 8px;
+	}
 
 /* table of contents design */
 
@@ -571,22 +575,22 @@ table.normaltable {
 	border-radius: 0 0 6px 6px;
 }
 
-.toc > a {
-	float: left;
-	display: block;
-	color: dimgrey;
-	text-align: center;
-	margin: 5px 0 5px 5px;
-	padding: 8px;
-	text-decoration: none;
-}
+	.toc > a {
+		float: left;
+		display: block;
+		color: dimgrey;
+		text-align: center;
+		margin: 5px 0 5px 5px;
+		padding: 8px;
+		text-decoration: none;
+	}
 
-.toc > a:hover {
-	background-color: lightgrey;
-	color: black;
-	cursor: pointer;
-	border-radius: 5px;
-}
+		.toc > a:hover {
+			background-color: lightgrey;
+			color: black;
+			cursor: pointer;
+			border-radius: 5px;
+		}
 
 /* Overview */
 
@@ -721,7 +725,6 @@ table.normaltable {
 	.toc a {
 		padding: 5px;
 		margin: 3px 0 3px 3px;
-		
 	}
 }
 
@@ -866,11 +869,11 @@ rect[fill-opacity="0"]:not([stroke="none"]) {
 .timemachineslider {
 	-webkit-appearance: none; /* Override default CSS styles */
 	appearance: none;
-	width: 100%; 
-	height: 10px; 
-	background: #d3d3d3; 
-	outline: none; 
-	opacity: 0.7; 
+	width: 100%;
+	height: 10px;
+	background: #d3d3d3;
+	outline: none;
+	opacity: 0.7;
 	-webkit-transition: .2s;
 	transition: opacity .2s;
 }
