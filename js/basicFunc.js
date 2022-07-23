@@ -22,7 +22,7 @@ const colorSchemes = {
         "cardColor": "#232629",
         "navColor": "#1f4948",
         "darkScheme": true,
-        "name": "Breeze Dark ㊊"
+        "name": "Breeze Dark ㊰"
     },
     "black": {
         "background": "#000000",
