@@ -1336,9 +1336,9 @@ async function overviewInfo() {
         }
         streakCounter++;
     }
-    document.getElementById("streakOv").innerHTML = streak;
+    document.getElementById("streakOv").innerHTML = streak + " days";
     document.getElementById("streakOv").style.color = streak == longestStreak ? "#55af55" : "#af5555";
-    document.getElementById("longestStreakOv").innerHTML = "Longest: " + longestStreak;
+    document.getElementById("longestStreakOv").innerHTML = "Longest: " + longestStreak + " days";
 
     // time on level
     let timeOnLevel = combLevelChart[combLevelChart.length - 1][1],
