@@ -570,7 +570,28 @@ function generateSnapshotTable() {
     google.visualization.events.addListener(table, 'select', () => { table.setSelection([]); }); // no selecting
 }
 
+function getLessonData() {
+    itemArray = [];
+    for (const item of assignmentData) {
+        let type = item.data.subject_type, startDate = dateNoTime(new Date(item.data.started_at));
+        let current = itemArray.find(e => e[0].getTime() == startDate.getTime());
+        if (current == undefined) {
+            itemArray.push([startDate, 0, 0, 0, 0]);
+            current = itemArray[itemArray.length - 1];
+        }
+        current[1]++;
+        switch (type) {
+            case 'radical': current[2]++; break;
+            case 'kanji': current[3]++; break;
+            case 'vocabulary': current[4]++; break;
+        }
+    }
+    itemArray.sort((a, b) => a[0].getTime() - b[0].getTime());
+    itemArray.unshift(["Date", "All", "Radical", "Kanji", "Vocab"]);
+}
+
 async function reviewInfo() {
+    getLessonData(); // fills itemArray
     // create array
     for (const div of reviewAll) div.style.display = "block";
     const dataLength = reviewData.length;
@@ -578,7 +599,6 @@ async function reviewInfo() {
     var resetArray = [];
     reviewArray = [["Date", "Reviews", "Radical", "Kanji", "Vocab"]];
     srsArray = [["Date", "Apprentice", "Guru", "Master", "Enlightened", "Burned"], [0, 0, 0, 0, 0, 0]];
-    itemArray = [["Date", "All", "Radical", "Kanji", "Vocab"], [0, 0, 0, 0, 0]];
     var usedIds = [];
     var found;
     reviewAccuracy = [["Date", "Radical", "Kanji", "Vocab", "All"], [1, 1, 1, 1, 1]];
@@ -649,7 +669,6 @@ async function reviewInfo() {
                     reviewAccuracy[reviewAccuracy.length - 2][i + 1]);
                 reviewAccuracy[reviewAccuracy.length - 1][i + 1] = value != 0 ? value : reviewAccuracy[reviewAccuracy.length - 2][i + 1];
             }
-            itemArray.push([date, 0, 0, 0, 0]);
             reviewAccuracy.push([date, 0, 0, 0, 0]);
             reviewAccTotal.push([0, 0, 0, 0]);
             midreviewAccuracy.push([date, [0, 0], [0, 0], [0, 0], [0, 0]]); meaningAccuracy.push([date, [0, 0], [0, 0], [0, 0], [0, 0]]); readingAccuracy.push([date, [0, 0], [0, 0], [0, 0], [0, 0]]);
@@ -669,12 +688,10 @@ async function reviewInfo() {
         midreviewAccuracy[accLength][4][0] += incRead + incMean; midreviewAccuracy[accLength][4][1] += incRead + incMean + (subjectData[subId]["object"] == "radical" ? 1 : 2);
         meaningAccuracy[accLength][4][0] += incMean; meaningAccuracy[accLength][4][1] += incMean + 1;
         readingAccuracy[accLength][4][0] += incRead; readingAccuracy[accLength][4][1] += incRead + (subjectData[subId]["object"] == "radical" ? 0 : 1);
-        if (foundId == -1) itemArray[accLength][1]++;
         switch (subjectData[subId]["object"]) {
             case "vocabulary":
                 reviewAccuracy[accLength][3] += correct;
                 reviewAccTotal[accLength - 1][2]++;
-                if (foundId == -1) itemArray[accLength][4]++;
                 midreviewAccuracy[accLength][3][0] += incRead + incMean; midreviewAccuracy[accLength][3][1] += incRead + incMean + 2;
                 meaningAccuracy[accLength][3][0] += incMean; meaningAccuracy[accLength][3][1] += incMean + 1;
                 readingAccuracy[accLength][3][0] += incRead; readingAccuracy[accLength][3][1] += incRead + 1;
@@ -682,7 +699,6 @@ async function reviewInfo() {
             case "kanji":
                 reviewAccuracy[accLength][2] += correct;
                 reviewAccTotal[accLength - 1][1]++;
-                if (foundId == -1) itemArray[accLength][3]++;
                 midreviewAccuracy[accLength][2][0] += incRead + incMean; midreviewAccuracy[accLength][2][1] += incRead + incMean + 2;
                 meaningAccuracy[accLength][2][0] += incMean; meaningAccuracy[accLength][2][1] += incMean + 1;
                 readingAccuracy[accLength][2][0] += incRead; readingAccuracy[accLength][2][1] += incRead + 1;
@@ -690,7 +706,6 @@ async function reviewInfo() {
             case "radical":
                 reviewAccuracy[accLength][1] += correct;
                 reviewAccTotal[accLength - 1][0]++;
-                if (foundId == -1) itemArray[accLength][2]++;
                 midreviewAccuracy[accLength][1][0] += incRead + incMean; midreviewAccuracy[accLength][1][1] += incRead + incMean + 1;
                 meaningAccuracy[accLength][1][0] += incMean; meaningAccuracy[accLength][1][1] += incMean + 1;
                 readingAccuracy[accLength][1][0] += incRead; readingAccuracy[accLength][1][1] += incRead;
@@ -756,7 +771,6 @@ async function reviewInfo() {
     midreviewAccuracy.splice(1, 1);
     meaningAccuracy.splice(1, 1);
     readingAccuracy.splice(1, 1);
-    itemArray.splice(1, 1);
     srsArray.sort((a, b) => a[0].valueOf() - b[0].valueOf());
     reviewArray.sort((a, b) => a[0].valueOf() - b[0].valueOf());
     for (let i = 0; i < 4; i++) {
@@ -1311,6 +1325,20 @@ async function overviewInfo() {
     document.getElementById("levelOv").innerHTML = userData["level"];
     if (userData["level"] == 60) document.getElementById("levelOv").style.color = "#f0ca00";
     document.getElementById("levelStageOv").innerHTML = levelStages[Math.floor((userData["level"] - 1) / 10)];
+
+    // streak
+    let streak = reviewArray.length, longestStreak = 0, streakCounter = 0;
+    for (let i = reviewArray.length - 1; i >= 0; i--) {
+        if (reviewArray[i][1] == 0) {
+            if (streak == reviewArray.length) streak = streakCounter;
+            if (streakCounter > longestStreak) longestStreak = streakCounter;
+            streakCounter = -1;
+        }
+        streakCounter++;
+    }
+    document.getElementById("streakOv").innerHTML = streak;
+    document.getElementById("streakOv").style.color = streak == longestStreak ? "#55af55" : "#af5555";
+    document.getElementById("longestStreakOv").innerHTML = "Longest: " + longestStreak;
 
     // time on level
     let timeOnLevel = combLevelChart[combLevelChart.length - 1][1],
