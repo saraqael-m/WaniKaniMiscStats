@@ -241,7 +241,7 @@ async function kanjiListCharts() {
             inverseOrder: true,
             x: {
                 formatter: function (value, data, w) {
-                    if (w == undefined) { let seriesLength = data.series.length == 1 ? data.series[0].slice(-1)[0] : data.series.reduce((p, c) => [p.slice(-1)[0] + c.slice(-1)[0]])[0], currentLength = data.series.length == 1 ? data.series[0][data.dataPointIndex] : data.series.reduce((p, c, i) => [(i == 1 ? p[data.dataPointIndex] : p[0]) + c[data.dataPointIndex]])[0]; return (value != 61 ? "Level " + value : "Completion") + (data.w.config.chart.type == "area" ? " - " + currentLength + "/" + seriesLength + " (" + (currentLength / seriesLength * 100).toFixed(2) + "%)" : ""); }
+                    if (w == undefined) { let seriesLength = data.series.length == 1 ? data.series[0].slice(-1)[0] : data.series.reduce((p, c) => [p.slice(-1)[0] + c.slice(-1)[0]])[0], currentLength = data.series.length == 1 ? data.series[0][data.dataPointIndex] : data.series.reduce((p, c, i) => [(i == 1 ? p[data.dataPointIndex] : p[0]) + c[data.dataPointIndex]])[0]; return (value < 60 ? "Level " + value : "Completion") + (data.w.config.chart.type == "area" ? " - " + currentLength + "/" + seriesLength + " (" + (currentLength / seriesLength * 100).toFixed(2) + "%)" : ""); }
                 }
             },
             y: {
