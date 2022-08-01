@@ -351,6 +351,7 @@ function updateLiteratureChart() {
         let litKanji = litRawData.slice(startIndex, endIndex).reduce((p, c) => [p[0] + c[0], undefined])[0];
         let tempData = [];
         for (let j = 1; j <= 60; j++) tempData.push([j, commonCharCount(kanjiLevelData[j], litKanji)]);
+        tempData.push([61, litKanji.length]);
         litSeriesData.push({
             name: endIndex >= litRawData.length ? ">" + startIndex : (startIndex + 1) + "-" + endIndex,
             data: tempData
