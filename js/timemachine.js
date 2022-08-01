@@ -1,4 +1,4 @@
-﻿if (!isDarkMode()) document.getElementById('loadingtip').innerHTML = '<b>Tip:</b> Activate dark mode!';
+﻿if (!isDarkMode()) document.getElementById('loadingdiv').innerHTML = '<b>Tip:</b> Activate dark mode!';
 
 // variables
 var userData = [], resetData = [], reviewData = [], assignmentData = [], subjectData = [], wordData = [], timemachineData = [], srsArray = [], hiddenItems = [], resurrectedItems = [], resets = [], srsChartData = [], usedIds = [];

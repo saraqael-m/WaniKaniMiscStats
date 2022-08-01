@@ -1,4 +1,6 @@
-﻿// check if api token is cached
+﻿import { error } from "console";
+
+// check if api token is cached
 const prevToken = localStorage.getItem('apiv2_key_override');
 if (prevToken === null) returnToPage();
 var username = checkApiToken(prevToken);
@@ -154,11 +156,16 @@ function fixHtml(html) {
 
 // check api token (if invalid -> logout)
 async function checkApiToken(apiToken) {
-    let requestHeaders = new Headers({ 'Wanikani-Revision': '20170710', Authorization: 'Bearer ' + apiToken });
-    let promise = fetch(new Request("https://api.wanikani.com/v2/user", { method: 'GET', headers: requestHeaders }))
-        .then(response => response.json());
+    let requestHeaders = new Headers({ 'Wanikani-Revision': '20170710', Authorization: 'Bearer ' + apiToken }), promise;
+    try {
+        promise = fetch(new Request("https://api.wanikani.com/v2/user", { method: 'GET', headers: requestHeaders }))
+            .then(response => response.json());
+    } catch (e) {
+        console.log(e);
+        document.getElementById('loadingdiv').innerHTML = 'API check error. Letting you through...';
+    }
     let data = await promise;
-    if (data["code"] !== undefined && data["code"] !== 429) {
+    if (data['code'] !== undefined && data['code'] !== 429) {
         logout();
         return null;
     }
