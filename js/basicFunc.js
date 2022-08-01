@@ -1,5 +1,3 @@
-﻿import { error } from "console";
-
 // check if api token is cached
 const prevToken = localStorage.getItem('apiv2_key_override');
 if (prevToken === null) returnToPage();
