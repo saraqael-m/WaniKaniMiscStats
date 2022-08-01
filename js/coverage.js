@@ -5,8 +5,8 @@ const littab = document.getElementById('literaturetable');
 const sourceselect = document.getElementById('source');
 
 // variables
-var itemData, userData, kanjiLevelData, jlptCoverage, joyoCoverage, schoolCoverage, litSeriesData;
-var jlptChart, joyoChart, schoolChart, litChart;
+var itemData, userData, kanjiLevelData, jlptCoverage, joyoCoverage, schoolCoverage, litSeriesData, litTotalSeriesData;
+var jlptChart, joyoChart, schoolChart, litChart, litTotalChart;
 var tableBody, tablePos = 0, tableInterval = 100, tableData = [], tableWidth;
 
 // constants
@@ -15,6 +15,7 @@ const literatureRef = {
     genjiMonogatari: ["genjiMonogatari.jpg", genjiMonogatariData, ["#e8c199", "#63411e"]],
     wikipedia: ["wikipedia.png", wikipediaData, ["#ebebeb", "#525252"]],
     novels: ["novels.jpg", novelData, ["#e0da5c", "#6e6910"]],
+    shows: ["shows.png", showData, ["#8ce5f5", "#566163"]],
     twitter: ["twitter.png", twitterData, ["#69c0f5", "#1a6b9c"]],
     aozora: ["aozora.png", aozoraData, ["#8585ff", "#09097d"]],
     news: ["news.jpg", newsData, ["#ff8a90", "#75080e"]],
@@ -70,6 +71,12 @@ async function dataPasser() {
 
 async function generateCharts() {
     await Promise.all([kanjiListCharts(), updateLiterature()]);
+}
+
+function commonChars(s1, s2) {
+    var s3 = '';
+    for (let i in s1) if (s2.includes(s1[i])) s3 += s1[i];
+    return s3;
 }
 
 function commonCharCount(s1, s2) {
@@ -247,16 +254,68 @@ async function kanjiListCharts() {
             y: {
                 formatter: function (value, data, _) {
                     let seriesLength = data.series[data.seriesIndex].slice(-1)[0];
-                    return value + "/" + seriesLength + " (" + (value / seriesLength * 100).toFixed(2) + "%)";
+                    return value + "/" + seriesLength + " Kanji (" + (value / seriesLength * 100).toFixed(2) + "%)";
                 }
             }
         },
         legend: { show: true },
-        xaxis: { min: 1, max: 40 }
     }
     litChart = new ApexCharts(document.getElementById('litchart'), options);
     litChart.render();
     litChart.updateOptions({ theme: { mode: isDarkMode() ? 'dark' : 'light' }, chart: { background: colorSchemes[currentScheme].cardColor } });
+
+    options = {
+        chart: { type: 'area', height: '400px' },
+        title: { text: 'Literature Total Kanji Percentage by Level' },
+        stroke: { curve: 'smooth', width: 2 },
+        series: [],
+        annotations: {
+            position: 'front',
+            xaxis: [userLevelAnnotation,
+                {
+                    x: 60,
+                    offsetX: 5,
+                    borderColor: '#d6b031',
+                    strokeDashArray: 5,
+                    label: {
+                        borderColor: '#d6b031',
+                        style: {
+                            color: '#000000',
+                            background: '#d6b031'
+                        },
+                        text: 'Finish - Level 60'
+                    }
+                }]
+        },
+        colors: ["#34e5eb", "#34cceb", "#34b4eb", "#3498eb", "#347deb", "#345eeb", "#000000"],
+        fill: { type: 'solid' },
+        dataLabels: { enabled: false },
+        tooltip: {
+            shared: true,
+            inverseOrder: true,
+            x: {
+                formatter: function (value, data, w) {
+                    if (w == undefined) {
+                        let seriesLength = data.series.length == 1 ? data.series[0].slice(-1)[0] : data.series.reduce((p, c) => [p.slice(-1)[0] + c.slice(-1)[0]])[0],
+                            currentLength = data.series.length == 1 ? data.series[0][data.dataPointIndex] : data.series.reduce((p, c, i) => [(i == 1 ? p[data.dataPointIndex] : p[0]) + c[data.dataPointIndex]])[0];
+                        return (value != 61 ? "Level " + value : "Completion") + (data.w.config.chart.type == "area" ? " - " + (currentLength / seriesLength * 100).toFixed(2) + "%" : "");
+                        //return (value != 61 ? "Level " + value : "Completion") + (data.w.config.chart.type == "area" ? " - " + currentLength + "/" + seriesLength + " (" + (currentLength / seriesLength * 100).toFixed(2) + "%)" : "");
+                    }
+                }
+            },
+            y: {
+                formatter: function (value, data, _) {
+                    let seriesLength = data.series[data.seriesIndex].slice(-1)[0];
+                    return (value / seriesLength * 100).toFixed(2) + "%";
+                    //return value + "/" + seriesLength + " Kanji (" + (value / seriesLength * 100).toFixed(2) + "%)";
+                }
+            }
+        },
+        legend: { show: true },
+    }
+    litTotalChart = new ApexCharts(document.getElementById('littotalchart'), options);
+    litTotalChart.render();
+    litTotalChart.updateOptions({ theme: { mode: isDarkMode() ? 'dark' : 'light' }, chart: { background: colorSchemes[currentScheme].cardColor } });
 
     // update charts
     updateJlptChart();
@@ -343,17 +402,29 @@ function updateLiteratureChart() {
     let minOcc = Math.min(Math.round(document.getElementById('coverageminocc').value / 100 * data[1].reduce((p, c, i) => (i == 1 ? p[1] : p) + c[1])), data[1][10][1]);
     let litRawData = shortenFrequencyArray(data[1], minOcc),
         colorInter = d3.interpolateRgb(data[2][0], data[2][1]);
-    litSeriesData = [];
+    litSeriesData = [], litTotalSeriesData = [];
     for (let i = 0; i < literatureIntervals.length; i++) {
         let startIndex = literatureIntervals[i],
             endIndex = i != literatureIntervals.length - 1 ? literatureIntervals[i + 1] : litRawData.length;
         if (startIndex >= litRawData.length) break;
         let litKanji = litRawData.slice(startIndex, endIndex).reduce((p, c) => [p[0] + c[0], undefined])[0];
+        // regular literature chart
         let tempData = [];
         for (let j = 1; j <= 60; j++) tempData.push([j, commonCharCount(kanjiLevelData[j], litKanji)]);
         tempData.push([61, litKanji.length]);
         litSeriesData.push({
-            name: endIndex >= litRawData.length ? ">" + startIndex : (startIndex + 1) + "-" + endIndex,
+            name: endIndex >= litRawData.length ? ">#" + startIndex : "#" + (startIndex + 1) + "-#" + endIndex,
+            data: tempData
+        });
+        // total percentage literature chart
+        tempData = [];
+        for (let j = 1; j <= 60; j++) {
+            let currentKanji = commonChars(kanjiLevelData[j], litKanji);
+            tempData.push([j, litRawData.slice(startIndex, endIndex).map(e => currentKanji.includes(e[0]) ? [undefined, e[1]] : [undefined, 0]).reduce((p, c) => [undefined, p[1] + c[1]])[1]]);
+        }
+        tempData.push([61, litRawData.slice(startIndex, endIndex).reduce((p, c) => [undefined, p[1] + c[1]])[1]]);
+        litTotalSeriesData.push({
+            name: endIndex >= litRawData.length ? ">#" + startIndex : "#" + (startIndex + 1) + "-#" + endIndex,
             data: tempData
         });
     }
@@ -364,18 +435,16 @@ function updateLiteratureChart() {
     litChart.updateOptions({
         chart: { type: 'area', stacked: true },
         yaxis: { max: Math.ceil((litSeriesData.map(e => e.data.slice(-2)[0][1]).reduce((p, c) => p + c) + 50) / 100) * 100 },
-        xaxis: { max: 60 },
         series: litSeriesData,
         colors: colors,
-        /*annotations: {
-            yaxis: combinedBool ? ([{ y: 0, y2: schoolData.grade1.length, borderColor: "#34e5eb", fillColor: "#34e5eb", opacity: 0.15, strokeDashArray: 0 },
-            { y: schoolData.grade1.length, y2: schoolData.grade1.length + schoolData.grade2.length, borderColor: "#34cceb", fillColor: "#34cceb", opacity: 0.15, strokeDashArray: 0 },
-            { y: schoolData.grade1.length + schoolData.grade2.length, y2: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length, borderColor: "#34b4eb", fillColor: "#34b4eb", opacity: 0.15, strokeDashArray: 0 },
-            { y: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length, y2: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length, borderColor: "#3498eb", fillColor: "#3498eb", opacity: 0.15, strokeDashArray: 0 },
-            { y: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length, y2: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length + schoolData.grade5.length, borderColor: "#347deb", fillColor: "#347deb", opacity: 0.15, strokeDashArray: 0 },
-            { y: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length + schoolData.grade5.length, y2: schoolData.grade1.length + schoolData.grade2.length + schoolData.grade3.length + schoolData.grade4.length + schoolData.grade5.length + schoolData.grade6.length, borderColor: "#345eeb", fillColor: "#345eeb", opacity: 0.15, strokeDashArray: 0 }]) : []
-        },*/
-        title: { text: '"' + sourceselect[sourceselect.selectedIndex].text + '" Kanji Level Completion by Frequency' }
+        title: { text: '"' + sourceselect[sourceselect.selectedIndex].text + '" Individual Kanji Level Completion by Frequency' }
+    });
+
+    litTotalChart.updateOptions({
+        chart: { type: 'area', stacked: true },
+        series: litTotalSeriesData,
+        colors: colors,
+        title: { text: '"' + sourceselect[sourceselect.selectedIndex].text + '" Total Amount Kanji Percentage by Frequency' }
     });
 }
 
