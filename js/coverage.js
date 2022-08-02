@@ -7,7 +7,7 @@ const sourceselect = document.getElementById('source');
 // variables
 var itemData, userData, kanjiLevelData, jlptCoverage, joyoCoverage, schoolCoverage, litSeriesData, litTotalSeriesData;
 var jlptChart, joyoChart, schoolChart, litChart, litTotalChart;
-var tableBody, tablePos = 0, tableInterval = 100, tableData = [], tableWidth;
+var tableBody, tablePos = 0, accumulated = 0, tableInterval = 100, tableData = [], tableWidth;
 
 // constants
 const literatureRef = {
@@ -461,7 +461,7 @@ function updateLiterature() {
     tableWidth = littab.getElementsByTagName('thead')[0].getElementsByTagName('tr')[0].childElementCount;
     tableBody = littab.getElementsByTagName('tbody')[0];
     tableBody.innerHTML = "";
-    tablePos = 0;
+    tablePos = 0, accumulated = 0;
     loadTableData();
 
     // preview image
@@ -485,7 +485,7 @@ async function loadTableData() {
         tableBody.appendChild(tr);
     }
     let els = littab.getElementsByTagName('tbody')[0].children,
-        meaningPromises = [];
+        meaningPromises = []; 
     for (let i = tablePos; i < tableEndPos; i++) {
         // fill in data
         let currentRow = els[i].children,
@@ -494,12 +494,14 @@ async function loadTableData() {
             meaning = "-";
         try { meaning = fetch('https://kanjiapi.dev/v1/kanji/' + char).then(response => response.json()).then(e => e.meanings[0]); }
         catch (e) { console.log(e); meaning = "-"; }
+        accumulated += amount;
         currentRow[0].innerHTML = i + 1;
         currentRow[1].innerHTML = char; 
         meaningPromises.push(new Promise(async () => currentRow[2].innerHTML = await meaning));
         currentRow[3].innerHTML = (amount / totalKanji * 100).toFixed(2) + "% (" + amount + ")";
-        currentRow[4].innerHTML = Object.values(kanjiLevelData).findIndex(e => e.includes(char)) + 1 || "-";
-        currentRow[5].innerHTML = srsStageString(((Object.values(itemData).find(e => e.data.characters == char) || { assignments: { srs_stage: -1 } }).assignments || { srs_stage: 0 }).srs_stage);
+        currentRow[4].innerHTML = (accumulated / totalKanji * 100).toFixed(2) + "% (" + accumulated + ")";
+        currentRow[5].innerHTML = Object.values(kanjiLevelData).findIndex(e => e.includes(char)) + 1 || "-";
+        currentRow[6].innerHTML = srsStageString(((Object.values(itemData).find(e => e.data.characters == char) || { assignments: { srs_stage: -1 } }).assignments || { srs_stage: 0 }).srs_stage);
     }
     tablePos = tableEndPos;
     if (tablePos >= tableData.length) { document.getElementById('loadtablebtn').style.display = 'none'; }
