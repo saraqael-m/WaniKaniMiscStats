@@ -75,9 +75,12 @@
         <a onclick="window.location.hash = ''; window.location.hash = '#Literature';">Literature</a>
     </div>
 
-    <div class="row">
+    <div class="maincolumn row" style="display: flex; flex-direction: column">
 
         <div class="card">
+            <button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+            <button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
             <a class="JLPTKanji"></a>
             <h2 style="float: left;">JLPT Kanji</h2>
 
@@ -98,6 +101,9 @@
         </div>
 
         <div class="card">
+            <button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+            <button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
             <a class="SchoolKanji"></a>
             <h2 style="float: left;">School Kanji</h2>
 
@@ -117,6 +123,9 @@
         </div>
 
         <div class="card">
+            <button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+            <button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
             <a class="JoyoKanji"></a>
             <h2 style="float: left;">Joyo Kanji</h2>
 
@@ -124,12 +133,28 @@
         </div>
 
         <div class="card">
+            <button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+            <button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
             <a class="Literature"></a>
             <h2 style="float: left;">Literature</h2>
 
+            <div class="settingsbtn">
+                <div class="settings">
+                    <img src="images/settings_icon.png" style="float: left;">
+                    <h4>Settings</h4>
+                    <div style="padding-top: 5px">
+                        <label for="coverageminocc">Minimum Frequency Of Kanji:</label>
+                        <input type="number" id="coverageminocc" name="coverageminocc" onchange="updateLiteratureChart();" value="0.01" style="width: 80px" />
+                        <span>%</span>
+                    </div>
+                </div>
+                <img src="images/settings_icon.png">
+            </div>
+
             <div style="margin-top: 50px">
                 <div>
-                    <label for="source">Choose Kanji source:</label>
+                    <label for="source">Kanji source:</label>
                     <select name="source" id="source" onchange="updateLiterature();">
                         <option value="genjiMonogatari">Genji Monogatari</option>
                         <option value="coteV1">Classroom of the Elite Vol. 1</option>
@@ -143,12 +168,6 @@
                 </div>
 
                 <div style="padding-top: 10px">
-                    <label for="coverageminocc">Minimum Frequency Of Kanji:</label>
-                    <input type="number" id="coverageminocc" name="coverageminocc" onchange="updateLiteratureChart();" value="0.01" style="width: 80px" />
-                    <span>%</span>
-                </div>
-
-                <div style="padding-top: 20px">
 
                     <div><img id="literatureimg" height="200" /></div>
 
