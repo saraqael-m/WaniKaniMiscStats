@@ -7,7 +7,7 @@ const sourceselect = document.getElementById('source');
 // variables
 var itemData, userData, kanjiLevelData, jlptCoverage, joyoCoverage, schoolCoverage, litSeriesData, litTotalSeriesData;
 var jlptChart, joyoChart, schoolChart, litChart, litTotalChart;
-var tableBody, tablePos = 0, accumulated = 0, tableInterval = 100, tableData = [], tableWidth;
+var tableBody, tablePos = 0, accumulated = 0, tableInterval = 100, tableData = [], tableWidth, litMax = 0;
 
 // constants
 const literatureRef = {
@@ -227,7 +227,6 @@ async function kanjiListCharts() {
             xaxis: [userLevelAnnotation,
                 {
                     x: 60,
-                    offsetX: 5,
                     borderColor: '#d6b031',
                     strokeDashArray: 5,
                     label: {
@@ -274,7 +273,6 @@ async function kanjiListCharts() {
             xaxis: [userLevelAnnotation,
                 {
                     x: 60,
-                    offsetX: 5,
                     borderColor: '#d6b031',
                     strokeDashArray: 5,
                     label: {
@@ -434,16 +432,46 @@ function updateLiteratureChart() {
 
     litChart.updateOptions({
         chart: { type: 'area', stacked: true },
-        yaxis: { max: Math.ceil((litSeriesData.map(e => e.data.slice(-2)[0][1]).reduce((p, c) => p + c) + 50) / 100) * 100 },
+        //yaxis: { max: Math.ceil((litSeriesData.map(e => e.data.slice(-2)[0][1]).reduce((p, c) => p + c) + 50) / 100) * 100 },
         series: litSeriesData,
         colors: colors,
+        annotations: {
+            yaxis: litSeriesData.map((_, i) => ({
+                y: litSeriesData.map(e => e.data.slice(-1)[0][1]).slice(0, i).reduce((a, b) => a + b, 0),
+                y2: litSeriesData.map(e => e.data.slice(-1)[0][1]).slice(0, i + 1).reduce((a, b) => a + b),
+                borderColor: colors[i],
+                fillColor: colors[i],
+                opacity: 0.15,
+                strokeDashArray: 0,
+            }))
+        },
         title: { text: '"' + sourceselect[sourceselect.selectedIndex].text + '" Individual Kanji Level Completion by Frequency' }
     });
 
+    litMax = litTotalSeriesData.map(e => e.data.slice(-1)[0][1]).reduce((p, c) => p + c);
     litTotalChart.updateOptions({
         chart: { type: 'area', stacked: true },
         series: litTotalSeriesData,
         colors: colors,
+        yaxis: {
+            max: litMax,
+            labels: {
+                formatter: function (value) {
+                    const percentage = value / (litMax == 0 ? 1 : litMax) * 100
+                    return parseInt(percentage) <= 100 ? percentage.toFixed(2) + "%" : "";
+                }
+            }
+        },
+        annotations: {
+            yaxis: litTotalSeriesData.map((_, i) => ({
+                y: litTotalSeriesData.map(e => e.data.slice(-1)[0][1]).slice(0, i).reduce((a, b) => a + b, 0),
+                y2: litTotalSeriesData.map(e => e.data.slice(-1)[0][1]).slice(0, i + 1).reduce((a, b) => a + b),
+                borderColor: colors[i],
+                fillColor: colors[i],
+                opacity: 0.15,
+                strokeDashArray: 0,
+            }))
+        },
         title: { text: '"' + sourceselect[sourceselect.selectedIndex].text + '" Total Amount Kanji Percentage by Frequency' }
     });
 }
