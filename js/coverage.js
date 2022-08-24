@@ -22,6 +22,10 @@ const literatureRef = {
 }
 const literatureIntervals = [0, 50, 200, 500, 1000, 2000];
 
+// card order
+var mainCards = [].slice.call(document.getElementsByClassName('maincolumn')[0].children);
+setCardOrder();
+
 //// get items ////
 async function fetchData() {
     userData = undefined, itemData = undefined;
@@ -556,6 +560,39 @@ function srsStageString(n) {
         case 8: return preStr + "Enlightened" + "</a>"
         case 9: return preStr + "Burned" + "</a>"
     }
+}
+
+function setCardOrder() {
+    var cardOrder = localStorage['coveragecardorder'];
+    if (cardOrder === undefined) {
+        cardOrder = '[["0","1","2","3"]]';
+        localStorage["coveragecardorder"] = cardOrder;
+    };
+    cardOrder = JSON.parse(cardOrder);
+    var mainCardOrder = cardOrder[0];
+    // add new cards
+    for (let i = mainCardOrder.length; i < mainCards.length; i++) mainCardOrder.push(String(i));
+    // subtract removed cards
+    for (let i = mainCardOrder.length; i > mainCards.length; i--) mainCardOrder.splice(mainCardOrder.indexOf(String(i)), 1);
+    // reorganize cards
+    for (let i = 0; i < mainCards.length; i++) mainCards[i].style.order = mainCardOrder[i];
+}
+
+function moveCard(card, direction, moveBool = true) {
+    let orderPrev = card.style.order;
+    let changeCard = Array.from(card.parentNode.children).find(e => parseInt(e.style.order) === parseInt(orderPrev) + direction);
+    if (changeCard === undefined) return;
+    let orderNew = changeCard.style.order;
+    // change pos
+    card.style.order = orderNew,
+        changeCard.style.order = orderPrev;
+    // scroll
+    if (moveBool) { window.location.hash = ''; window.location.hash = '#' + card.getElementsByTagName('a')[0].id; }
+    saveCardOrder(); // save card order
+}
+
+function saveCardOrder() {
+    localStorage["coveragecardorder"] = JSON.stringify([[].slice.call(mainCards[0].parentNode.children).map(element => element.style.order)]);
 }
 
 fetchData();
