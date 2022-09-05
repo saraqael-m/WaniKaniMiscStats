@@ -247,7 +247,11 @@
 			request.open('GET', url, true);
 			for (var key in headers)
 				request.setRequestHeader(key, headers[key]);
-			request.send();
+			try {
+				request.send();
+			} catch (e) {
+				console.log(e);
+			}
 		}
 
 		//============
