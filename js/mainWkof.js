@@ -313,7 +313,7 @@ async function userInfo() {
     let userInfo = "";
     userInfo += fixHtml("<b>Username: ") + userData["username"] + "\n";
     userInfo += fixHtml("<b>Current Level: ") + userData["level"] + "\n";
-    userInfo += fixHtml("<b>User For: ") + parseInt((new Date() - new Date(userData["started_at"])) / (3600000 * 24)) + " days\n";
+    userInfo += fixHtml("<b>User For: ") + parseInt((dateNoTime(new Date()) - dateNoTime(new Date(userData["started_at"]))) / (3600000 * 24)) + " days\n";
     userInfo += fixHtml("<b>Subscription Active: ") + userData["subscription"]["active"] + "\n";
     let userPre = document.getElementById("userinfo");
     userPre.innerHTML = userInfo;
@@ -503,7 +503,7 @@ function updateCombinedAverages() {
 }
 
 function sameDay(d1, d2) {
-    return Math.abs(d1 - d2) < 43200000; // twelve hourse 
+    return Math.abs(d1 - d2) < 43200000; // twelve hourse
 }
 
 function openSnapshot(date) {
@@ -1336,6 +1336,12 @@ async function overviewInfo() {
         }
         streakCounter++;
     }
+    if (reviewArray[reviewArray.length - 1][0].getTime() != today.getTime()) {
+        if (reviewArray[reviewArray.length - 1][0].getTime() != yesterday.getTime()) {
+            streak = 0;
+        }
+    }
+    longestStreak = Math.max(longestStreak, streak);
     document.getElementById("streakOv").innerHTML = streak + " days";
     document.getElementById("streakOv").style.color = streak == longestStreak ? "#55af55" : "#af5555";
     document.getElementById("longestStreakOv").innerHTML = "Longest: " + longestStreak + " days";
@@ -1769,7 +1775,7 @@ function minsToDurationString(x, includeSeconds = false, short = false) {
     let hours = Math.floor(mins / 60);
     mins = mins - hours * 60;
     let returnString = "";
-    returnString += short ? (hours != 0 ? hours + "h" : "") + (mins == 0 ? "" : mins + "m") : (hours != 0 ? hours + (hours == 1 ? " hour, " : " hours, ") : "") + (mins == 0 ? "" : mins + (mins == 1 ? " min" : " mins"));
+    returnString += short ? (hours != 0 ? hours + "h" : "") + (mins == 0 ? "" : mins + "m") : (hours != 0 ? hours + (hours == 1 ? " hour" : " hours") : "") + (hours != 0 && mins != 0 ? ", " : "") + (mins == 0 ? "" : mins + (mins == 1 ? " min" : " mins"));
     if (includeSeconds) {
         let secs = Math.floor(rest * 60);
         returnString += secs == 0 ? "" : (short ? secs + "s" : (mins == 0 ? "" : ", ") + secs + (secs == 1 ? " sec" : " secs"));
