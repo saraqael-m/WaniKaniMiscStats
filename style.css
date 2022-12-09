@@ -13,7 +13,7 @@ body {
 	font-family: Helvetica, Arial, Sans-Serif;
 	padding: 10px;
 	background: var(--background);
-	max-width: 1900px;
+	max-width: 1800px;
 	margin: 0 auto;
 }
 
@@ -547,6 +547,10 @@ table.normaltable {
 
 .dark-mode a[href^="h"] {
 	color: #be8fee;
+}
+
+.wall {
+	margin-right: 50px;
 }
 
 /* top navigation design */
