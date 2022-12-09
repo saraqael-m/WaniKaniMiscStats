@@ -200,9 +200,9 @@ function moveCard(card, direction, moveBool = true) {
     // change pos
     card.style.order = orderNew,
         changeCard.style.order = orderPrev;
-    if (card.offsetTop > (lastRightElement.offsetTop + lastRightElement.offsetHeight)) card.style.width = "min(calc(100vw - 36px), 1780px)";
+    if (card.offsetTop > (lastRightElement.offsetTop + lastRightElement.offsetHeight + 20)) card.style.width = "min(calc(100vw - 36px), 1780px)";
     else card.style.width = "100%";
-    if (changeCard.offsetTop > (lastRightElement.offsetTop + lastRightElement.offsetHeight)) changeCard.style.width = "min(calc(100vw - 36px), 1780px)";
+    if (changeCard.offsetTop > (lastRightElement.offsetTop + lastRightElement.offsetHeight + 20)) changeCard.style.width = "min(calc(100vw - 36px), 1780px)";
     else changeCard.style.width = "100%";
     // scroll
     if (moveBool) { window.location.hash = ''; window.location.hash = '#' + card.getElementsByTagName('a')[0].id; }
