@@ -470,8 +470,10 @@
 				<a id="WordInfo"></a>
 				<h2 class="heading">Word Info</h2>
 				<p><b>Tip:</b> Click data points to be able to scroll through the word data and to be able to click on individual words to be led to their respective WaniKani site.</p>
-				<div id="wordbubblechart" class="chart"></div>
-				<div id="radbubblechart" class="chart"></div>
+				<div style="display: flex;flex-flow: row wrap;">
+					<div id="wordbubblechart" class="chart"></div>
+					<div id="radbubblechart" class="chart"></div>
+				</div>
 			</div>
 
 			<div class="card wordall">
@@ -480,10 +482,12 @@
 
 				<a id="WallofShame"></a>
 				<h2>Wall of Shame</h2>
-				<div id="worstwords" class="chart wall" style="color: white"></div>
-				<div id="worstwordsradical" class="chart wall"></div>
-				<div id="worstwordskanji" class="chart wall"></div>
-				<div id="worstwordsvocab" class="chart wall"></div>
+				<div style="display: flex;flex-flow: row wrap;">
+					<div id="worstwords" class="chart wall" style="color: white"></div>
+					<div id="worstwordsradical" class="chart wall"></div>
+					<div id="worstwordskanji" class="chart wall"></div>
+					<div id="worstwordsvocab" class="chart wall"></div>
+				</div>
 			</div>
 
 			<div class="card wordall">
@@ -492,14 +496,16 @@
 
 				<a id="WallofFame"></a>
 				<h2>Wall of Fame</h2>
-				<div id="topwords" class="chart wall" style="color: white"></div>
-				<div id="topwordsradical" class="chart wall"></div>
-				<div id="topwordskanji" class="chart wall"></div>
-				<div id="topwordsvocab" class="chart wall"></div>
+				<div style="display: flex;flex-flow: row wrap;">
+					<div id="topwords" class="chart wall" style="color: white"></div>
+					<div id="topwordsradical" class="chart wall"></div>
+					<div id="topwordskanji" class="chart wall"></div>
+					<div id="topwordsvocab" class="chart wall"></div>
+				</div>
 			</div>
 		</div>
 
-		<div class="rightcolumn">
+		<div class="rightcolumn" id="rightcolumn">
 			<div class="allinfo" style="display: none; flex-direction: column">
 				<div class="card">
 					<button onclick="moveCard(this.parentNode, -1, false);" class="movebtn">▲</button>

@@ -135,6 +135,16 @@ function cacheData() {
     saveCardOrder();
 }
 
+// Check width of left column when page size is changed
+var currentWidth = window.innerWidth;
+window.addEventListener('resize', function() {
+    // Check if the width of the browser window has changed
+    if (window.innerWidth != currentWidth) {
+        currentWidth = window.innerWidth;
+        setLeftColumnCardsWidth();
+    }
+  });
+
 // main code
 
 function chartSelectionMover(direction) {
@@ -167,6 +177,9 @@ function setCardOrder() {
     cardOrder = JSON.parse(cardOrder); // '[["0","1","2","3","4","5","6","7","8","9"],["1","3","0","4","2"]]'
     var leftCardOrder = cardOrder[0],
         rightCardOrder = cardOrder[1];
+    // make sure positions aren't empty ("")
+    for (let i = 0; i < leftCardOrder.length; i++) if (leftCardOrder[i] == "") {leftCardOrder = ["0","1","2","3","4","5","6","7","8","9"]; break;};
+    for (let i = 0; i < rightCardOrder.length; i++) if (rightCardOrder[i] == "") {rightCardOrder = ["1","3","0","4","2"]; break};
     // add new cards
     for (let i = leftCardOrder.length; i < leftCards.length; i++) leftCardOrder.push(String(i));
     for (let i = rightCardOrder.length; i < rightCards.length; i++) rightCardOrder.push(String(i));
@@ -182,10 +195,15 @@ function moveCard(card, direction, moveBool = true) {
     let orderPrev = card.style.order;
     let changeCard = Array.from(card.parentNode.children).find(e => parseInt(e.style.order) === parseInt(orderPrev) + direction);
     if (changeCard === undefined) return;
+    let lastRightElement = document.getElementById("rightcolumn").lastElementChild;
     let orderNew = changeCard.style.order;
     // change pos
     card.style.order = orderNew,
         changeCard.style.order = orderPrev;
+    if (card.offsetTop > (lastRightElement.offsetTop + lastRightElement.offsetHeight)) card.style.width = "min(calc(100vw - 36px), 1780px)";
+    else card.style.width = "100%";
+    if (changeCard.offsetTop > (lastRightElement.offsetTop + lastRightElement.offsetHeight)) changeCard.style.width = "min(calc(100vw - 36px), 1780px)";
+    else changeCard.style.width = "100%";
     // scroll
     if (moveBool) { window.location.hash = ''; window.location.hash = '#' + card.getElementsByTagName('a')[0].id; }
     saveCardOrder() // save card order
@@ -244,7 +262,16 @@ async function fetchData() {
     blackOverlay.style.visibility = "hidden";
     whiteOverlay.style.visibility = "hidden";
     for (const maindiv of maindivs) if (maindiv.classList.contains('leftcolumn') || maindiv.parentNode.classList.contains('rightcolumn')) maindiv.style.display = "flex"; else maindiv.style.display = "block";
-    loadGraphs().then(() => { if (localStorage["scrollposition"]) document.documentElement.scrollTop = document.body.scrollTop = localStorage["scrollposition"] });
+    loadGraphs().then(() => { if (localStorage["scrollposition"]) document.documentElement.scrollTop = document.body.scrollTop = localStorage["scrollposition"]; setLeftColumnCardsWidth(); });
+}
+
+// Make left column cards wider if below end of right column
+function setLeftColumnCardsWidth() {
+    let lastRightElement = document.getElementById("rightcolumn").lastElementChild;
+    for (let i = 0; i < leftCards.length; i++) {
+        if (leftCards[i].offsetTop > (lastRightElement.offsetTop + lastRightElement.offsetHeight + 20)) leftCards[i].style.width = "min(calc(100vw - 36px), 1780px)";
+        else leftCards[i].style.width = "100%";
+    }
 }
 
 async function dataPasser() {
@@ -2015,7 +2042,7 @@ async function wordInfo() {
         legend: { position: 'none' },
         bubble: { textStyle: { fontSize: 11 } },
         tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
-        width: 900,
+        width: 800,
         height: 700,
         backgroundColor: { fill: 'transparent' }
     };
@@ -2033,7 +2060,7 @@ async function wordInfo() {
         legend: { position: 'none' },
         bubble: { textStyle: { fontSize: 11 } },
         tooltip: { trigger: 'both', isHtml: true, ignoreBounds: true },
-        width: 900,
+        width: 800,
         height: 700,
         backgroundColor: { fill: 'transparent' }
     };
@@ -2061,7 +2088,7 @@ async function hallCreation(words, divid, titleChart, colorChart, type) {
         title: titleChart,
         colors: [colorChart],
         legend: { position: "none" },
-        hAxis: { textPosition: 'in' },
+        hAxis: { textPosition: 'in'},
         vAxis: {
             textPosition: 'in',
             viewWindow: {
@@ -2069,8 +2096,8 @@ async function hallCreation(words, divid, titleChart, colorChart, type) {
                 min: 0
             }
         },
-        width: 1000,
-        height: 333,
+        width: 800,
+        height: 250,
         backgroundColor: { fill: 'transparent' },
         tooltip: { isHtml: true }
     };
