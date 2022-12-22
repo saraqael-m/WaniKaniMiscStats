@@ -59,7 +59,18 @@
 			<select name="color-scheme" title="Select Color Scheme" id="color-scheme-select" onchange="changeMode([timeChart, timeTotalChart], this.value)"></select>
 		</div>
 		<h1 style="background-color: rgba(255, 255, 255, 0.7); margin-bottom: 0px">WaniKani History</h1>
-		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 35px">Miscellaneous Statistics</h2>
+		<h2 style="background-color: rgba(255, 255, 255, 0.7); margin-top: 0px; margin-bottom: 5px">Miscellaneous Statistics</h2>
+		<div id="time-offset-div">
+			<label for="time-offset">Select Day Start Time </label>
+			<select name="time-offset" title="Select Day Start Time" id="time-offset-select" onchange="setTimeOffset(this.value)">
+				<option value="0">00:00</option>
+				<option value="1">01:00</option>
+				<option value="2">02:00</option>
+				<option value="3">03:00</option>
+				<option value="4">04:00</option>
+				<option value="5">05:00</option>
+			</select>
+		</div>
 	</div>
 
 	<div class="toc">

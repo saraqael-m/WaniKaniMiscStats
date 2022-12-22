@@ -14,7 +14,10 @@ const blackOverlay = document.getElementById("blackoverlay");
 const whiteOverlay = document.getElementById("whiteoverlay");
 const wkofDiv = document.getElementById("wkof_ds");
 
+let offsetHours = 0;
+
 //// pre data-fetching ////
+loadTimeOffset();
 // Color scheme list and init functions
 const colorSchemes = {
     "light": {
@@ -68,7 +71,22 @@ function dateLongFormat(date) {
     return date.toDateString().split(' ').slice(1).join(' ');
 }
 
+function loadTimeOffset() {
+    offsetHours = parseInt(localStorage.getItem('timeOffset'));
+    if (isNaN(offsetHours)) offsetHours = 0;
+    document.getElementById("time-offset-select").selectedIndex = offsetHours;
+}
+
+function setTimeOffset(offset) {
+    offsetHours = offset;
+    localStorage["timeOffset"] = offsetHours;
+    fetchData();
+}
+
 function dateNoTime(date) {
+    // subtract hours from date and return without time (for example with 2h offset
+    // 01:30am on the 21st would become 11:30pm on the 20th -> classed as the 20th)
+    date.setHours(date.getHours() - offsetHours);
     return new Date(date.toDateString());
 }
 
