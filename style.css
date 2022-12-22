@@ -373,19 +373,19 @@ button.movebtn {
 		color: white;
 	}
 
-#color-scheme-div {
+#color-scheme-div, #time-offset-div {
 	float: left;
 	font-size: 15px;
 	margin: 5px;
 }
 
-#color-scheme-select {
+#color-scheme-select, #time-offset-select {
 	background-color: #fafafa;
 	color: black;
 	outline: none;
 }
 
-.dark-mode #color-scheme-select option {
+.dark-mode #color-scheme-select option, .dark-mode #time-offset-select option {
 	background-color: #1d1d1d;
 	color: white;
 }
@@ -524,7 +524,7 @@ table.normaltable {
 }
 
 .header {
-	padding: 20px 20px 30px 20px;
+	padding: 20px 20px 40px 20px;
 	text-align: center;
 	background: white;
 	color: black;
