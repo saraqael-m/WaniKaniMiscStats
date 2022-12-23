@@ -2068,26 +2068,29 @@ async function wordInfo() {
     chart = new google.visualization.ScatterChart(chartDiv);
     chart.draw(chartData, options);
 
-    hallCreation(bestWords, "topwords", "Wall of Fame: All", "black", 'mix');
-    hallCreation(worstWords, "worstwords", "Wall of Shame: All", "black", 'mix');
-    hallCreation(bestWordsR, "topwordsradical", "Wall of Fame: Radicals", '#55abf2', 'radical');
-    hallCreation(worstWordsR, "worstwordsradical", "Wall of Shame: Radicals", '#55abf2', 'radical');
-    hallCreation(bestWordsK, "topwordskanji", "Wall of Fame: Kanji", '#f032b1', 'kanji');
-    hallCreation(worstWordsK, "worstwordskanji", "Wall of Shame: Kanji", '#f032b1', 'kanji');
-    hallCreation(bestWordsV, "topwordsvocab", "Wall of Fame: Vocabulary", '#bb31de', 'vocabulary');
-    hallCreation(worstWordsV, "worstwordsvocab", "Wall of Shame: Vocabulary", '#bb31de', 'vocabulary');
+    hallCreation([bestWords, bestWordsR, bestWordsK, bestWordsV], "topwords", "Wall of Fame");
+    hallCreation([worstWords, worstWordsR, worstWordsK, worstWordsV], "worstwords", "Wall of Shame");
 }
 
-async function hallCreation(words, divid, titleChart, colorChart, type) {
+async function hallCreation(rawdata, divid, titleChart) {
+    const hallColors = ['black', '#55abf2', '#f032b1', '#bb31de'];
+    const hallNames = ['All Types', 'Radical', 'Kanji', 'Vocab']
     let chartDiv = document.getElementById(divid);
-    var data = [["Radical", "Percentage", { role: 'annotation' }]];
-    for (let i = 0; i < words.length; i++) data.push([words[i][2], words[i][1] * 100, words[i][3] + "/" + words[i][4]]);
+    var data = [["Count", "All", { role: 'annotation' }, { role: 'style' }, { role: 'tooltip' }, "Radical", { role: 'annotation' }, { role: 'style' }, { role: 'tooltip' }, "Kanji", { role: 'annotation' }, { role: 'style' }, { role: 'tooltip' }, "Vocab", { role: 'annotation' }, { role: 'style' }, { role: 'tooltip' }]];
+    for (let i = 0; i < rawdata[0].length; i++) {
+        let newdata = ['#' + (i + 1)];
+        for (let j = 0; j < rawdata.length; j++) {
+            words = rawdata[j]
+            newdata.push(...[words[i][1] * 100, words[i][2], 'color: ' + hallColors[j], words[i][2] + ' (' + hallNames[j] + '): ' + words[i][3] + '/' + (words[i][4] + words[i][3]) + ' (' + words[i][1] * 100 + '%)']);
+        }
+        data.push(newdata);
+    }  
     var chartData = google.visualization.arrayToDataTable(data);
     var options = {
         chartArea: { width: '100%', height: '80%' },
         title: titleChart,
-        colors: [colorChart],
-        legend: { position: "none" },
+        //colors: [colorChart],
+        legend: { position: 'none'},
         hAxis: { textPosition: 'in'},
         vAxis: {
             textPosition: 'in',
@@ -2106,9 +2109,11 @@ async function hallCreation(words, divid, titleChart, colorChart, type) {
     chart.draw(chartData, options);
 
     google.visualization.events.addListener(chart, 'select', function () {
-        if (type == 'radical' || (type == 'mix' && words[chart.getSelection()[0].row][6] == 'radical')) window.open("https://www.wanikani.com/radicals/" + words[chart.getSelection()[0].row][5]);
-        else if (type == 'mix') window.open("https://www.wanikani.com/" + words[chart.getSelection()[0].row][6] + "/" + data[chart.getSelection()[0].row + 1][0]);
-        else window.open("https://www.wanikani.com/" + type + "/" + data[chart.getSelection()[0].row + 1][0]);
+        let {row, column} = chart.getSelection()[0];
+        let type = column - 1 == 0 ? rawdata[0][row][6] : ['radical', 'kanji', 'vocabulary'][(column - 5) / 4];
+        type = type == 'radical' ? 'radicals' : type; // has to stay
+        let char = rawdata[(column - 1) / 4][row][type == 'radicals' ? 5 : 2];
+        window.open('https://www.wanikani.com/' + type + '/' + char);
         chart.setSelection(null);
     });
 }

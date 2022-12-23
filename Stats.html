@@ -52,7 +52,7 @@
 			<span style="float: right; margin-right: 15px" id="usernamespan"></span>
 		</div>
 		<div>
-			<span style="float: right;">バージョン３.１０.２</span> <!-- ０１２３４５６７８９ -->
+			<span style="float: right;">バージョン３.１０.３</span> <!-- ０１２３４５６７８９ -->
 		</div>
 		<div id="color-scheme-div">
 			<label for="color-scheme">Color Scheme </label>
@@ -87,8 +87,7 @@
 		<a onclick="window.location.hash = ''; window.location.hash = '#TimeInfo';">Time Info</a>
 		<a onclick="window.location.hash = ''; window.location.hash = '#InfoTable';">Info Table</a>
 		<a onclick="window.location.hash = ''; window.location.hash = '#WordInfo';">Word Info</a>
-		<a onclick="window.location.hash = ''; window.location.hash = '#WallofShame';">Wall of Shame</a>
-		<a onclick="window.location.hash = ''; window.location.hash = '#WallofFame';">Wall of Fame</a>
+		<a onclick="window.location.hash = ''; window.location.hash = '#Walls';">Word Walls</a>
 		<a onclick="window.location.hash = ''; window.location.hash = '#UserInfo';">User Info</a>
 		<a onclick="window.location.hash = ''; window.location.hash = '#Averages';">Averages</a>
 		<a onclick="window.location.hash = ''; window.location.hash = '#WordProgress';">Word Progress</a>
@@ -491,27 +490,11 @@
 				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
 				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
-				<a id="WallofShame"></a>
-				<h2>Wall of Shame</h2>
+				<a id="Walls"></a>
+				<h2>Word Walls</h2>
 				<div style="display: flex;flex-flow: row wrap;">
 					<div id="worstwords" class="chart wall" style="color: white"></div>
-					<div id="worstwordsradical" class="chart wall"></div>
-					<div id="worstwordskanji" class="chart wall"></div>
-					<div id="worstwordsvocab" class="chart wall"></div>
-				</div>
-			</div>
-
-			<div class="card wordall">
-				<button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
-				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
-
-				<a id="WallofFame"></a>
-				<h2>Wall of Fame</h2>
-				<div style="display: flex;flex-flow: row wrap;">
 					<div id="topwords" class="chart wall" style="color: white"></div>
-					<div id="topwordsradical" class="chart wall"></div>
-					<div id="topwordskanji" class="chart wall"></div>
-					<div id="topwordsvocab" class="chart wall"></div>
 				</div>
 			</div>
 		</div>

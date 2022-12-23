@@ -74,7 +74,8 @@ function dateLongFormat(date) {
 function loadTimeOffset() {
     offsetHours = parseInt(localStorage.getItem('timeOffset'));
     if (isNaN(offsetHours)) offsetHours = 0;
-    document.getElementById("time-offset-select").selectedIndex = offsetHours;
+    timeOffsetElement = document.getElementById("time-offset-select")
+    if (timeOffsetElement) timeOffsetElement.selectedIndex = offsetHours;
 }
 
 function setTimeOffset(offset) {
