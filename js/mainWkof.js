@@ -282,14 +282,19 @@ async function dataPasser() {
         value: 0,
         max: 6
     };
+
+    await wkof.Apiv2.get_endpoint('user').then(data => { progress['value']++; wkof.Progress.update(progress); userData = data; });
+    wkof.user.override_max_level = 60; // just for user history purposes
+
     wkof.Progress.update(progress);
     await Promise.all([wkof.ItemData.get_items('assignments, subjects, review_statistics').then(data => { progress['value']++; wkof.Progress.update(progress); itemDataHandler(data); }),
-    wkof.Apiv2.get_endpoint('user').then(data => { progress['value']++; wkof.Progress.update(progress); userData = data; }),
-    wkof.Apiv2.get_endpoint('resets').then(data => { progress['value']++; wkof.Progress.update(progress); resetData = Object.values(data); }),
-    wkof.Apiv2.get_endpoint('level_progressions').then(data => { progress['value']++; wkof.Progress.update(progress); levelData = Object.values(data); }),
-    wkof.Apiv2.get_endpoint('spaced_repetition_systems').then(data => { progress['value']++; wkof.Progress.update(progress); srsData = data; }),
-    wkof.Apiv2.get_endpoint('reviews').then(data => { progress['value']++; wkof.Progress.update(progress); reviewData = Object.values(data); })]);
+        wkof.Apiv2.get_endpoint('resets').then(data => { progress['value']++; wkof.Progress.update(progress); resetData = Object.values(data); }),
+        wkof.Apiv2.get_endpoint('level_progressions').then(data => { progress['value']++; wkof.Progress.update(progress); levelData = Object.values(data); }),
+        wkof.Apiv2.get_endpoint('spaced_repetition_systems').then(data => { progress['value']++; wkof.Progress.update(progress); srsData = data; }),
+        wkof.Apiv2.get_endpoint('reviews').then(data => { progress['value']++; wkof.Progress.update(progress); reviewData = Object.values(data); })]);
     wkofDiv.style.display = 'none';
+
+    wkof.user.override_max_level = undefined; // set back as to not let other people get the data
 }
 
 function itemDataHandler(items) {

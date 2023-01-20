@@ -168,6 +168,7 @@
 
 		return Promise.all(prep_promises).then(function(){
 			var result = [];
+			
 			var max_level = Math.max(wkof.user.subscription.max_level_granted, wkof.user.override_max_level || 0);
 			for (var item_idx in items) {
 				var keep = true;
@@ -429,8 +430,9 @@
 
 		//============
 		function to_num(num) {
-			num = (num[0] < '0' ? wkof.user.level : 0) + Number(num)
-			return Math.min(Math.max(1, num), wkof.user.subscription.max_level_granted);
+			num = (num[0] < '0' ? wkof.user.level : 0) + Number(num);
+			
+			return Math.min(Math.max(1, num), Math.max(wkof.user.subscription.max_level_granted, wkof.user.override_max_level || 0));
 		}
 	}
 

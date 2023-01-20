@@ -28,6 +28,7 @@ setCardOrder();
 
 //// get items ////
 async function fetchData() {
+
     userData = undefined, itemData = undefined;
     for (const maindiv of maindivs) maindiv.style.display = "none";
     blackOverlay.style.visibility = "visible";
@@ -45,6 +46,7 @@ async function fetchData() {
     blackOverlay.style.visibility = "hidden";
     whiteOverlay.style.visibility = "hidden";
     for (const maindiv of maindivs) maindiv.style.display = "block";
+
 }
 
 function createKanjiLevelData() {
@@ -69,8 +71,13 @@ async function dataPasser() {
         }
     };
 
+    await wkof.Apiv2.get_endpoint('user');
+    wkof.user.override_max_level = 60; // just for user history purposes
+    
     await Promise.all([wkof.ItemData.get_items(subjectConfig).then(data => { itemData = {}; for (const val of Object.values(data)) itemData[val.id] = val; }),
         wkof.Apiv2.get_endpoint('user').then(data => userData = data)]);
+
+    wkof.user.override_max_level = undefined; // set back as to not let other people get the data
 }
 
 async function generateCharts() {
