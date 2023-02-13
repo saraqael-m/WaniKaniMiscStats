@@ -17,6 +17,7 @@ var defaultSettings = {
     levelclamp: ['checked', false],
     levelcomb: ['checked', false],
     levelresets: ['checked', false],
+    percentagesrs: ['checked', false], // srs items
     pastLevels: ['checked', true], // projections
     showBurn: ['checked', true],
     showCheck: ['checked', true],
@@ -61,6 +62,7 @@ const levelClampBox = document.getElementById("levelclamp");
 const levelCombBox = document.getElementById("levelcomb");
 const levelMedianBox = document.getElementById("showmedian");
 const projSpeedBox = document.getElementById("projectionsspeed");
+const percsrsBox = document.getElementById('percentagesrs');
 
 // global vars
 var timeChart, timeTotalChart;
@@ -922,14 +924,22 @@ async function updateReviewCharts() {
         chartSelectionSetter(totalChart);
     });
     // srs stacked
-    srsStackChartData = google.visualization.arrayToDataTable(dataDateShorten(srsArray, startDate, nullifyBool));
+    const inpercentage = percsrsBox.checked;
+    srsStackChartData = google.visualization.arrayToDataTable(dataDateShorten(inpercentage ? [srsArray[0], ...srsArray.slice(1).map(e => {
+        const totalsrsitems = e.slice(1).reduce((a, b) => a + b);
+        return [e[0], ...e.slice(1).map(n => n / totalsrsitems)];
+    })] : srsArray, startDate, nullifyBool));
+    if (inpercentage) {
+        for (let i = 1; i < 6; i++) new google.visualization.NumberFormat({pattern: '0.0%'}).format(srsStackChartData, i);
+    }
     dateFormatter.format(srsStackChartData, 0);
     options = {
         chartArea: { width: '100%', height: '80%' },
         legend: { position: 'in' },
-        hAxis: { textPosition: 'bottom' }, vAxis: { textPosition: 'in' },
+        hAxis: { textPosition: 'bottom' },
         //title: "Item Types Stacked",
         connectSteps: true,
+        vAxis: {format: (inpercentage ? 'percent' : ''), textPosition: 'in'},
         colors: ['pink', 'purple', 'darkblue', 'lightblue', '#f0ca00'], // burned is gold
         isStacked: true,
         width: 1000,
@@ -946,9 +956,10 @@ async function updateReviewCharts() {
     options = {
         chartArea: { width: '100%', height: '80%' },
         legend: { position: 'in' },
-        hAxis: { textPosition: 'bottom' }, vAxis: { textPosition: 'in' },
+        hAxis: { textPosition: 'bottom' },
         //title: "Item Types",
         colors: ['pink', 'purple', 'darkblue', 'lightblue', '#f0ca00'],
+        vAxis: {format: (inpercentage ? 'percent' : ''), textPosition: 'in'},
         width: 1000,
         height: 333,
         backgroundColor: { fill: 'transparent' },

@@ -52,7 +52,7 @@
 			<span style="float: right; margin-right: 15px" id="usernamespan"></span>
 		</div>
 		<div>
-			<span style="float: right;">バージョン３.１０.４</span> <!-- ０１２３４５６７８９ -->
+			<span style="float: right;">バージョン３.１０.５</span> <!-- ０１２３４５６７８９ -->
 		</div>
 		<div id="color-scheme-div">
 			<label for="color-scheme">Color Scheme </label>
@@ -243,7 +243,19 @@
 				<button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
 				<a id="SrsInfo"></a>
-				<h2 class="heading" style="padding-bottom: 0px">SRS Item Info</h2>
+				<h2 class="heading" style="float: left;">SRS Item Info</h2>
+
+				<div class="settingsbtn">
+					<div class="settings">
+						<img src="images/settings_icon.png" style="float: left;">
+						<h4>Settings</h4>
+						<input type="checkbox" name="percentagesrs" id="percentagesrs" onchange="updateReviewCharts();">
+						<label for="percentagesrs">Show as percentage</label>
+					</div>
+					<img src="images/settings_icon.png">
+				</div>
+				<div style="clear: both;"></div>
+
 				<div id="srschart2" class="chart"></div>
 				<div id="srschart" class="chart"></div>
 			</div>
