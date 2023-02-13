@@ -53,7 +53,7 @@
             <span style="float: right; margin-right: 15px" id="usernamespan"></span>
         </div>
         <div>
-            <span style="float: right;">バージョン３.１０.５</span> <!-- ０１２３４５６７８９ -->
+            <span style="float: right;">バージョン３.１１.０</span> <!-- ０１２３４５６７８９ -->
         </div>
         <div id="color-scheme-div">
             <label for="color-scheme">Color Scheme </label>
@@ -72,7 +72,7 @@
         <a onclick="window.location.hash = ''; window.location.hash = '#JLPTKanji';">JLPT Kanji</a>
         <a onclick="window.location.hash = ''; window.location.hash = '#JoyoKanji';">Joyo Kanji</a>
         <a onclick="window.location.hash = ''; window.location.hash = '#SchoolKanji';">School Kanji</a>
-        <a onclick="window.location.hash = ''; window.location.hash = '#Literature';">Literature</a>
+        <a onclick="window.location.hash = ''; window.location.hash = '#LiteratureKanji';">Literature Kanji</a>
     </div>
 
     <div class="maincolumn row" style="display: flex; flex-direction: column">
@@ -98,6 +98,29 @@
             <div style="clear: both;"></div>
 
             <div class="apexchart noblack" id="jlptchart" style="margin-top: 0px"></div>
+        </div>
+
+        <div class="card">
+            <button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
+            <button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
+
+            <a class="JLPTWords"></a>
+            <h2 style="float: left;">JLPT Words</h2>
+
+            <div class="settingsbtn">
+                <div class="settings">
+                    <img src="images/settings_icon.png" style="float: left;">
+                    <h4>Settings</h4>
+                    <div style="padding-top: 5px">
+                        <input type="checkbox" id="jlptwordcomb" name="jlptwordcomb" checked onchange="updateJlptChart();">
+                        <label for="jlptwordcomb">Combine JLPT Levels (Stacked Chart)</label>
+                    </div>
+                </div>
+                <img src="images/settings_icon.png">
+            </div>
+            <div style="clear: both;"></div>
+
+            <div class="apexchart noblack" id="jlptwordchart" style="margin-top: 0px"></div>
         </div>
 
         <div class="card">
@@ -136,8 +159,8 @@
             <button onclick="moveCard(this.parentNode, -1);" class="movebtn">▲</button>
             <button onclick="moveCard(this.parentNode, 1);" class="movebtn">▼</button>
 
-            <a class="Literature"></a>
-            <h2 style="float: left;">Literature</h2>
+            <a class="LiteratureKanji"></a>
+            <h2 style="float: left;">Literature Kanji</h2>
 
             <div class="settingsbtn">
                 <div class="settings">
@@ -222,6 +245,7 @@
     <!-- main script -->
     <script src="js/basicFunc.js"></script>
     <script src="js/kanjilistData.js"></script>
+    <script src="js/wordlistData.js"></script>
     <script src="js/coverage.js"></script>
 
 </body>

@@ -5,8 +5,8 @@ const littab = document.getElementById('literaturetable');
 const sourceselect = document.getElementById('source');
 
 // variables
-var itemData, userData, kanjiLevelData, jlptCoverage, joyoCoverage, schoolCoverage, litSeriesData, litTotalSeriesData;
-var jlptChart, joyoChart, schoolChart, litChart, litTotalChart;
+var kanjiItemData, userData, kanjiLevelData, jlptwordCoverage, jlptCoverage, joyoCoverage, schoolCoverage, litSeriesData, litTotalSeriesData;
+var jlptwordChart, jlptChart, joyoChart, schoolChart, litChart, litTotalChart;
 var tableBody, tablePos = 0, accumulated = 0, tableInterval = 100, tableData = [], tableWidth, litMax = 0;
 
 // constants
@@ -29,7 +29,7 @@ setCardOrder();
 //// get items ////
 async function fetchData() {
 
-    userData = undefined, itemData = undefined;
+    userData = undefined, kanjiItemData = undefined;
     for (const maindiv of maindivs) maindiv.style.display = "none";
     blackOverlay.style.visibility = "visible";
     whiteOverlay.style.visibility = "visible";
@@ -52,7 +52,7 @@ async function fetchData() {
 function createKanjiLevelData() {
     kanjiLevelData = {};
     for (let i = 1; i <= 60; i++) kanjiLevelData[i] = "";
-    for (const item of Object.values(itemData)) {
+    for (const item of Object.values(kanjiItemData)) {
         let level = item.data.level,
             char = item.data.characters;
         for (let i = level; i <= 60; i++) {
@@ -74,8 +74,10 @@ async function dataPasser() {
     await wkof.Apiv2.get_endpoint('user');
     wkof.user.override_max_level = 60; // just for user history purposes
     
-    await Promise.all([wkof.ItemData.get_items(subjectConfig).then(data => { itemData = {}; for (const val of Object.values(data)) itemData[val.id] = val; }),
-        wkof.Apiv2.get_endpoint('user').then(data => userData = data)]);
+    await Promise.all([wkof.ItemData.get_items(subjectConfig).then(data => { kanjiItemData = {}; for (const val of Object.values(data)) kanjiItemData[val.id] = val; }),
+        wkof.Apiv2.get_endpoint('user').then(data => userData = data),
+        //wkof.ItemData.get_items({wk_items: {options: { subjects: true, assignments: true, review_statistics: true }}}).then(data => { itemData = {}; for (const val of Object.values(data)) itemData[val.id] = val; })
+    ]);
 
     wkof.user.override_max_level = undefined; // set back as to not let other people get the data
 }
@@ -110,7 +112,48 @@ async function kanjiListCharts() {
             }
         }
 
-    // JLPT //
+    // JLPT words //
+    const wordAmounts = JLPTwordData.total.reverse(); // amount of vocab items is 6528 as of 13 Feb 2023
+    jlptwordCoverage = [[], ...Object.values(JLPTwordData).slice(1).reverse().map((e, j) => e.map((n, i) => [i + 1, parseInt(n * wordAmounts[j])]))]; 
+    for (let i = 0; i < 60; i++) jlptwordCoverage[0].push([i + 1, jlptwordCoverage[1][i][1] + jlptwordCoverage[2][i][1] + jlptwordCoverage[3][i][1] + jlptwordCoverage[4][i][1] + jlptwordCoverage[5][i][1]]);
+    var options = {
+        chart: { type: 'area', height: '400px' },
+        title: { text: 'JLPT Word Level Completion' },
+        stroke: { curve: 'smooth', width: 2 },
+        series: [],
+        annotations: {
+            position: 'front',
+            xaxis: [userLevelAnnotation]
+        },
+        colors: ["#3477eb", "#5beb34", "#d8e041", "#ebc252", "#f76248", "#000000"],
+        fill: { type: 'solid' },
+        dataLabels: { enabled: false },
+        tooltip: {
+            shared: true,
+            inverseOrder: true,
+            x: {
+                formatter: function (value, data, w) {
+                    if (w == undefined) { 
+                        const totalLength = wordAmounts.reduce((a, b) => a + b),
+                            currentLength = jlptwordCoverage[0][data.dataPointIndex][1]; 
+                        return "Level " + value + (data.w.config.chart.type == "area" ? " - " + currentLength + "/" + totalLength + " (" + (currentLength / totalLength * 100).toFixed(2) + "%)" : ""); 
+                    }
+                }
+            },
+            y: {
+                formatter: function (value, opts, _) {
+                    const index = 4 - opts.seriesIndex;
+                    return value + '/' + wordAmounts[index] + " (" + (value / wordAmounts[index] * 100).toFixed(2) + "%)";
+                }
+            }
+        },
+        legend: { show: true }
+    }
+    jlptwordChart = new ApexCharts(document.getElementById('jlptwordchart'), options);
+    jlptwordChart.render();
+    jlptwordChart.updateOptions({ theme: { mode: isDarkMode() ? 'dark' : 'light' }, chart: { background: colorSchemes[currentScheme].cardColor } });
+
+    // JLPT kanji //
     jlptCoverage = [[]];
     for (const jlptKanji of [jlptData.N1, jlptData.N2, jlptData.N3, jlptData.N4, jlptData.N5]) {
         let tempData = [];
@@ -135,7 +178,10 @@ async function kanjiListCharts() {
             inverseOrder: true,
             x: {
                 formatter: function (value, data, w) {
-                    if (w == undefined) { let seriesLength = Object.values(jlptData).map(e => e.length).reduce((a, b) => a + b), currentLength = jlptCoverage[0][data.dataPointIndex][1]; return "Level " + value + (data.w.config.chart.type == "area" ? " - " + currentLength + "/" + seriesLength + " (" + (currentLength / seriesLength * 100).toFixed(2) + "%)" : ""); }
+                    if (w == undefined) { 
+                        let seriesLength = Object.values(jlptData).map(e => e.length).reduce((a, b) => a + b), 
+                            currentLength = jlptCoverage[0][data.dataPointIndex][1]; 
+                        return "Level " + value + (data.w.config.chart.type == "area" ? " - " + currentLength + "/" + seriesLength + " (" + (currentLength / seriesLength * 100).toFixed(2) + "%)" : ""); }
                 }
             },
             y: {
@@ -328,8 +374,45 @@ async function kanjiListCharts() {
 
     // update charts
     updateJlptChart();
+    updateJlptWordChart();
     updateSchoolChart();
     updateLiteratureChart();
+}
+
+function updateJlptWordChart() {
+    let combinedBool = document.getElementById('jlptwordcomb').checked;
+    if (combinedBool) document.getElementById('jlptwordchart').classList.add('noblack');
+    else document.getElementById('jlptwordchart').classList.remove('noblack');
+    const wordAmounts = JLPTwordData.total;
+    jlptwordChart.updateOptions({
+        chart: combinedBool ? { type: 'area', stacked: true } : { type: 'line', stacked: false },
+        series: [{
+            name: "N5",
+            data: jlptwordCoverage[5]
+        }, {
+            name: "N4",
+            data: jlptwordCoverage[4]
+        }, {
+            name: "N3",
+            data: jlptwordCoverage[3]
+        }, {
+            name: "N2",
+            data: jlptwordCoverage[2]
+        }, {
+            name: "N1",
+            data: jlptwordCoverage[1]
+        }, ...(!combinedBool ? [{
+            name: "All",
+            data: jlptwordCoverage[0]
+        }] : [])],
+        annotations: {
+            yaxis: combinedBool ? ([{ y: 0, y2: wordAmounts[4], borderColor: "#3477eb", fillColor: "#3477eb", opacity: 0.15, strokeDashArray: 0 },
+            { y: wordAmounts[4], y2: wordAmounts[4] + wordAmounts[3], borderColor: "#5beb34", fillColor: "#5beb34", opacity: 0.15, strokeDashArray: 0 },
+            { y: wordAmounts[4] + wordAmounts[3], y2: wordAmounts[4] + wordAmounts[3] + wordAmounts[2], borderColor: "#d8e041", fillColor: "#d8e041", opacity: 0.15, strokeDashArray: 0 },
+            { y: wordAmounts[4] + wordAmounts[3] + wordAmounts[2], y2: wordAmounts[4] + wordAmounts[3] + wordAmounts[2] + wordAmounts[1], borderColor: "#ebc252", fillColor: "#ebc252", opacity: 0.15, strokeDashArray: 0 },
+            { y: wordAmounts[4] + wordAmounts[3] + wordAmounts[2] + wordAmounts[1], y2: wordAmounts[4] + wordAmounts[3] + wordAmounts[2] + wordAmounts[1] + wordAmounts[0], borderColor: "#f76248", fillColor: "#f76248", opacity: 0.15, strokeDashArray: 0 }]) : []
+        },
+    });
 }
 
 function updateJlptChart() {
@@ -540,7 +623,7 @@ async function loadTableData() {
         currentRow[3].innerHTML = (amount / totalKanji * 100).toFixed(2) + "% (" + amount + ")";
         currentRow[4].innerHTML = (accumulated / totalKanji * 100).toFixed(2) + "% (" + accumulated + ")";
         currentRow[5].innerHTML = Object.values(kanjiLevelData).findIndex(e => e.includes(char)) + 1 || "-";
-        currentRow[6].innerHTML = srsStageString(((Object.values(itemData).find(e => e.data.characters == char) || { assignments: { srs_stage: -1 } }).assignments || { srs_stage: 0 }).srs_stage);
+        currentRow[6].innerHTML = srsStageString(((Object.values(kanjiItemData).find(e => e.data.characters == char) || { assignments: { srs_stage: -1 } }).assignments || { srs_stage: 0 }).srs_stage);
     }
     tablePos = tableEndPos;
     if (tablePos >= tableData.length) { document.getElementById('loadtablebtn').style.display = 'none'; }
