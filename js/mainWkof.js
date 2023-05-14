@@ -1392,7 +1392,7 @@ async function overviewInfo() {
             streak = 0;
         }
     }
-    longestStreak = Math.max(longestStreak, streak);
+    longestStreak = Math.max(longestStreak, streakCounter);
     document.getElementById("streakOv").innerHTML = streak + " days";
     document.getElementById("streakOv").style.color = streak == longestStreak ? "#55af55" : "#af5555";
     document.getElementById("longestStreakOv").innerHTML = "Longest: " + longestStreak + " days";
