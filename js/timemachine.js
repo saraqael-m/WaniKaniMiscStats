@@ -197,6 +197,8 @@ function levelReorder(lvl) {
 }
 
 async function calculateTimemachineData() {
+    if (reviewData.length == 0) return;
+
     // create kanji div
     timemachineData = [[dateNoTime(new Date(reviewData[0]['data']['created_at'])), []]];
     timemachineData[0][0].setDate(timemachineData[0][0].getDate() - 1);

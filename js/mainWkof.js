@@ -265,6 +265,13 @@ async function fetchData() {
     whiteOverlay.style.visibility = "hidden";
     for (const maindiv of maindivs) if (maindiv.classList.contains('leftcolumn') || maindiv.parentNode.classList.contains('rightcolumn')) maindiv.style.display = "flex"; else maindiv.style.display = "block";
     loadGraphs().then(() => { if (localStorage["scrollposition"]) document.documentElement.scrollTop = document.body.scrollTop = localStorage["scrollposition"]; setLeftColumnCardsWidth(); });
+
+    [[userData, 'User'], [levelData, 'Level Progressions'], [srsData, 'Spaced Repetition Systems'], [reviewData, 'Reviews']].forEach(endpoint => {
+        let [endpointData, endpointName] = endpoint;
+        if (endpointData || endpointData[0].length != 0) {
+            openDetailWindow(`<h2>Data Handling Problem</h2><p>The data from the "${endpointName}" endpoint was returned empty. This might make some stats invisible, outdated, or wrong. If you still want to proceed, close this window.</p><p>Sorry for the inconvenience.</p>`);
+        }
+    });
 }
 
 // Make left column cards wider if below end of right column
@@ -334,13 +341,14 @@ function repairLevelArray() {
 }
 
 async function loadGraphs() {
-    calculateTotalAverages();
-    userInfo();
-    levelInfo().then(() => { projections(); overviewInfo(); });
-    wordInfo().then(updateCombinedAverages());
-    updateReviewCharts();
-    updateReviewAccuracy();
-    updateTables();
+    const tryFunc = func => {try {func()} catch (error) {console.log(error)}};
+    tryFunc(calculateTotalAverages);
+    tryFunc(userInfo);
+    tryFunc(() => levelInfo().then(() => { projections(); overviewInfo(); }));
+    tryFunc(() => wordInfo().then(updateCombinedAverages()));
+    tryFunc(updateReviewCharts);
+    tryFunc(updateReviewAccuracy);
+    tryFunc(updateTables);
 }
 
 async function userInfo() {
@@ -1379,7 +1387,7 @@ async function overviewInfo() {
         }
         streakCounter++;
     }
-    if (reviewArray[reviewArray.length - 1][0].getTime() != today.getTime()) {
+    if (!(reviewArray.length == 0) && reviewArray[reviewArray.length - 1][0].getTime() != today.getTime()) {
         if (reviewArray[reviewArray.length - 1][0].getTime() != yesterday.getTime()) {
             streak = 0;
         }
@@ -1425,6 +1433,8 @@ async function overviewInfo() {
 }
 
 async function updateReviewAccuracy() {
+    if (reviewAccuracy.length == 0) return;
+
     var dayAverage = smoothAccInp.value;
     let smoothBool = (dayAverage != 0);
     if (!smoothBool) dayAverage = 1;
